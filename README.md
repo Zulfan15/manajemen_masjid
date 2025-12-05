@@ -83,10 +83,8 @@ Note: Perintah `storage:link` wajib dijalankan agar gambar bukti transaksi bisa 
 ```bash
 php artisan serve
 ```
----
 
-## 
-🔑 Akun Pengujian
+## 🔑 Akun Pengujian
 Gunakan akun berikut untuk mengakses fitur Pengeluaran secara penuh:
 - Role: Admin Keuangan
 - Username: admin_keuangan
