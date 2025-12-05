@@ -41,4 +41,4 @@
     <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html>
-<?php /**PATH C:\Users\ACER\Downloads\Manpro Masjid\resources\views/layouts/app.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\laragon\www\manajemen_masjid\resources\views/layouts/app.blade.php ENDPATH**/ ?>

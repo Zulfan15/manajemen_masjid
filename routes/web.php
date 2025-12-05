@@ -25,6 +25,17 @@ Route::middleware('guest')->group(function () {
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+    // --- ROUTE MODUL KEUANGAN (KELOMPOK B10) ---
+    
+    // Route untuk Kategori Pengeluaran
+    // Kita gunakan 'resource' tapi kita kecualikan create/edit/show karena akan pakai Modal di satu halaman index
+    Route::resource('kategori-pengeluaran', \App\Http\Controllers\KategoriPengeluaranController::class)->except(['create', 'edit', 'show']);
+
+    // Route Cetak Laporan (Taruh SEBELUM route resource pengeluaran)
+    Route::get('pengeluaran/cetak-laporan', [\App\Http\Controllers\PengeluaranController::class, 'cetakLaporan'])->name('pengeluaran.cetak');
+
+    // Route untuk Transaksi Pengeluaran
+    Route::resource('pengeluaran', \App\Http\Controllers\PengeluaranController::class)->except(['create', 'edit', 'show']);
     
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');

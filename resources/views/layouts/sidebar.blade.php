@@ -39,10 +39,26 @@
 
             @foreach($modules as $key => $module)
                 @if(auth()->user()->canAccessModule($key))
-                    <a href="{{ route($key . '.index') }}" 
-                       class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs($key . '.*') ? 'bg-green-100 text-green-700' : '' }}">
+                    
+                    @php
+                        // --- LOGIKA KHUSUS KELOMPOK B10 ---
+                        // Defaultnya ambil route berdasarkan nama key (contoh: jamaah.index)
+                        $targetRoute = route($key . '.index');
+                        $isActive = request()->routeIs($key . '.*');
+
+                        // Khusus jika kuncinya 'keuangan', kita belokkan ke 'pengeluaran.index'
+                        if ($key == 'keuangan') {
+                            $targetRoute = route('pengeluaran.index');
+                            // Sidebar aktif kalau sedang buka Pengeluaran ATAU Kategori
+                            $isActive = request()->routeIs('pengeluaran.*') || request()->routeIs('kategori-pengeluaran.*');
+                        }
+                    @endphp
+
+                    <a href="{{ $targetRoute }}" 
+                       class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ $isActive ? 'bg-green-100 text-green-700' : '' }}">
                         <i class="fas {{ $module['icon'] }} w-6"></i>
                         <span>{{ $module['label'] }}</span>
+                        
                         @if(!auth()->user()->isSuperAdmin())
                             <span class="ml-auto text-xs text-green-600">
                                 <i class="fas fa-edit"></i>

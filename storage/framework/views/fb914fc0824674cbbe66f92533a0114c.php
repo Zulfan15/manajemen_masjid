@@ -40,10 +40,26 @@
 
             <?php $__currentLoopData = $modules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $module): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php if(auth()->user()->canAccessModule($key)): ?>
-                    <a href="<?php echo e(route($key . '.index')); ?>" 
-                       class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs($key . '.*') ? 'bg-green-100 text-green-700' : ''); ?>">
+                    
+                    <?php
+                        // --- LOGIKA KHUSUS KELOMPOK B10 ---
+                        // Defaultnya ambil route berdasarkan nama key (contoh: jamaah.index)
+                        $targetRoute = route($key . '.index');
+                        $isActive = request()->routeIs($key . '.*');
+
+                        // Khusus jika kuncinya 'keuangan', kita belokkan ke 'pengeluaran.index'
+                        if ($key == 'keuangan') {
+                            $targetRoute = route('pengeluaran.index');
+                            // Sidebar aktif kalau sedang buka Pengeluaran ATAU Kategori
+                            $isActive = request()->routeIs('pengeluaran.*') || request()->routeIs('kategori-pengeluaran.*');
+                        }
+                    ?>
+
+                    <a href="<?php echo e($targetRoute); ?>" 
+                       class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e($isActive ? 'bg-green-100 text-green-700' : ''); ?>">
                         <i class="fas <?php echo e($module['icon']); ?> w-6"></i>
                         <span><?php echo e($module['label']); ?></span>
+                        
                         <?php if(!auth()->user()->isSuperAdmin()): ?>
                             <span class="ml-auto text-xs text-green-600">
                                 <i class="fas fa-edit"></i>
@@ -89,4 +105,4 @@
         </nav>
     </div>
 </aside>
-<?php /**PATH C:\Users\ACER\Downloads\Manpro Masjid\resources\views/layouts/sidebar.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\laragon\www\manajemen_masjid\resources\views/layouts/sidebar.blade.php ENDPATH**/ ?>
