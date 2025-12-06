@@ -25,7 +25,7 @@ Route::middleware('guest')->group(function () {
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    
+
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -36,12 +36,12 @@ Route::middleware('auth')->group(function () {
     // User Management (Admin access)
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserManagementController::class, 'index'])->name('index');
-        
+
         // Module-specific promotion (for module admins)
         Route::get('/promote/{module}', [UserManagementController::class, 'showPromote'])->name('promote.show');
         Route::post('/promote/{module}', [UserManagementController::class, 'promote'])->name('promote');
         Route::delete('/demote/{module}/{userId}', [UserManagementController::class, 'demote'])->name('demote');
-        
+
         // Role management (super admin only)
         Route::get('/{userId}/roles', [UserManagementController::class, 'showRoles'])->name('roles');
         Route::post('/{userId}/roles', [UserManagementController::class, 'assignRole'])->name('roles.assign');
@@ -60,7 +60,7 @@ Route::middleware('auth')->group(function () {
     // =========================================================================
     // MODULE ROUTES - NAVIGATION ONLY (No Implementation)
     // =========================================================================
-    
+
     // Module 1: Jamaah Management
     Route::middleware(['module.access:jamaah'])->prefix('jamaah')->name('jamaah.')->group(function () {
         Route::get('/', function () {
@@ -105,9 +105,7 @@ Route::middleware('auth')->group(function () {
 
     // Module 7: Takmir Management
     Route::middleware(['module.access:takmir'])->prefix('takmir')->name('takmir.')->group(function () {
-        Route::get('/', function () {
-            return view('modules.takmir.index');
-        })->name('index');
+        Route::resource('/', \App\Http\Controllers\TakmirController::class)->parameters(['' => 'takmir']);
     });
 
     // Module 8: Information & Announcements
@@ -131,9 +129,9 @@ Route::get('/test-user', function () {
     if (!$user) {
         return 'User superadmin tidak ditemukan!';
     }
-    
+
     $passwordValid = \Illuminate\Support\Facades\Hash::check('password', $user->password);
-    
+
     return [
         'user_found' => true,
         'username' => $user->username,
