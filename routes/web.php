@@ -5,6 +5,13 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\Kurban\KurbanPesertaController;
+use App\Http\Controllers\Kurban\KurbanHewanController;
+use App\Http\Controllers\Kurban\KurbanAlokasiController;
+use App\Http\Controllers\Kurban\KurbanPenyembelihanController;
+use App\Http\Controllers\Kurban\KurbanHasilPotongController;
+use App\Http\Controllers\Kurban\KurbanPenerimaController;
+use App\Http\Controllers\Kurban\KurbanDistribusiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -94,6 +101,49 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return view('modules.kurban.index');
         })->name('index');
+        // Peserta Kurban
+        Route::get('/peserta', [KurbanPesertaController::class, 'index'])->name('peserta.index');
+        Route::get('/peserta/create', [KurbanPesertaController::class, 'create'])->name('peserta.create');
+        Route::post('/peserta', [KurbanPesertaController::class, 'store'])->name('peserta.store');
+        Route::get('/peserta/{id}/edit', [KurbanPesertaController::class, 'edit'])->name('peserta.edit');
+        Route::put('/peserta/{id}', [KurbanPesertaController::class, 'update'])->name('peserta.update');
+        Route::delete('/peserta/{id}', [KurbanPesertaController::class, 'destroy'])->name('peserta.destroy');
+
+        // Hewan Kurban
+        Route::get('/hewan', [KurbanHewanController::class, 'index'])->name('hewan.index');
+        Route::get('/hewan/create', [KurbanHewanController::class, 'create'])->name('hewan.create');
+        Route::post('/hewan', [KurbanHewanController::class, 'store'])->name('hewan.store');
+        Route::get('/hewan/{id}/edit', [KurbanHewanController::class, 'edit'])->name('hewan.edit');
+        Route::put('/hewan/{id}', [KurbanHewanController::class, 'update'])->name('hewan.update');
+        Route::delete('/hewan/{id}', [KurbanHewanController::class, 'destroy'])->name('hewan.destroy');
+
+        // Alokasi Peserta ↔ Hewan
+        Route::get('/alokasi', [KurbanAlokasiController::class, 'index'])->name('alokasi.index');
+        Route::get('/alokasi/create', [KurbanAlokasiController::class, 'create'])->name('alokasi.create');
+        Route::post('/alokasi', [KurbanAlokasiController::class, 'store'])->name('alokasi.store');
+        Route::delete('/alokasi/{id}', [KurbanAlokasiController::class, 'destroy'])->name('alokasi.destroy');
+
+        // Jadwal Penyembelihan
+        Route::get('/penyembelihan', [KurbanPenyembelihanController::class, 'index'])->name('penyembelihan.index');
+        Route::get('/penyembelihan/create', [KurbanPenyembelihanController::class, 'create'])->name('penyembelihan.create');
+        Route::post('/penyembelihan', [KurbanPenyembelihanController::class, 'store'])->name('penyembelihan.store');
+        Route::get('/penyembelihan/{id}/edit', [KurbanPenyembelihanController::class, 'edit'])->name('penyembelihan.edit');
+        Route::put('/penyembelihan/{id}', [KurbanPenyembelihanController::class, 'update'])->name('penyembelihan.update');
+
+        // Hasil Potongan
+        Route::get('/hasil', [KurbanHasilPotongController::class, 'index'])->name('hasil.index');
+        Route::get('/hasil/create', [KurbanHasilPotongController::class, 'create'])->name('hasil.create');
+        Route::post('/hasil', [KurbanHasilPotongController::class, 'store'])->name('hasil.store');
+
+        // Penerima Manfaat
+        Route::get('/penerima', [KurbanPenerimaController::class, 'index'])->name('penerima.index');
+        Route::get('/penerima/create', [KurbanPenerimaController::class, 'create'])->name('penerima.create');
+        Route::post('/penerima', [KurbanPenerimaController::class, 'store'])->name('penerima.store');
+
+        // Distribusi Daging
+        Route::get('/distribusi', [KurbanDistribusiController::class, 'index'])->name('distribusi.index');
+        Route::get('/distribusi/create', [KurbanDistribusiController::class, 'create'])->name('distribusi.create');
+        Route::post('/distribusi', [KurbanDistribusiController::class, 'store'])->name('distribusi.store');
     });
 
     // Module 6: Inventory Management
