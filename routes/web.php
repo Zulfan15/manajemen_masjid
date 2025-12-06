@@ -80,6 +80,29 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return view('modules.kegiatan.index');
         })->name('index');
+        
+        // Pengumuman
+        Route::get('/pengumuman', function () {
+            return view('modules.kegiatan.pengumuman.index');
+        })->name('pengumuman.index');
+        
+        Route::get('/pengumuman/create', function () {
+            return view('modules.kegiatan.pengumuman.create');
+        })->name('pengumuman.create');
+        
+        // Laporan Kegiatan
+        Route::get('/laporan', function () {
+            return view('modules.kegiatan.laporan.index');
+        })->name('laporan.index');
+        
+        Route::get('/laporan/create', function () {
+            return view('modules.kegiatan.laporan.create');
+        })->name('laporan.create');
+        
+        // Generate Sertifikat
+        Route::get('/sertifikat', function () {
+            return view('modules.kegiatan.sertifikat.index');
+        })->name('sertifikat.index');
     });
 
     // Module 4: ZIS Management
