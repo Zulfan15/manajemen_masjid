@@ -10,13 +10,13 @@ class KurbanPesertaController extends Controller
 {
     public function index()
     {
-        $data = KurbanPeserta::latest()->get();
-        return view('kurban.peserta.index', compact('data'));
+        $peserta = KurbanPeserta::latest()->get();
+        return view('modules.kurban.peserta.index', compact('peserta'));
     }
 
     public function create()
     {
-        return view('kurban.peserta.create');
+        return view('modules.kurban.peserta.create');
     }
 
     public function store(Request $request)
@@ -35,7 +35,7 @@ class KurbanPesertaController extends Controller
     public function edit($id)
     {
         $peserta = KurbanPeserta::findOrFail($id);
-        return view('kurban.peserta.edit', compact('peserta'));
+        return view('modules.kurban.peserta.edit', compact('peserta'));
     }
 
     public function update(Request $request, $id)

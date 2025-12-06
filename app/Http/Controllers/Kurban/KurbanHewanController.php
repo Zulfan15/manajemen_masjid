@@ -10,13 +10,13 @@ class KurbanHewanController extends Controller
 {
     public function index()
     {
-        $data = KurbanHewan::latest()->get();
-        return view('kurban.hewan.index', compact('data'));
+        $hewan = KurbanHewan::latest()->get();
+        return view('modules.kurban.hewan.index', compact('hewan'));
     }
 
     public function create()
     {
-        return view('kurban.hewan.create');
+        return view('modules.kurban.hewan.create');
     }
 
     public function store(Request $request)
@@ -34,7 +34,7 @@ class KurbanHewanController extends Controller
     public function edit($id)
     {
         $hewan = KurbanHewan::findOrFail($id);
-        return view('kurban.hewan.edit', compact('hewan'));
+        return view('modules.kurban.hewan.edit', compact('hewan'));
     }
 
     public function update(Request $request, $id)

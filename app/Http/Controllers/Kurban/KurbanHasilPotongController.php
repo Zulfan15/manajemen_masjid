@@ -11,14 +11,14 @@ class KurbanHasilPotongController extends Controller
 {
     public function index()
     {
-        $data = KurbanHasilPotong::with('penyembelihan.hewan')->get();
-        return view('kurban.hasil.index', compact('data'));
+        $hasil = KurbanHasilPotong::with('penyembelihan.hewan')->get();
+        return view('modules.kurban.hasil.index', compact('hasil'));
     }
 
     public function create()
     {
         $penyembelihan = KurbanPenyembelihan::all();
-        return view('kurban.hasil.create', compact('penyembelihan'));
+        return view('modules.kurban.hasil.create', compact('penyembelihan'));
     }
 
     public function store(Request $request)

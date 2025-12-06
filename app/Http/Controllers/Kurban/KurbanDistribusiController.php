@@ -12,8 +12,8 @@ class KurbanDistribusiController extends Controller
 {
     public function index()
     {
-        $data = KurbanDistribusi::with(['hasil', 'penerima'])->get();
-        return view('kurban.distribusi.index', compact('data'));
+        $distribusi = KurbanDistribusi::with(['hasil', 'penerima'])->get();
+        return view('modules.kurban.distribusi.index', compact('distribusi'));
     }
 
     public function create()
@@ -21,7 +21,7 @@ class KurbanDistribusiController extends Controller
         $hasil = KurbanHasilPotong::all();
         $penerima = KurbanPenerima::all();
 
-        return view('kurban.distribusi.create', compact('hasil', 'penerima'));
+        return view('modules.kurban.distribusi.create', compact('hasil', 'penerima'));
     }
 
     public function store(Request $request)

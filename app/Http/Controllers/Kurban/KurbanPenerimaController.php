@@ -10,13 +10,13 @@ class KurbanPenerimaController extends Controller
 {
     public function index()
     {
-        $data = KurbanPenerima::all();
-        return view('kurban.penerima.index', compact('data'));
+        $penerima = KurbanPenerima::all();
+        return view('modules.kurban.penerima.index', compact('penerima'));
     }
 
     public function create()
     {
-        return view('kurban.penerima.create');
+        return view('modules.kurban.penerima.create');
     }
 
     public function store(Request $request)

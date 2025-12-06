@@ -12,15 +12,15 @@ class KurbanAlokasiController extends Controller
 {
     public function index()
     {
-        $data = KurbanAlokasi::with(['peserta', 'hewan'])->get();
-        return view('kurban.alokasi.index', compact('data'));
+        $alokasi = KurbanAlokasi::with(['peserta', 'hewan'])->get();
+        return view('modules.kurban.alokasi.index', compact('alokasi'));
     }
 
     public function create()
     {
         $peserta = KurbanPeserta::all();
         $hewan = KurbanHewan::all();
-        return view('kurban.alokasi.create', compact('peserta', 'hewan'));
+        return view('modules.kurban.alokasi.create', compact('peserta', 'hewan'));
     }
 
     public function store(Request $request)

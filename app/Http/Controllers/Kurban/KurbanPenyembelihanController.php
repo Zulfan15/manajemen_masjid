@@ -11,14 +11,14 @@ class KurbanPenyembelihanController extends Controller
 {
     public function index()
     {
-        $data = KurbanPenyembelihan::with('hewan')->get();
-        return view('kurban.penyembelihan.index', compact('data'));
+        $jadwal = KurbanPenyembelihan::with('hewan')->get();
+        return view('modules.kurban.penyembelihan.index', compact('jadwal'));
     }
 
     public function create()
     {
         $hewan = KurbanHewan::all();
-        return view('kurban.penyembelihan.create', compact('hewan'));
+        return view('modules.kurban.penyembelihan.create', compact('hewan'));
     }
 
     public function store(Request $request)
@@ -39,7 +39,7 @@ class KurbanPenyembelihanController extends Controller
     {
         $data = KurbanPenyembelihan::findOrFail($id);
         $hewan = KurbanHewan::all();
-        return view('kurban.penyembelihan.edit', compact('data', 'hewan'));
+        return view('modules.kurban.penyembelihan.edit', compact('data', 'hewan'));
     }
 
     public function update(Request $request, $id)
