@@ -9,6 +9,7 @@ use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class SertifikatController extends Controller
 {
@@ -69,6 +70,12 @@ class SertifikatController extends Controller
         ]);
 
         $kegiatan = Kegiatan::findOrFail($validated['kegiatan_id']);
+        
+        // Validate kegiatan has required fields
+        if (empty($kegiatan->nama_kegiatan)) {
+            return back()->with('error', 'Data kegiatan tidak lengkap. Nama kegiatan tidak ditemukan.');
+        }
+        
         $pesertaList = [];
 
         // Get participants based on input method
@@ -107,7 +114,7 @@ class SertifikatController extends Controller
                 'kegiatan_id' => $kegiatan->id,
                 'nomor_sertifikat' => Sertifikat::generateNomorSertifikat($kegiatan->id, $urutan),
                 'nama_peserta' => $namaPeserta,
-                'nama_kegiatan' => $kegiatan->nama,
+                'nama_kegiatan' => $kegiatan->nama_kegiatan,
                 'tanggal_kegiatan' => $kegiatan->tanggal_mulai,
                 'tempat_kegiatan' => $kegiatan->lokasi,
                 'template' => $validated['template'],
@@ -144,12 +151,28 @@ class SertifikatController extends Controller
     {
         $sertifikat->incrementDownload();
 
-        // TODO: Generate PDF certificate
-        // For now, return JSON data
-        return response()->json([
-            'message' => 'Download certificate (PDF generation not yet implemented)',
-            'data' => $sertifikat,
+        // Generate PDF
+        $pdf = Pdf::loadView('modules.kegiatan.sertifikat.pdf', [
+            'sertifikat' => $sertifikat
         ]);
+        
+        // Set paper to A4 landscape
+        $pdf->setPaper('a4', 'landscape');
+        
+        // Generate filename - remove special characters
+        $cleanName = preg_replace('/[^A-Za-z0-9\-]/', '_', $sertifikat->nama_peserta);
+        $cleanNumber = preg_replace('/[^A-Za-z0-9\-]/', '_', $sertifikat->nomor_sertifikat);
+        $filename = 'Sertifikat_' . $cleanName . '_' . $cleanNumber . '.pdf';
+        
+        // Log activity
+        $this->activityLog->log(
+            'download',
+            'Sertifikat',
+            "Download sertifikat: {$sertifikat->nomor_sertifikat} - {$sertifikat->nama_peserta}",
+            ['sertifikat_id' => $sertifikat->id]
+        );
+        
+        return $pdf->download($filename);
     }
 
     /**

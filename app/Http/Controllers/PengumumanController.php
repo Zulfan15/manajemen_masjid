@@ -73,11 +73,14 @@ class PengumumanController extends Controller
             'tanggal_mulai' => 'required|date',
             'tanggal_berakhir' => 'nullable|date|after_or_equal:tanggal_mulai',
             'status' => 'required|in:aktif,nonaktif',
-            'prioritas' => 'required|in:normal,tinggi,mendesak',
+            'prioritas' => 'nullable|in:normal,tinggi,mendesak',
             'kegiatan_id' => 'nullable|exists:kegiatans,id',
         ]);
 
+        // Set default values
         $validated['created_by'] = Auth::id();
+        $validated['prioritas'] = $validated['prioritas'] ?? 'normal';
+        $validated['status'] = $validated['status'] ?? 'aktif';
 
         $pengumuman = Pengumuman::create($validated);
 

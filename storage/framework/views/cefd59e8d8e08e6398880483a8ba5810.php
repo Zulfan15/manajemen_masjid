@@ -1,6 +1,6 @@
-@extends('layouts.app')
-@section('title', 'Generate Sertifikat')
-@section('content')
+
+<?php $__env->startSection('title', 'Generate Sertifikat'); ?>
+<?php $__env->startSection('content'); ?>
     <div class="container mx-auto">
         <div class="bg-white rounded-lg shadow p-6">
             <div class="mb-6">
@@ -10,17 +10,17 @@
                 <p class="text-gray-600 mt-2">Buat dan kelola sertifikat untuk peserta kegiatan</p>
             </div>
 
-            @if (session('success'))
+            <?php if(session('success')): ?>
                 <div class="bg-green-100 border-l-4 border-green-500 p-4 mb-6">
-                    <p class="text-green-700"><i class="fas fa-check-circle mr-2"></i>{{ session('success') }}</p>
+                    <p class="text-green-700"><i class="fas fa-check-circle mr-2"></i><?php echo e(session('success')); ?></p>
                 </div>
-            @endif
+            <?php endif; ?>
 
-            @if (session('error'))
+            <?php if(session('error')): ?>
                 <div class="bg-red-100 border-l-4 border-red-500 p-4 mb-6">
-                    <p class="text-red-700"><i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}</p>
+                    <p class="text-red-700"><i class="fas fa-exclamation-circle mr-2"></i><?php echo e(session('error')); ?></p>
                 </div>
-            @endif
+            <?php endif; ?>
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -28,7 +28,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm opacity-90">Total Sertifikat</p>
-                            <h3 class="text-2xl font-bold">{{ $stats['total'] }}</h3>
+                            <h3 class="text-2xl font-bold"><?php echo e($stats['total']); ?></h3>
                         </div>
                         <i class="fas fa-certificate text-3xl opacity-50"></i>
                     </div>
@@ -38,7 +38,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm opacity-90">Bulan Ini</p>
-                            <h3 class="text-2xl font-bold">{{ $stats['bulan_ini'] }}</h3>
+                            <h3 class="text-2xl font-bold"><?php echo e($stats['bulan_ini']); ?></h3>
                         </div>
                         <i class="fas fa-calendar-check text-3xl opacity-50"></i>
                     </div>
@@ -48,7 +48,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm opacity-90">Total Download</p>
-                            <h3 class="text-2xl font-bold">{{ number_format($stats['total_download']) }}</h3>
+                            <h3 class="text-2xl font-bold"><?php echo e(number_format($stats['total_download'])); ?></h3>
                         </div>
                         <i class="fas fa-download text-3xl opacity-50"></i>
                     </div>
@@ -90,9 +90,9 @@
                             </ul>
                         </div>
 
-                        <form action="{{ route('kegiatan.sertifikat.generate') }}" method="POST"
+                        <form action="<?php echo e(route('kegiatan.sertifikat.generate')); ?>" method="POST"
                             enctype="multipart/form-data" class="space-y-4">
-                            @csrf
+                            <?php echo csrf_field(); ?>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -101,11 +101,12 @@
                                 <select name="kegiatan_id" required
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                     <option value="">-- Pilih Kegiatan --</option>
-                                    @foreach ($kegiatans as $kegiatan)
-                                        <option value="{{ $kegiatan->id }}">
-                                            {{ $kegiatan->nama_kegiatan }} - {{ $kegiatan->tanggal_mulai->format('d M Y') }}
+                                    <?php $__currentLoopData = $kegiatans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kegiatan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                        <option value="<?php echo e($kegiatan->id); ?>">
+                                            <?php echo e($kegiatan->nama_kegiatan); ?> - <?php echo e($kegiatan->tanggal_mulai->format('d M Y')); ?>
+
                                         </option>
-                                    @endforeach
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                 </select>
                             </div>
 
@@ -195,14 +196,14 @@
                                 </div>
                             </div>
 
-                            @can('kegiatan.create')
+                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('kegiatan.create')): ?>
                                 <div class="flex gap-4 pt-4">
                                     <button type="submit"
                                         class="flex-1 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition">
                                         <i class="fas fa-certificate mr-2"></i>Generate Sertifikat
                                     </button>
                                 </div>
-                            @endcan
+                            <?php endif; ?>
                         </form>
                     </div>
 
@@ -223,18 +224,19 @@
                 <form method="GET" class="mb-4">
                     <input type="hidden" name="tab" value="history">
                     <div class="flex gap-4">
-                        <input type="text" name="search" value="{{ request('search') }}"
+                        <input type="text" name="search" value="<?php echo e(request('search')); ?>"
                             placeholder="Cari riwayat sertifikat..."
                             class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                         <select name="kegiatan_id" class="px-4 py-2 border border-gray-300 rounded-lg"
                             onchange="this.form.submit()">
                             <option value="">Semua Kegiatan</option>
-                            @foreach ($kegiatans as $kegiatan)
-                                <option value="{{ $kegiatan->id }}"
-                                    {{ request('kegiatan_id') == $kegiatan->id ? 'selected' : '' }}>
-                                    {{ $kegiatan->nama_kegiatan }}
+                            <?php $__currentLoopData = $kegiatans; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kegiatan): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($kegiatan->id); ?>"
+                                    <?php echo e(request('kegiatan_id') == $kegiatan->id ? 'selected' : ''); ?>>
+                                    <?php echo e($kegiatan->nama_kegiatan); ?>
+
                                 </option>
-                            @endforeach
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         </select>
                     </div>
                 </form>
@@ -252,50 +254,52 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($sertifikats as $sertifikat)
+                            <?php $__empty_1 = true; $__currentLoopData = $sertifikats; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sertifikat): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 text-sm">
                                         <code
-                                            class="bg-gray-100 px-2 py-1 rounded text-xs">{{ $sertifikat->nomor_sertifikat }}</code>
+                                            class="bg-gray-100 px-2 py-1 rounded text-xs"><?php echo e($sertifikat->nomor_sertifikat); ?></code>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <p class="font-semibold text-gray-800">{{ $sertifikat->nama_peserta }}</p>
-                                        <p class="text-xs text-gray-500">{{ $sertifikat->created_at->format('d M Y') }}
+                                        <p class="font-semibold text-gray-800"><?php echo e($sertifikat->nama_peserta); ?></p>
+                                        <p class="text-xs text-gray-500"><?php echo e($sertifikat->created_at->format('d M Y')); ?>
+
                                         </p>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">
-                                        {{ \Illuminate\Support\Str::limit($sertifikat->nama_kegiatan, 30) }}</td>
+                                        <?php echo e(\Illuminate\Support\Str::limit($sertifikat->nama_kegiatan, 30)); ?></td>
                                     <td class="px-6 py-4">
                                         <span
-                                            class="{{ $sertifikat->getTemplateBadgeClass() }} text-xs px-2 py-1 rounded">
-                                            {!! $sertifikat->getTemplateIcon() !!} {{ ucfirst($sertifikat->template) }}
+                                            class="<?php echo e($sertifikat->getTemplateBadgeClass()); ?> text-xs px-2 py-1 rounded">
+                                            <?php echo $sertifikat->getTemplateIcon(); ?> <?php echo e(ucfirst($sertifikat->template)); ?>
+
                                         </span>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">
-                                        <i class="fas fa-download mr-1"></i>{{ $sertifikat->download_count }}x
+                                        <i class="fas fa-download mr-1"></i><?php echo e($sertifikat->download_count); ?>x
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex gap-2">
-                                            <a href="{{ route('kegiatan.sertifikat.download', $sertifikat) }}"
+                                            <a href="<?php echo e(route('kegiatan.sertifikat.download', $sertifikat)); ?>"
                                                 class="text-green-600 hover:text-green-800" title="Download">
                                                 <i class="fas fa-download"></i>
                                             </a>
-                                            @can('kegiatan.delete')
-                                                <form action="{{ route('kegiatan.sertifikat.destroy', $sertifikat) }}"
+                                            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('kegiatan.delete')): ?>
+                                                <form action="<?php echo e(route('kegiatan.sertifikat.destroy', $sertifikat)); ?>"
                                                     method="POST"
                                                     onsubmit="return confirm('Yakin ingin menghapus sertifikat ini?')">
-                                                    @csrf
-                                                    @method('DELETE')
+                                                    <?php echo csrf_field(); ?>
+                                                    <?php echo method_field('DELETE'); ?>
                                                     <button type="submit" class="text-red-600 hover:text-red-800"
                                                         title="Hapus">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
-                                            @endcan
+                                            <?php endif; ?>
                                         </div>
                                     </td>
                                 </tr>
-                            @empty
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                                 <tr>
                                     <td colspan="6" class="px-6 py-16 text-center text-gray-500">
                                         <i class="fas fa-certificate text-6xl mb-4 text-gray-300"></i>
@@ -303,16 +307,17 @@
                                         <p>Generate sertifikat untuk peserta kegiatan</p>
                                     </td>
                                 </tr>
-                            @endforelse
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
 
-                @if ($sertifikats->hasPages())
+                <?php if($sertifikats->hasPages()): ?>
                     <div class="mt-6">
-                        {{ $sertifikats->appends(['tab' => 'history'])->links() }}
+                        <?php echo e($sertifikats->appends(['tab' => 'history'])->links()); ?>
+
                     </div>
-                @endif
+                <?php endif; ?>
             </div>
 
             <!-- Tab: Template (Hidden by default) -->
@@ -382,10 +387,12 @@
         }
 
         // Show history tab if there's search parameter
-        @if (request('tab') == 'history' || request('kegiatan_id') || (request('search') && $sertifikats->count() > 0))
+        <?php if(request('tab') == 'history' || request('kegiatan_id') || (request('search') && $sertifikats->count() > 0)): ?>
             document.addEventListener('DOMContentLoaded', function() {
                 showTab('history');
             });
-        @endif
+        <?php endif; ?>
     </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\Aji Katab\KULIAH\SEMESTER 7\MANAJEMEN PROYEK\manajemen_masjid\resources\views/modules/kegiatan/sertifikat/index.blade.php ENDPATH**/ ?>

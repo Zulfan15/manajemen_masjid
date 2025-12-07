@@ -5,6 +5,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\PengumumanController;
+use App\Http\Controllers\LaporanKegiatanController;
+use App\Http\Controllers\SertifikatController;
 
 /*
 |--------------------------------------------------------------------------
@@ -77,14 +80,43 @@ Route::middleware('auth')->group(function () {
 
     // Module 3: Activities & Events
     Route::middleware(['module.access:kegiatan'])->prefix('kegiatan')->name('kegiatan.')->group(function () {
-        // CRUD Kegiatan
+        // Pengumuman (MUST BE BEFORE /{id} routes)
+        Route::prefix('pengumuman')->name('pengumuman.')->group(function () {
+            Route::get('/', [PengumumanController::class, 'index'])->name('index');
+            Route::get('/create', [PengumumanController::class, 'create'])->name('create')->middleware('permission:kegiatan.create');
+            Route::post('/', [PengumumanController::class, 'store'])->name('store')->middleware('permission:kegiatan.create');
+            Route::get('/{pengumuman}', [PengumumanController::class, 'show'])->name('show');
+            Route::get('/{pengumuman}/edit', [PengumumanController::class, 'edit'])->name('edit')->middleware('permission:kegiatan.update');
+            Route::put('/{pengumuman}', [PengumumanController::class, 'update'])->name('update')->middleware('permission:kegiatan.update');
+            Route::delete('/{pengumuman}', [PengumumanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
+        });
+        
+        // Laporan Kegiatan
+        Route::prefix('laporan')->name('laporan.')->group(function () {
+            Route::get('/', [LaporanKegiatanController::class, 'index'])->name('index');
+            Route::get('/create', [LaporanKegiatanController::class, 'create'])->name('create')->middleware('permission:kegiatan.create');
+            Route::post('/', [LaporanKegiatanController::class, 'store'])->name('store')->middleware('permission:kegiatan.create');
+            Route::get('/{laporan}', [LaporanKegiatanController::class, 'show'])->name('show');
+            Route::get('/{laporan}/edit', [LaporanKegiatanController::class, 'edit'])->name('edit')->middleware('permission:kegiatan.update');
+            Route::put('/{laporan}', [LaporanKegiatanController::class, 'update'])->name('update')->middleware('permission:kegiatan.update');
+            Route::delete('/{laporan}', [LaporanKegiatanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
+            Route::get('/{laporan}/download', [LaporanKegiatanController::class, 'download'])->name('download');
+        });
+        
+        // Generate Sertifikat
+        Route::prefix('sertifikat')->name('sertifikat.')->group(function () {
+            Route::get('/', [SertifikatController::class, 'index'])->name('index');
+            Route::post('/generate', [SertifikatController::class, 'generate'])->name('generate')->middleware('permission:kegiatan.create');
+            Route::get('/{sertifikat}/download', [SertifikatController::class, 'download'])->name('download');
+            Route::post('/download-batch', [SertifikatController::class, 'downloadBatch'])->name('download-batch')->middleware('permission:kegiatan.create');
+            Route::delete('/{sertifikat}', [App\Http\Controllers\SertifikatController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
+            Route::get('/peserta', [App\Http\Controllers\SertifikatController::class, 'getPeserta'])->name('peserta');
+        });
+        
+        // CRUD Kegiatan (MUST BE AFTER all prefixed routes)
         Route::get('/', [App\Http\Controllers\KegiatanController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\KegiatanController::class, 'create'])->name('create')->middleware('permission:kegiatan.create');
         Route::post('/', [App\Http\Controllers\KegiatanController::class, 'store'])->name('store')->middleware('permission:kegiatan.create');
-        Route::get('/{id}', [App\Http\Controllers\KegiatanController::class, 'show'])->name('show');
-        Route::get('/{id}/edit', [App\Http\Controllers\KegiatanController::class, 'edit'])->name('edit')->middleware('permission:kegiatan.update');
-        Route::put('/{id}', [App\Http\Controllers\KegiatanController::class, 'update'])->name('update')->middleware('permission:kegiatan.update');
-        Route::delete('/{id}', [App\Http\Controllers\KegiatanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
         
         // Pendaftaran Peserta
         Route::post('/{id}/register', [App\Http\Controllers\KegiatanController::class, 'registerPeserta'])->name('register');
@@ -96,38 +128,11 @@ Route::middleware('auth')->group(function () {
         // Notifikasi
         Route::post('/{id}/broadcast', [App\Http\Controllers\KegiatanController::class, 'broadcastNotification'])->name('broadcast')->middleware('permission:kegiatan.create');
         
-        // Pengumuman
-        Route::prefix('pengumuman')->name('pengumuman.')->group(function () {
-            Route::get('/', [App\Http\Controllers\PengumumanController::class, 'index'])->name('index');
-            Route::get('/create', [App\Http\Controllers\PengumumanController::class, 'create'])->name('create')->middleware('permission:kegiatan.create');
-            Route::post('/', [App\Http\Controllers\PengumumanController::class, 'store'])->name('store')->middleware('permission:kegiatan.create');
-            Route::get('/{pengumuman}', [App\Http\Controllers\PengumumanController::class, 'show'])->name('show');
-            Route::get('/{pengumuman}/edit', [App\Http\Controllers\PengumumanController::class, 'edit'])->name('edit')->middleware('permission:kegiatan.update');
-            Route::put('/{pengumuman}', [App\Http\Controllers\PengumumanController::class, 'update'])->name('update')->middleware('permission:kegiatan.update');
-            Route::delete('/{pengumuman}', [App\Http\Controllers\PengumumanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
-        });
-        
-        // Laporan Kegiatan
-        Route::prefix('laporan')->name('laporan.')->group(function () {
-            Route::get('/', [App\Http\Controllers\LaporanKegiatanController::class, 'index'])->name('index');
-            Route::get('/create', [App\Http\Controllers\LaporanKegiatanController::class, 'create'])->name('create')->middleware('permission:kegiatan.create');
-            Route::post('/', [App\Http\Controllers\LaporanKegiatanController::class, 'store'])->name('store')->middleware('permission:kegiatan.create');
-            Route::get('/{laporan}', [App\Http\Controllers\LaporanKegiatanController::class, 'show'])->name('show');
-            Route::get('/{laporan}/edit', [App\Http\Controllers\LaporanKegiatanController::class, 'edit'])->name('edit')->middleware('permission:kegiatan.update');
-            Route::put('/{laporan}', [App\Http\Controllers\LaporanKegiatanController::class, 'update'])->name('update')->middleware('permission:kegiatan.update');
-            Route::delete('/{laporan}', [App\Http\Controllers\LaporanKegiatanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
-            Route::get('/{laporan}/download', [App\Http\Controllers\LaporanKegiatanController::class, 'download'])->name('download');
-        });
-        
-        // Generate Sertifikat
-        Route::prefix('sertifikat')->name('sertifikat.')->group(function () {
-            Route::get('/', [App\Http\Controllers\SertifikatController::class, 'index'])->name('index');
-            Route::post('/generate', [App\Http\Controllers\SertifikatController::class, 'generate'])->name('generate')->middleware('permission:kegiatan.create');
-            Route::get('/{sertifikat}/download', [App\Http\Controllers\SertifikatController::class, 'download'])->name('download');
-            Route::post('/download-batch', [App\Http\Controllers\SertifikatController::class, 'downloadBatch'])->name('download-batch')->middleware('permission:kegiatan.create');
-            Route::delete('/{sertifikat}', [App\Http\Controllers\SertifikatController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
-            Route::get('/peserta', [App\Http\Controllers\SertifikatController::class, 'getPeserta'])->name('peserta');
-        });
+        // Dynamic routes with {id} parameter (MUST BE LAST)
+        Route::get('/{id}', [App\Http\Controllers\KegiatanController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [App\Http\Controllers\KegiatanController::class, 'edit'])->name('edit')->middleware('permission:kegiatan.update');
+        Route::put('/{id}', [App\Http\Controllers\KegiatanController::class, 'update'])->name('update')->middleware('permission:kegiatan.update');
+        Route::delete('/{id}', [App\Http\Controllers\KegiatanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
     });
 
     // Module 4: ZIS Management

@@ -96,7 +96,13 @@ class LaporanKegiatanController extends Controller
                 $fotoPaths[] = $path;
             }
         }
-        $validated['foto_dokumentasi'] = $fotoPaths;
+        
+        // Only set foto_dokumentasi if there are photos
+        if (!empty($fotoPaths)) {
+            $validated['foto_dokumentasi'] = $fotoPaths;
+        } else {
+            $validated['foto_dokumentasi'] = null;
+        }
 
         // Auto-calculate if not provided
         if (!isset($validated['jumlah_hadir'])) {
@@ -225,8 +231,11 @@ class LaporanKegiatanController extends Controller
      */
     public function download(LaporanKegiatan $laporan)
     {
-        // TODO: Implement PDF generation
-        // For now, return JSON data
-        return response()->json($laporan);
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('modules.kegiatan.laporan.pdf', compact('laporan'))
+            ->setPaper('a4', 'portrait');
+        
+        $filename = 'Laporan_' . str_replace(' ', '_', $laporan->nama_kegiatan) . '_' . date('Ymd') . '.pdf';
+        
+        return $pdf->download($filename);
     }
 }
