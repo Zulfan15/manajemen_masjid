@@ -12,6 +12,7 @@ class Takmir extends Model
     protected $table = 'takmir';
 
     protected $fillable = [
+        'user_id',
         'nama',
         'jabatan',
         'email',
@@ -43,6 +44,22 @@ class Takmir extends Model
     public function scopeNonaktif($query)
     {
         return $query->where('status', 'nonaktif');
+    }
+
+    /**
+     * Relasi ke User (Jamaah)
+     */
+    public function jamaah()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Check apakah pengurus adalah jamaah terverifikasi
+     */
+    public function isVerifiedJamaah()
+    {
+        return $this->user_id !== null && $this->jamaah !== null;
     }
 
     /**

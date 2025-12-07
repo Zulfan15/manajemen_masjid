@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Takmir;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogService;
@@ -63,7 +64,9 @@ class TakmirController extends Controller
      */
     public function create()
     {
-        return view('modules.takmir.create');
+        // Ambil daftar jamaah (user dengan role jamaah)
+        $jamaahList = User::role('jamaah')->get();
+        return view('modules.takmir.create', compact('jamaahList'));
     }
 
     /**
@@ -72,6 +75,7 @@ class TakmirController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'user_id' => 'nullable|exists:users,id',
             'nama' => 'required|string|max:255',
             'jabatan' => 'required|in:Ketua (DKM),Wakil Ketua,Sekretaris,Bendahara,Pengurus',
             'email' => 'nullable|email|max:255',
@@ -131,7 +135,9 @@ class TakmirController extends Controller
      */
     public function edit(Takmir $takmir)
     {
-        return view('modules.takmir.edit', compact('takmir'));
+        // Ambil daftar jamaah (user dengan role jamaah)
+        $jamaahList = User::role('jamaah')->get();
+        return view('modules.takmir.edit', compact('takmir', 'jamaahList'));
     }
 
     /**
@@ -140,6 +146,7 @@ class TakmirController extends Controller
     public function update(Request $request, Takmir $takmir)
     {
         $validated = $request->validate([
+            'user_id' => 'nullable|exists:users,id',
             'nama' => 'required|string|max:255',
             'jabatan' => 'required|in:Ketua (DKM),Wakil Ketua,Sekretaris,Bendahara,Pengurus',
             'email' => 'nullable|email|max:255',

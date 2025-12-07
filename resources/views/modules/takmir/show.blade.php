@@ -35,7 +35,7 @@
                     <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                         {{ $takmir->jabatan }}
                     </span>
-                    <div class="mt-4">
+                    <div class="mt-4 space-y-2">
                         @if($takmir->status == 'aktif')
                             <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                 <i class="fas fa-check-circle mr-1"></i>Status Aktif
@@ -45,6 +45,14 @@
                                 <i class="fas fa-times-circle mr-1"></i>Status Nonaktif
                             </span>
                         @endif
+                        
+                        @if($takmir->isVerifiedJamaah())
+                            <div class="mt-3">
+                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    <i class="fas fa-user-check mr-1"></i>Jamaah Terverifikasi
+                                </span>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -52,6 +60,23 @@
             <!-- Right Column - Details -->
             <div class="md:col-span-2">
                 <div class="space-y-6">
+                    <!-- Informasi Verifikasi Jamaah -->
+                    @if($takmir->isVerifiedJamaah())
+                        <div class="bg-green-50 border-l-4 border-green-500 rounded-lg p-6">
+                            <h3 class="text-lg font-semibold text-green-800 mb-4 flex items-center">
+                                <i class="fas fa-user-check text-green-600 mr-2"></i>Status Verifikasi Jamaah
+                            </h3>
+                            <div class="text-green-700">
+                                <p class="mb-2">
+                                    <i class="fas fa-check-circle mr-2"></i>Pengurus ini terverifikasi sebagai <strong>Jamaah Masjid</strong>
+                                </p>
+                                <p class="text-sm">
+                                    <i class="fas fa-user mr-2"></i>Terhubung dengan akun: <strong>{{ $takmir->jamaah->name }}</strong> ({{ $takmir->jamaah->email }})
+                                </p>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Informasi Kontak -->
                     <div class="bg-gray-50 rounded-lg p-6">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">

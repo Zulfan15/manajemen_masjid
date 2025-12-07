@@ -23,6 +23,33 @@
             @csrf
             @method('PUT')
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Pilih Jamaah (Opsional) -->
+                <div class="md:col-span-2">
+                    <label for="user_id" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user-check text-green-600 mr-1"></i>Pilih dari Daftar Jamaah (Opsional)
+                    </label>
+                    <select name="user_id" id="user_id" 
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 @error('user_id') border-red-500 @enderror">
+                        <option value="">-- Tidak memilih jamaah (Input manual) --</option>
+                        @foreach($jamaahList as $jamaah)
+                            <option value="{{ $jamaah->id }}" 
+                                data-nama="{{ $jamaah->name }}"
+                                data-email="{{ $jamaah->email }}"
+                                data-phone="{{ $jamaah->phone }}"
+                                data-alamat="{{ $jamaah->address }}"
+                                {{ old('user_id', $takmir->user_id) == $jamaah->id ? 'selected' : '' }}>
+                                {{ $jamaah->name }} ({{ $jamaah->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">
+                        <i class="fas fa-info-circle"></i> Pilih jamaah untuk verifikasi otomatis. Kosongkan jika pengurus bukan jamaah.
+                    </p>
+                    @error('user_id')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Nama -->
                 <div>
                     <label for="nama" class="block text-sm font-medium text-gray-700 mb-2">
@@ -178,4 +205,30 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.getElementById('user_id').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    
+    if (selectedOption.value) {
+        // Auto-fill data dari jamaah yang dipilih
+        document.getElementById('nama').value = selectedOption.dataset.nama || '';
+        document.getElementById('email').value = selectedOption.dataset.email || '';
+        document.getElementById('phone').value = selectedOption.dataset.phone || '';
+        document.getElementById('alamat').value = selectedOption.dataset.alamat || '';
+        
+        // Disable field yang terisi otomatis (optional)
+        document.getElementById('nama').readOnly = true;
+        document.getElementById('email').readOnly = true;
+        document.getElementById('phone').readOnly = true;
+    } else {
+        // Enable semua field jika tidak memilih jamaah
+        document.getElementById('nama').readOnly = false;
+        document.getElementById('email').readOnly = false;
+        document.getElementById('phone').readOnly = false;
+    }
+});
+</script>
+@endpush
 @endsection
