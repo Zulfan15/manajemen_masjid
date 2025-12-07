@@ -1,0 +1,89 @@
+@extends('layouts.app')
+@section('title', 'Detail Pengumuman')
+@section('content')
+    <div class="container mx-auto">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center mb-6">
+                <a href="{{ route('kegiatan.pengumuman.index') }}" class="text-gray-600 hover:text-gray-800 mr-4">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="flex-1">
+                    <h1 class="text-3xl font-bold text-gray-800">
+                        <i class="fas fa-bullhorn text-green-700 mr-2"></i>{{ $pengumuman->judul }}
+                    </h1>
+                    <div class="flex items-center gap-3 mt-2 text-sm text-gray-600">
+                        <span><i class="fas fa-user mr-1"></i>{{ $pengumuman->creator->name }}</span>
+                        <span><i class="fas fa-calendar mr-1"></i>{{ $pengumuman->created_at->format('d M Y H:i') }}</span>
+                        <span><i class="fas fa-eye mr-1"></i>{{ $pengumuman->views }} views</span>
+                    </div>
+                </div>
+                @can('kegiatan.update')
+                    <a href="{{ route('kegiatan.pengumuman.edit', $pengumuman) }}"
+                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        <i class="fas fa-edit mr-2"></i>Edit
+                    </a>
+                @endcan
+            </div>
+
+            <div class="border-t border-gray-200 pt-6">
+                <!-- Badges -->
+                <div class="flex items-center gap-2 mb-6">
+                    <span class="{{ $pengumuman->getStatusBadgeClass() }} px-3 py-1 rounded-full text-sm">
+                        {{ $pengumuman->isAktif() ? 'Aktif' : 'Tidak Aktif' }}
+                    </span>
+                    <span class="{{ $pengumuman->getPrioritasBadgeClass() }} px-3 py-1 rounded-full text-sm">
+                        <i class="fas fa-flag mr-1"></i>{{ ucfirst($pengumuman->prioritas) }}
+                    </span>
+                    <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
+                        <i class="fas {{ $pengumuman->getKategoriIcon() }} mr-1"></i>{{ ucfirst($pengumuman->kategori) }}
+                    </span>
+                </div>
+
+                <!-- Info Box -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p class="text-sm text-blue-600 mb-1">Tanggal Mulai</p>
+                        <p class="font-semibold text-blue-900">{{ $pengumuman->tanggal_mulai->format('d F Y') }}</p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p class="text-sm text-blue-600 mb-1">Tanggal Berakhir</p>
+                        <p class="font-semibold text-blue-900">
+                            {{ $pengumuman->tanggal_berakhir ? $pengumuman->tanggal_berakhir->format('d F Y') : 'Tidak ditentukan' }}
+                        </p>
+                    </div>
+                    @if ($pengumuman->kegiatan)
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p class="text-sm text-green-600 mb-1">Terkait Kegiatan</p>
+                            <a href="{{ route('kegiatan.show', $pengumuman->kegiatan_id) }}"
+                                class="font-semibold text-green-900 hover:underline">
+                                {{ $pengumuman->kegiatan->nama }}
+                            </a>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Content -->
+                <div class="prose max-w-none">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Isi Pengumuman</h3>
+                    <div class="text-gray-700 whitespace-pre-line">{{ $pengumuman->konten }}</div>
+                </div>
+
+                <!-- Footer Info -->
+                <div class="mt-8 pt-6 border-t border-gray-200">
+                    <div class="flex items-center justify-between text-sm text-gray-500">
+                        <div>
+                            <p>Dibuat oleh: <strong>{{ $pengumuman->creator->name }}</strong></p>
+                            <p>{{ $pengumuman->created_at->format('d F Y, H:i') }} WIB</p>
+                        </div>
+                        @if ($pengumuman->updated_at != $pengumuman->created_at)
+                            <div class="text-right">
+                                <p>Terakhir diupdate: <strong>{{ $pengumuman->updater?->name ?? 'System' }}</strong></p>
+                                <p>{{ $pengumuman->updated_at->format('d F Y, H:i') }} WIB</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

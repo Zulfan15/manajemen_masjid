@@ -10,11 +10,50 @@
                 <p class="text-gray-600 mt-2">Buat dan kelola sertifikat untuk peserta kegiatan</p>
             </div>
 
-            @if (auth()->user()->isSuperAdmin())
-                <div class="bg-blue-100 border-l-4 border-blue-500 p-4 mb-6">
-                    <p class="text-blue-700"><i class="fas fa-info-circle mr-2"></i><strong>Mode View Only</strong></p>
+            @if (session('success'))
+                <div class="bg-green-100 border-l-4 border-green-500 p-4 mb-6">
+                    <p class="text-green-700"><i class="fas fa-check-circle mr-2"></i>{{ session('success') }}</p>
                 </div>
             @endif
+
+            @if (session('error'))
+                <div class="bg-red-100 border-l-4 border-red-500 p-4 mb-6">
+                    <p class="text-red-700"><i class="fas fa-exclamation-circle mr-2"></i>{{ session('error') }}</p>
+                </div>
+            @endif
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">Total Sertifikat</p>
+                            <h3 class="text-2xl font-bold">{{ $stats['total'] }}</h3>
+                        </div>
+                        <i class="fas fa-certificate text-3xl opacity-50"></i>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-500 to-green-600 text-white p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">Bulan Ini</p>
+                            <h3 class="text-2xl font-bold">{{ $stats['bulan_ini'] }}</h3>
+                        </div>
+                        <i class="fas fa-calendar-check text-3xl opacity-50"></i>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm opacity-90">Total Download</p>
+                            <h3 class="text-2xl font-bold">{{ number_format($stats['total_download']) }}</h3>
+                        </div>
+                        <i class="fas fa-download text-3xl opacity-50"></i>
+                    </div>
+                </div>
+            </div>
 
             <!-- Tabs -->
             <div class="border-b border-gray-200 mb-6">
@@ -51,19 +90,22 @@
                             </ul>
                         </div>
 
-                        <form action="#" method="POST" class="space-y-4">
+                        <form action="{{ route('kegiatan.sertifikat.generate') }}" method="POST"
+                            enctype="multipart/form-data" class="space-y-4">
                             @csrf
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Pilih Kegiatan <span class="text-red-500">*</span>
                                 </label>
-                                <select name="activity" required
+                                <select name="kegiatan_id" required
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                     <option value="">-- Pilih Kegiatan --</option>
-                                    <option value="1">Kajian Rutin Jumat - 1 Des 2025</option>
-                                    <option value="2">Pelatihan Tahsin - 15 Nov 2025</option>
-                                    <option value="3">Workshop Parenting - 10 Nov 2025</option>
+                                    @foreach ($kegiatans as $kegiatan)
+                                        <option value="{{ $kegiatan->id }}">
+                                            {{ $kegiatan->nama_kegiatan }} - {{ $kegiatan->tanggal_mulai->format('d M Y') }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
 
@@ -74,9 +116,10 @@
                                 <select name="template" required
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                     <option value="">-- Pilih Template --</option>
-                                    <option value="1">Template Kajian (Hijau)</option>
-                                    <option value="2">Template Workshop (Biru)</option>
-                                    <option value="3">Template Pelatihan (Coklat)</option>
+                                    <option value="kajian">Template Kajian (Hijau)</option>
+                                    <option value="workshop">Template Workshop (Biru)</option>
+                                    <option value="pelatihan">Template Pelatihan (Coklat)</option>
+                                    <option value="default">Template Default</option>
                                 </select>
                             </div>
 
@@ -94,6 +137,11 @@
                                         <input type="radio" name="input_method" value="upload" class="mr-2"
                                             onchange="toggleInputMethod()">
                                         <span class="text-gray-700">Upload Excel</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" name="input_method" value="from_peserta" class="mr-2"
+                                            onchange="toggleInputMethod()">
+                                        <span class="text-gray-700">Dari Peserta</span>
                                     </label>
                                 </div>
                             </div>
@@ -114,22 +162,47 @@
                                 <input type="file" name="excel_file" accept=".xlsx,.xls"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
                                 <p class="text-sm text-gray-500 mt-1">
-                                    <a href="#" class="text-green-700 hover:underline">Download template Excel</a>
+                                    Format: Excel dengan kolom "Nama Peserta"
                                 </p>
                             </div>
 
-                            @if (!auth()->user()->isSuperAdmin())
+                            <div id="from-peserta-input" class="hidden">
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                    <p class="text-sm text-blue-800">
+                                        <i class="fas fa-info-circle mr-2"></i>
+                                        Sertifikat akan digenerate otomatis untuk semua peserta yang hadir pada kegiatan
+                                        yang dipilih.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Nama Penandatangan
+                                    </label>
+                                    <input type="text" name="ttd_pejabat"
+                                        placeholder="Contoh: Ustadz Ahmad Fauzi, Lc."
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Jabatan
+                                    </label>
+                                    <input type="text" name="jabatan_pejabat"
+                                        placeholder="Contoh: Ketua Takmir Masjid"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                </div>
+                            </div>
+
+                            @can('kegiatan.create')
                                 <div class="flex gap-4 pt-4">
-                                    <button type="button"
-                                        class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                        <i class="fas fa-eye mr-2"></i>Preview
-                                    </button>
                                     <button type="submit"
                                         class="flex-1 px-6 py-3 bg-green-700 text-white rounded-lg hover:bg-green-800 transition">
-                                        <i class="fas fa-download mr-2"></i>Generate & Download
+                                        <i class="fas fa-certificate mr-2"></i>Generate Sertifikat
                                     </button>
                                 </div>
-                            @endif
+                            @endcan
                         </form>
                     </div>
 
@@ -147,36 +220,99 @@
 
             <!-- Tab: Riwayat (Hidden by default) -->
             <div id="tab-history" class="hidden">
-                <div class="mb-4">
-                    <input type="text" placeholder="Cari riwayat sertifikat..."
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
-                </div>
+                <form method="GET" class="mb-4">
+                    <input type="hidden" name="tab" value="history">
+                    <div class="flex gap-4">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            placeholder="Cari riwayat sertifikat..."
+                            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <select name="kegiatan_id" class="px-4 py-2 border border-gray-300 rounded-lg"
+                            onchange="this.form.submit()">
+                            <option value="">Semua Kegiatan</option>
+                            @foreach ($kegiatans as $kegiatan)
+                                <option value="{{ $kegiatan->id }}"
+                                    {{ request('kegiatan_id') == $kegiatan->id ? 'selected' : '' }}>
+                                    {{ $kegiatan->nama_kegiatan }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nomor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peserta</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kegiatan</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal
-                                    Generate</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jumlah</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Template</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Download</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4">Kajian Rutin Jumat</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">5 Des 2025</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">120 sertifikat</td>
-                                <td class="px-6 py-4">
-                                    <button class="text-green-600 hover:text-green-800" title="Download">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                            @forelse($sertifikats as $sertifikat)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-sm">
+                                        <code
+                                            class="bg-gray-100 px-2 py-1 rounded text-xs">{{ $sertifikat->nomor_sertifikat }}</code>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <p class="font-semibold text-gray-800">{{ $sertifikat->nama_peserta }}</p>
+                                        <p class="text-xs text-gray-500">{{ $sertifikat->created_at->format('d M Y') }}
+                                        </p>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">
+                                        {{ Str::limit($sertifikat->nama_kegiatan, 30) }}</td>
+                                    <td class="px-6 py-4">
+                                        <span
+                                            class="{{ $sertifikat->getTemplateBadgeClass() }} text-xs px-2 py-1 rounded">
+                                            {!! $sertifikat->getTemplateIcon() !!} {{ ucfirst($sertifikat->template) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">
+                                        <i class="fas fa-download mr-1"></i>{{ $sertifikat->download_count }}x
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex gap-2">
+                                            <a href="{{ route('kegiatan.sertifikat.download', $sertifikat) }}"
+                                                class="text-green-600 hover:text-green-800" title="Download">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            @can('kegiatan.delete')
+                                                <form action="{{ route('kegiatan.sertifikat.destroy', $sertifikat) }}"
+                                                    method="POST"
+                                                    onsubmit="return confirm('Yakin ingin menghapus sertifikat ini?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-600 hover:text-red-800"
+                                                        title="Hapus">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endcan
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-16 text-center text-gray-500">
+                                        <i class="fas fa-certificate text-6xl mb-4 text-gray-300"></i>
+                                        <h3 class="text-xl font-semibold mb-2">Belum Ada Sertifikat</h3>
+                                        <p>Generate sertifikat untuk peserta kegiatan</p>
+                                    </td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
+
+                @if ($sertifikats->hasPages())
+                    <div class="mt-6">
+                        {{ $sertifikats->appends(['tab' => 'history'])->links() }}
+                    </div>
+                @endif
             </div>
 
             <!-- Tab: Template (Hidden by default) -->
@@ -214,6 +350,7 @@
     </div>
 
     <script>
+        // Tab switching
         function showTab(tab) {
             // Hide all tabs
             document.getElementById('tab-generate').classList.add('hidden');
@@ -222,12 +359,33 @@
 
             // Show selected tab
             document.getElementById('tab-' + tab).classList.remove('hidden');
+
+            // Update tab buttons
+            const buttons = document.querySelectorAll('nav button');
+            buttons.forEach(btn => {
+                btn.classList.remove('border-green-700', 'text-green-700');
+                btn.classList.add('border-transparent', 'text-gray-600');
+            });
+            event.target.classList.remove('border-transparent', 'text-gray-600');
+            event.target.classList.add('border-green-700', 'text-green-700');
         }
 
+        // Input method toggle
         function toggleInputMethod() {
             const manual = document.querySelector('input[name="input_method"][value="manual"]').checked;
+            const upload = document.querySelector('input[name="input_method"][value="upload"]').checked;
+            const fromPeserta = document.querySelector('input[name="input_method"][value="from_peserta"]').checked;
+
             document.getElementById('manual-input').classList.toggle('hidden', !manual);
-            document.getElementById('upload-input').classList.toggle('hidden', manual);
+            document.getElementById('upload-input').classList.toggle('hidden', !upload);
+            document.getElementById('from-peserta-input').classList.toggle('hidden', !fromPeserta);
         }
+
+        // Show history tab if there's search parameter
+        @if (request('tab') == 'history' || request('kegiatan_id') || (request('search') && $sertifikats->count() > 0))
+            document.addEventListener('DOMContentLoaded', function() {
+                showTab('history');
+            });
+        @endif
     </script>
 @endsection
