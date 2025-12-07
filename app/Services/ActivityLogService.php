@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;
 
 class ActivityLogService
@@ -174,10 +175,10 @@ class ActivityLogService
         return [
             'total_activities' => $query->count(),
             'unique_users' => $query->distinct('user_id')->count(),
-            'by_module' => $query->select('module', \DB::raw('count(*) as count'))
+            'by_module' => $query->select('module', DB::raw('count(*) as count'))
                 ->groupBy('module')
                 ->pluck('count', 'module'),
-            'by_action' => $query->select('action', \DB::raw('count(*) as count'))
+            'by_action' => $query->select('action', DB::raw('count(*) as count'))
                 ->groupBy('action')
                 ->pluck('count', 'action'),
         ];
