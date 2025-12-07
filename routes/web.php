@@ -108,6 +108,22 @@ Route::middleware('auth')->group(function () {
         // Aktivitas Harian routes - HARUS DI ATAS resource root untuk menghindari konflik
         Route::resource('aktivitas', \App\Http\Controllers\AktivitasHarianController::class)->parameters(['aktivitas' => 'aktivita']);
 
+        // Pemilihan routes
+        Route::prefix('pemilihan')->name('pemilihan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\PemilihanController::class, 'index'])->name('index');
+            Route::get('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'vote'])->name('vote');
+            Route::post('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'submitVote'])->name('submitVote');
+            Route::get('/{id}/hasil', [\App\Http\Controllers\PemilihanController::class, 'hasil'])->name('hasil');
+            
+            // Admin routes
+            Route::get('/create', [\App\Http\Controllers\PemilihanController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\PemilihanController::class, 'store'])->name('store');
+            Route::get('/{id}', [\App\Http\Controllers\PemilihanController::class, 'show'])->name('show');
+            Route::get('/{id}/edit', [\App\Http\Controllers\PemilihanController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [\App\Http\Controllers\PemilihanController::class, 'update'])->name('update');
+            Route::delete('/{id}', [\App\Http\Controllers\PemilihanController::class, 'destroy'])->name('destroy');
+        });
+
         // Takmir resource (menggunakan root)
         Route::resource('/', \App\Http\Controllers\TakmirController::class)->parameters(['' => 'takmir']);
     });

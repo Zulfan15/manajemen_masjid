@@ -16,7 +16,7 @@ class TestPengurusUserSeeder extends Seeder
     {
         // Buat user untuk pengurus (ambil data takmir pertama yang aktif)
         $takmir = Takmir::aktif()->first();
-        
+
         if (!$takmir) {
             $this->command->error('Tidak ada takmir aktif. Jalankan TakmirSeeder dulu.');
             return;
