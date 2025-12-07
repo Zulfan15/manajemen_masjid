@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status', ['draft', 'aktif', 'selesai'])->default('draft');
             $table->boolean('tampilkan_hasil')->default(false)->comment('Tampilkan hasil saat voting berlangsung');
             $table->timestamps();
-            
+
             $table->index(['status', 'tanggal_mulai', 'tanggal_selesai']);
         });
     }

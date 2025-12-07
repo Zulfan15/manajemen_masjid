@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('misi')->nullable();
             $table->string('foto')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['pemilihan_id', 'nomor_urut']);
             $table->index('pemilihan_id');
         });

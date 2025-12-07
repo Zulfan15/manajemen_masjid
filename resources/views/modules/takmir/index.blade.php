@@ -11,10 +11,26 @@
                 </h1>
                 <p class="text-gray-600 mt-2">Kelola data takmir dan pengurus masjid</p>
             </div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
+                @php
+                    $pemilihanAktif = \App\Models\Pemilihan::where('status', 'aktif')
+                        ->where('tanggal_mulai', '<=', now())
+                        ->where('tanggal_selesai', '>=', now())
+                        ->first();
+                @endphp
+                @if($pemilihanAktif)
+                    <a href="{{ route('takmir.pemilihan.vote', $pemilihanAktif->id) }}" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center animate-pulse">
+                        <i class="fas fa-vote-yea mr-2"></i>Pemilihan Aktif!
+                    </a>
+                @endif
                 <a href="{{ route('takmir.aktivitas.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
                     <i class="fas fa-clipboard-list mr-2"></i>Aktivitas Harian
                 </a>
+                @can('takmir.view')
+                    <a href="{{ route('takmir.pemilihan.index') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
+                        <i class="fas fa-vote-yea mr-2"></i>Kelola Pemilihan
+                    </a>
+                @endcan
                 @can('takmir.create')
                     <a href="{{ route('takmir.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
                         <i class="fas fa-plus mr-2"></i>Tambah Pengurus

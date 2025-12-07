@@ -45,10 +45,10 @@ class Kandidat extends Model
     public function getFotoUrlAttribute()
     {
         if ($this->foto) {
-            return Storage::disk('public')->url($this->foto);
+            return asset('storage/' . $this->foto);
         }
         // Fallback ke foto takmir
-        return $this->takmir->foto_url;
+        return $this->takmir ? $this->takmir->foto_url : 'https://ui-avatars.com/api/?name=' . urlencode($this->nomor_urut);
     }
 
     /**
@@ -63,7 +63,7 @@ class Kandidat extends Model
     {
         $totalVotes = $this->pemilihan->totalVotes();
         if ($totalVotes == 0) return 0;
-        
+
         return round(($this->totalVotes() / $totalVotes) * 100, 2);
     }
 }

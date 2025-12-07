@@ -114,7 +114,7 @@ Route::middleware('auth')->group(function () {
             Route::get('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'vote'])->name('vote');
             Route::post('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'submitVote'])->name('submitVote');
             Route::get('/{id}/hasil', [\App\Http\Controllers\PemilihanController::class, 'hasil'])->name('hasil');
-            
+
             // Admin routes
             Route::get('/create', [\App\Http\Controllers\PemilihanController::class, 'create'])->name('create');
             Route::post('/', [\App\Http\Controllers\PemilihanController::class, 'store'])->name('store');

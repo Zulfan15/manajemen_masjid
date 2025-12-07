@@ -58,7 +58,7 @@ class Pemilihan extends Model
     public function scopeSelesai($query)
     {
         return $query->where('status', 'selesai')
-            ->orWhere(function($q) {
+            ->orWhere(function ($q) {
                 $q->where('tanggal_selesai', '<', now());
             });
     }
@@ -68,8 +68,8 @@ class Pemilihan extends Model
      */
     public function isBerlangsung()
     {
-        return $this->status === 'aktif' 
-            && $this->tanggal_mulai <= now() 
+        return $this->status === 'aktif'
+            && $this->tanggal_mulai <= now()
             && $this->tanggal_selesai >= now();
     }
 

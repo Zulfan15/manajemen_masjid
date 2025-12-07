@@ -25,7 +25,7 @@ class PemilihanController extends Controller
     public function index()
     {
         $this->authorize('takmir.view');
-        
+
         $pemilihanList = Pemilihan::withCount('kandidat', 'votes')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -96,7 +96,7 @@ class PemilihanController extends Controller
             ->firstOrFail();
 
         // Simpan vote dengan transaction
-        DB::transaction(function() use ($pemilihan, $kandidat, $user) {
+        DB::transaction(function () use ($pemilihan, $kandidat, $user) {
             Vote::create([
                 'pemilihan_id' => $pemilihan->id,
                 'kandidat_id' => $kandidat->id,
@@ -133,22 +133,27 @@ class PemilihanController extends Controller
                 ->with('info', 'Berikan suara Anda terlebih dahulu.');
         }
 
-        // Get hasil dengan sorting by votes
-        $hasil = $pemilihan->getHasilPemilihan();
-        $totalVotes = $pemilihan->totalVotes();
+        // Get kandidat dengan votes count dan persentase
+        $kandidat = $pemilihan->kandidat()
+            ->with('takmir')
+            ->withCount('votes')
+            ->get()
+            ->sortByDesc('votes_count')
+            ->values();
 
-        // Get vote user jika sudah vote
-        $userVote = null;
-        if ($hasVoted) {
-            $userVote = Vote::where('pemilihan_id', $pemilihan->id)
-                ->where('user_id', $user->id)
-                ->with('kandidat.takmir')
-                ->first();
-        }
+        // Calculate persentase untuk setiap kandidat
+        $totalVotes = $pemilihan->totalVotes();
+        $kandidat = $kandidat->map(function ($k) use ($totalVotes) {
+            $k->persentase = $totalVotes > 0 ? ($k->votes_count / $totalVotes) * 100 : 0;
+            return $k;
+        });
+
+        // Get pemenang (kandidat dengan suara terbanyak)
+        $pemenang = $kandidat->first();
 
         $this->activityLogService->log('view', 'pemilihan', "Melihat hasil pemilihan: {$pemilihan->judul}");
 
-        return view('modules.takmir.pemilihan.hasil', compact('pemilihan', 'hasil', 'totalVotes', 'hasVoted', 'userVote'));
+        return view('modules.takmir.pemilihan.hasil', compact('pemilihan', 'kandidat', 'totalVotes', 'pemenang'));
     }
 
     /**
@@ -157,7 +162,7 @@ class PemilihanController extends Controller
     public function create()
     {
         $this->authorize('takmir.create');
-        
+
         return view('modules.takmir.pemilihan.create');
     }
 
@@ -256,7 +261,7 @@ class PemilihanController extends Controller
 
         $pemilihan = Pemilihan::findOrFail($id);
         $judul = $pemilihan->judul;
-        
+
         $pemilihan->delete();
 
         $this->activityLogService->log(

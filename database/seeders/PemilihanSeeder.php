@@ -72,4 +72,3 @@ class PemilihanSeeder extends Seeder
         }
     }
 }
-

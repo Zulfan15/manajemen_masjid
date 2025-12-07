@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamp('voted_at');
             $table->timestamps();
-            
+
             // Constraint: 1 user hanya bisa vote 1x per pemilihan
             $table->unique(['pemilihan_id', 'user_id']);
             $table->index(['pemilihan_id', 'kandidat_id']);
