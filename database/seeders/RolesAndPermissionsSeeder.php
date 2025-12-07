@@ -66,17 +66,16 @@ class RolesAndPermissionsSeeder extends Seeder
             }
         }
 
-        // Create Module Officer (Pengurus) Roles with FULL CRUD
+        // Create Module Officer (Pengurus) Roles with LIMITED permissions
         foreach ($modules as $moduleKey => $moduleLabel) {
             $pengurusRole = Role::create([
                 'name' => "pengurus_{$moduleKey}",
                 'guard_name' => 'web',
             ]);
 
-            // Give full CRUD permissions for their module
-            foreach ($actions as $action) {
-                $pengurusRole->givePermissionTo("{$moduleKey}.{$action}");
-            }
+            // Pengurus hanya bisa VIEW data pengurus (tidak bisa CRUD)
+            // Mereka akan CRUD aktivitas harian saja
+            $pengurusRole->givePermissionTo("{$moduleKey}.view");
         }
 
         // Create Jamaah Role (limited access)

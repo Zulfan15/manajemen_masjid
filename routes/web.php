@@ -105,6 +105,10 @@ Route::middleware('auth')->group(function () {
 
     // Module 7: Takmir Management
     Route::middleware(['module.access:takmir'])->prefix('takmir')->name('takmir.')->group(function () {
+        // Aktivitas Harian routes - HARUS DI ATAS resource root untuk menghindari konflik
+        Route::resource('aktivitas', \App\Http\Controllers\AktivitasHarianController::class)->parameters(['aktivitas' => 'aktivita']);
+
+        // Takmir resource (menggunakan root)
         Route::resource('/', \App\Http\Controllers\TakmirController::class)->parameters(['' => 'takmir']);
     });
 

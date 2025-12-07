@@ -55,6 +55,14 @@ class Takmir extends Model
     }
 
     /**
+     * Relasi ke Aktivitas Harian
+     */
+    public function aktivitasHarian()
+    {
+        return $this->hasMany(AktivitasHarian::class);
+    }
+
+    /**
      * Check apakah pengurus adalah jamaah terverifikasi
      */
     public function isVerifiedJamaah()

@@ -11,11 +11,16 @@
                 </h1>
                 <p class="text-gray-600 mt-2">Kelola data takmir dan pengurus masjid</p>
             </div>
-            @can('takmir.create')
-                <a href="{{ route('takmir.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
-                    <i class="fas fa-plus mr-2"></i>Tambah Pengurus
+            <div class="flex gap-2">
+                <a href="{{ route('takmir.aktivitas.index') }}" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
+                    <i class="fas fa-clipboard-list mr-2"></i>Aktivitas Harian
                 </a>
-            @endcan
+                @can('takmir.create')
+                    <a href="{{ route('takmir.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200 flex items-center">
+                        <i class="fas fa-plus mr-2"></i>Tambah Pengurus
+                    </a>
+                @endcan
+            </div>
         </div>
 
         <!-- Alert Messages -->
