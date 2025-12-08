@@ -10,10 +10,9 @@ class Aset extends Model
     use HasFactory;
 
     protected $table = 'aset';
-    protected $primaryKey = 'aset_id';
+    protected $primaryKey = 'kode_aset';
 
-    public $incrementing = true;
-    protected $keyType = 'int';
+    public $incrementing = false;
 
     protected $fillable = [
         'nama_aset',

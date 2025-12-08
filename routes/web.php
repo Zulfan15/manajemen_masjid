@@ -98,9 +98,20 @@ Route::middleware('auth')->group(function () {
     });
 
     // Module 6: Inventory Management
-    Route::middleware(['module.access:inventaris'])->prefix('inventaris')->name('inventaris.')->group(function () {
-        Route::get('/', [InventarisController::class, 'index'])->name('index');
-    });
+    Route::middleware(['module.access:inventaris'])
+        ->prefix('inventaris')
+        ->name('inventaris.')
+        ->group(function () {
+
+            Route::get('/', [InventarisController::class, 'index'])->name('index');
+
+            Route::get('/aset', [InventarisController::class, 'asetIndex'])->name('aset.index');
+            Route::get('/aset/create', [InventarisController::class, 'asetCreate'])->name('aset.create');
+            Route::get('/aset/{id}', [InventarisController::class, 'asetShow'])->name('aset.show');
+
+            Route::get('/petugas', [InventarisController::class, 'petugasIndex'])->name('petugas.index');
+            Route::get('/petugas/create', [InventarisController::class, 'petugasCreate'])->name('petugas.create');
+        });
 
     // Module 7: Takmir Management
     Route::middleware(['module.access:takmir'])->prefix('takmir')->name('takmir.')->group(function () {
