@@ -15,9 +15,7 @@ class InventarisController extends Controller
     {
         // --- KARTU STATISTIK DASHBOARD ---
         $totalAset = Aset::count();
-
         $totalJadwalPerawatan = JadwalPerawatan::count();
-
         $totalPerluPerbaikan = KondisiBarang::where('kondisi', 'perlu_perbaikan')->count();
 
         $now = Carbon::now();
@@ -30,10 +28,8 @@ class InventarisController extends Controller
             ->groupBy('kategori')
             ->get();
 
-        // Aset terbaru (pakai kolom yang ADA, misal kode_aset)
-        // Kalau kamu punya kolom lain yang lebih cocok (misal created_at),
-        // ganti 'kode_aset' di sini dengan nama kolom itu.
-        $asetTerbaru = Aset::orderByDesc('kode_aset')
+        // Aset terbaru (pakai primary key aset_id)
+        $asetTerbaru = Aset::orderByDesc('aset_id')
             ->take(5)
             ->get();
 
@@ -57,31 +53,49 @@ class InventarisController extends Controller
     /**
      * LIST DAFTAR ASET
      */
-    public function asetIndex()
+    public function asetIndex(Request $request)
     {
-        // Ambil data beneran dari tabel `aset`
-        $assets = Aset::select([
-            'kode_aset',
-            'nama_aset',
-            'kategori',
-            'lokasi',
-            'kondisi',
-            'jumlah',
-            'status',
-        ])
-            ->orderByDesc('kode_aset')   // <-- ganti dari id ke kode_aset
-            ->paginate(10);
+        $query = Aset::query();
 
-        return view('modules.inventaris.aset.index', compact('assets'));
+        // search nama aset
+        if ($request->filled('search')) {
+            $query->where('nama_aset', 'like', '%' . $request->search . '%');
+        }
+
+        // filter kategori (kolomnya ADA di tabel aset)
+        if ($request->filled('kategori')) {
+            $query->where('kategori', $request->kategori);
+        }
+
+        // NOTE:
+        // tabel `aset` TIDAK punya kolom `kondisi`, jadi filter ini
+        // kita matikan dulu sampai nanti pakai join ke `kondisi_barang`.
+        /*
+        if ($request->filled('kondisi')) {
+            $query->where('kondisi', $request->kondisi);
+        }
+        */
+
+        $assets = $query->orderByDesc('aset_id')
+            ->paginate(10)
+            ->withQueryString();
+
+        $kategoriOptions = Aset::select('kategori')
+            ->distinct()
+            ->pluck('kategori')
+            ->sort()
+            ->values();
+
+        return view('modules.inventaris.aset.index', compact('assets', 'kategoriOptions'));
     }
 
     /**
      * DETAIL ASET
      */
-    public function asetShow($kode_aset)
+    public function asetShow($id)
     {
-        // cari berdasarkan kode_aset karena tidak ada kolom id
-        $asset = Aset::where('kode_aset', $kode_aset)->firstOrFail();
+        // pakai primary key aset_id (sudah di-set di model)
+        $asset = Aset::findOrFail($id);
 
         return view('modules.inventaris.aset.show', compact('asset'));
     }

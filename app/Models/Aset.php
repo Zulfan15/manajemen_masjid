@@ -10,10 +10,15 @@ class Aset extends Model
     use HasFactory;
 
     protected $table = 'aset';
-    protected $primaryKey = 'kode_aset';
 
-    public $incrementing = false;
+    // PRIMARY KEY SESUAI DB
+    protected $primaryKey = 'aset_id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
+    // Timestamps: di DB ada created_at & updated_at, jadi biarkan default (true)
+
+    // Kolom yang bisa diisi mass-assignment
     protected $fillable = [
         'nama_aset',
         'kategori',
@@ -24,6 +29,7 @@ class Aset extends Model
         'qr_payload',
     ];
 
+    // Relasi – yang bawah ini boleh kamu biarkan seperti yang sudah ada
     public function kondisiBarang()
     {
         return $this->hasMany(KondisiBarang::class, 'aset_id', 'aset_id');
