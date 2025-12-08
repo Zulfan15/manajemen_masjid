@@ -25,17 +25,18 @@
     21 => 'Illuminate\\View\\ViewServiceProvider',
     22 => 'Laravel\\Breeze\\BreezeServiceProvider',
     23 => 'Laravel\\Sail\\SailServiceProvider',
-    24 => 'Carbon\\Laravel\\ServiceProvider',
-    25 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
-    26 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    27 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
-    28 => 'Spatie\\Permission\\PermissionServiceProvider',
+    24 => 'Laravel\\Tinker\\TinkerServiceProvider',
+    25 => 'Carbon\\Laravel\\ServiceProvider',
+    26 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    27 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    28 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
     29 => 'Spatie\\Permission\\PermissionServiceProvider',
-    30 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
-    31 => 'App\\Providers\\AppServiceProvider',
-    32 => 'App\\Providers\\AuthServiceProvider',
-    33 => 'App\\Providers\\EventServiceProvider',
-    34 => 'App\\Providers\\RouteServiceProvider',
+    30 => 'Spatie\\Permission\\PermissionServiceProvider',
+    31 => 'Spatie\\Activitylog\\ActivitylogServiceProvider',
+    32 => 'App\\Providers\\AppServiceProvider',
+    33 => 'App\\Providers\\AuthServiceProvider',
+    34 => 'App\\Providers\\EventServiceProvider',
+    35 => 'App\\Providers\\RouteServiceProvider',
   ),
   'eager' => 
   array (
@@ -205,6 +206,7 @@
     'Laravel\\Breeze\\Console\\InstallCommand' => 'Laravel\\Breeze\\BreezeServiceProvider',
     'Laravel\\Sail\\Console\\InstallCommand' => 'Laravel\\Sail\\SailServiceProvider',
     'Laravel\\Sail\\Console\\PublishCommand' => 'Laravel\\Sail\\SailServiceProvider',
+    'command.tinker' => 'Laravel\\Tinker\\TinkerServiceProvider',
   ),
   'when' => 
   array (
@@ -248,6 +250,9 @@
     array (
     ),
     'Laravel\\Sail\\SailServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Tinker\\TinkerServiceProvider' => 
     array (
     ),
   ),

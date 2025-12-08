@@ -9,6 +9,12 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
+use App\Models\KondisiBarang;
+use App\Models\TransaksiAset;
+use App\Models\JadwalPerawatan;
+use App\Models\ActivityLog;
+
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles, LogsActivity;
@@ -102,7 +108,7 @@ class User extends Authenticatable
     public function incrementLoginAttempts(): void
     {
         $this->increment('login_attempts');
-        
+
         // Lock after 5 failed attempts
         if ($this->login_attempts >= 5) {
             $this->lockAccount();
@@ -149,8 +155,15 @@ class User extends Authenticatable
     {
         if ($this->hasRole('super_admin')) {
             return [
-                'jamaah', 'keuangan', 'kegiatan', 'zis', 
-                'kurban', 'inventaris', 'takmir', 'informasi', 'laporan'
+                'jamaah',
+                'keuangan',
+                'kegiatan',
+                'zis',
+                'kurban',
+                'inventaris',
+                'takmir',
+                'informasi',
+                'laporan'
             ];
         }
 
@@ -196,5 +209,19 @@ class User extends Authenticatable
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
+    }
+    public function kondisiBarang()
+    {
+        return $this->hasMany(KondisiBarang::class, 'id_petugas', 'id');
+    }
+
+    public function transaksiAset()
+    {
+        return $this->hasMany(TransaksiAset::class, 'id_petugas', 'id');
+    }
+
+    public function jadwalPerawatan()
+    {
+        return $this->hasMany(JadwalPerawatan::class, 'id_petugas', 'id');
     }
 }

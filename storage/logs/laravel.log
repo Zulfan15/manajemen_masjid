@@ -2739,3 +2739,27 @@
 #50 C:\\Users\\ACER\\Downloads\\Manpro Masjid\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(16): require_once('...')
 #51 {main}
 "} 
+[2025-12-08 07:58:12] local.ERROR: Command "tinker" is not defined. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"tinker\" is not defined. at D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\symfony\\console\\Application.php:737)
+[stacktrace]
+#0 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\symfony\\console\\Application.php(266): Symfony\\Component\\Console\\Application->find('tinker')
+#1 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#2 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#3 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#4 {main}
+"} 
+[2025-12-08 07:58:20] local.ERROR: Command "tinker" is not defined. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"tinker\" is not defined. at D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\symfony\\console\\Application.php:737)
+[stacktrace]
+#0 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\symfony\\console\\Application.php(266): Symfony\\Component\\Console\\Application->find('tinker')
+#1 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#2 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#3 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#4 {main}
+"} 
+[2025-12-08 07:59:05] local.ERROR: Command "tinker" is not defined. {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"tinker\" is not defined. at D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\symfony\\console\\Application.php:737)
+[stacktrace]
+#0 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\symfony\\console\\Application.php(266): Symfony\\Component\\Console\\Application->find('tinker')
+#1 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\symfony\\console\\Application.php(175): Symfony\\Component\\Console\\Application->doRun(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#2 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(201): Symfony\\Component\\Console\\Application->run(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#3 D:\\Backup\\tahun ajaran 4-1 smester 7\\ManPro\\Manajemen Masjid\\manajemen_masjid\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#4 {main}
+"} 
