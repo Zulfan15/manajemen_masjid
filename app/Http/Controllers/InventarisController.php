@@ -9,6 +9,7 @@ use App\Models\KondisiBarang;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Spatie\Permission\Models\Role;
 
 class InventarisController extends Controller
 {
@@ -137,9 +138,6 @@ class InventarisController extends Controller
             });
         }
 
-        // kalau model User kamu punya relasi roles (Spatie), ini akan jalan
-        // kalau belum, Laravel akan error kalau dipanggil ->with('roles')
-        // jadi kita cek method_exists dulu.
         if (method_exists(User::class, 'roles')) {
             $query->with('roles');
         }
@@ -149,10 +147,71 @@ class InventarisController extends Controller
         return view('modules.inventaris.petugas.index', compact('petugas'));
     }
 
+    public function asetStore(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_aset' => ['required', 'string', 'max:255'],
+            'kategori' => ['nullable', 'string', 'max:255'],
+            'lokasi' => ['nullable', 'string', 'max:255'],
+            'tanggal_perolehan' => ['nullable', 'date'],
+            'status' => ['required', 'in:aktif,rusak,hilang,dibuang'],
+            'keterangan' => ['nullable', 'string'],
+        ]);
 
+        $aset = Aset::create([
+            'nama_aset' => $validated['nama_aset'],
+            'kategori' => $validated['kategori'] ?? null,
+            'lokasi' => $validated['lokasi'] ?? null,
+            'tanggal_perolehan' => $validated['tanggal_perolehan'] ?? null,
+            'status' => $validated['status'],
+            'keterangan' => $validated['keterangan'] ?? null,
+        ]);
+
+        return redirect()
+            ->route('inventaris.aset.index')
+            ->with('success', 'Aset berhasil ditambahkan.');
+    }
+
+    public function asetEdit($id)
+    {
+        $asset = Aset::findOrFail($id);
+
+        $kategoriOptions = Aset::select('kategori')->distinct()->pluck('kategori')->filter()->sort()->values();
+
+        return view('modules.inventaris.aset.edit', compact('asset', 'kategoriOptions'));
+    }
+
+    public function asetUpdate(Request $request, $id)
+    {
+        $asset = Aset::findOrFail($id);
+
+        $validated = $request->validate([
+            'nama_aset' => ['required', 'string', 'max:255'],
+            'kategori' => ['nullable', 'string', 'max:255'],
+            'lokasi' => ['nullable', 'string', 'max:255'],
+            'tanggal_perolehan' => ['nullable', 'date'],
+            'status' => ['required', 'in:aktif,rusak,hilang,dibuang'],
+            'keterangan' => ['nullable', 'string'],
+        ]);
+
+        $asset->update($validated);
+
+        return redirect()->route('inventaris.aset.show', $asset->aset_id)
+            ->with('success', 'Aset berhasil diupdate.');
+    }
+
+    public function asetDestroy($id)
+    {
+        $asset = Aset::findOrFail($id);
+        $asset->delete();
+
+        return redirect()->route('inventaris.aset.index')
+            ->with('success', 'Aset berhasil dihapus.');
+    }
 
     public function petugasCreate()
     {
-        return view('modules.inventaris.petugas.create');
+        $roles = Role::orderBy('name')->get();
+        return view('modules.inventaris.petugas.create', compact('roles'));
     }
 }

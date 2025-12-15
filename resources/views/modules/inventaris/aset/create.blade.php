@@ -25,7 +25,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {{-- FORM CARD --}}
             <div class="lg:col-span-2 bg-white rounded-xl p-6 lg:p-8 shadow-sm border border-gray-100">
-                <form action="#" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('inventaris.aset.store') }}" method="POST" enctype="multipart/form-data">
                     @csrf
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -68,13 +68,14 @@
                         {{-- Kondisi Awal --}}
                         <label class="flex flex-col">
                             <span class="text-gray-800 text-sm font-medium pb-2">Kondisi Awal</span>
-                            <select name="kondisi_awal"
+                            <select name="status"
                                     class="h-12 rounded-lg border border-gray-300 bg-[#f6f8f7] px-4 text-sm text-gray-900
                                            focus:outline-0 focus:ring-2 focus:ring-emerald-700/30">
-                                <option value="">Pilih Kondisi</option>
-                                <option value="baik">Layak</option>
-                                <option value="perlu_perbaikan">Perbaikan</option>
+                                <option value="">Pilih Status</option>
+                                <option value="aktif">Layak / Aktif</option>
                                 <option value="rusak">Rusak</option>
+                                <option value="hilang">Hilang</option>
+                                <option value="dibuang">Dibuang</option>
                             </select>
                         </label>
 
@@ -112,20 +113,15 @@
                                 <input type="file" name="foto" class="hidden">
                             </label>
 
-                            {{-- biar user tetap bisa pilih file walau input hidden --}}
-                            <div class="mt-3">
-                                <input type="file" name="foto_fallback" class="text-sm">
-                            </div>
+
                         </div>
                     </div>
 
                     {{-- Action --}}
                     <div class="mt-8 pt-6 border-t border-gray-200 flex justify-end">
-                        <button type="button"
+                        <button type="submit"
                                 class="h-12 rounded-lg bg-emerald-800 text-white px-6 text-sm font-bold flex items-center gap-2
-                                       hover:bg-emerald-800/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-800
-                                       cursor-not-allowed opacity-80"
-                                title="Simpan akan diaktifkan setelah tahap CRUD">
+                                    hover:bg-emerald-800/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-800">
                             <i class="fa-solid fa-floppy-disk"></i>
                             Simpan
                         </button>
