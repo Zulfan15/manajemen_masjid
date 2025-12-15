@@ -1,6 +1,6 @@
-@extends('layouts.app')
 
-@section('content')
+
+<?php $__env->startSection('content'); ?>
 <div class="p-6">
 
     <h1 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
@@ -12,19 +12,19 @@
     <div class="flex space-x-3 mb-6">
         <a href="?tab=pengumuman"
            class="px-4 py-2 rounded-lg transition
-           {{ $tab=='pengumuman' ? 'bg-green-600 text-white shadow' : 'bg-gray-200 hover:bg-gray-300' }}">
+           <?php echo e($tab=='pengumuman' ? 'bg-green-600 text-white shadow' : 'bg-gray-200 hover:bg-gray-300'); ?>">
             Pengumuman
         </a>
 
         <a href="?tab=berita"
            class="px-4 py-2 rounded-lg transition
-           {{ $tab=='berita' ? 'bg-green-600 text-white shadow' : 'bg-gray-200 hover:bg-gray-300' }}">
+           <?php echo e($tab=='berita' ? 'bg-green-600 text-white shadow' : 'bg-gray-200 hover:bg-gray-300'); ?>">
             Berita
         </a>
 
         <a href="?tab=artikel"
            class="px-4 py-2 rounded-lg transition
-           {{ $tab=='artikel' ? 'bg-green-600 text-white shadow' : 'bg-gray-200 hover:bg-gray-300' }}">
+           <?php echo e($tab=='artikel' ? 'bg-green-600 text-white shadow' : 'bg-gray-200 hover:bg-gray-300'); ?>">
             Artikel
         </a>
     </div>
@@ -40,17 +40,17 @@
         <div id="menuTambah"
              class="hidden absolute mt-2 w-48 bg-white shadow-lg rounded-lg border z-10">
 
-            <a href="{{ route('informasi.pengumuman.create') }}"
+            <a href="<?php echo e(route('informasi.pengumuman.create')); ?>"
                class="block px-4 py-2 hover:bg-gray-100">
                 📢 Tambah Pengumuman
             </a>
 
-            <a href="{{ route('informasi.berita.create') }}"
+            <a href="<?php echo e(route('informasi.berita.create')); ?>"
                class="block px-4 py-2 hover:bg-gray-100">
                 📰 Tambah Berita
             </a>
 
-            <a href="{{ route('informasi.artikel.create') }}"
+            <a href="<?php echo e(route('informasi.artikel.create')); ?>"
                class="block px-4 py-2 hover:bg-gray-100">
                 ✍️ Tambah Artikel
             </a>
@@ -58,13 +58,13 @@
     </div>
 
     <!-- TABLE CONTENT -->
-    @if($tab == 'pengumuman')
-        @include('modules.informasi.partials.table_pengumuman')
-    @elseif($tab == 'berita')
-        @include('modules.informasi.partials.table_berita')
-    @else
-        @include('modules.informasi.partials.table_artikel')
-    @endif
+    <?php if($tab == 'pengumuman'): ?>
+        <?php echo $__env->make('modules.informasi.partials.table_pengumuman', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    <?php elseif($tab == 'berita'): ?>
+        <?php echo $__env->make('modules.informasi.partials.table_berita', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    <?php else: ?>
+        <?php echo $__env->make('modules.informasi.partials.table_artikel', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    <?php endif; ?>
 
 </div>
 
@@ -80,4 +80,6 @@ document.addEventListener('click', function(e) {
     }
 });
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\manpro\2\Manajemen_masjid\resources\views/modules/informasi/index.blade.php ENDPATH**/ ?>
