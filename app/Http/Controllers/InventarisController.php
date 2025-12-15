@@ -6,6 +6,7 @@ use App\Models\Aset;
 use App\Models\TransaksiAset;
 use App\Models\JadwalPerawatan;
 use App\Models\KondisiBarang;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -122,10 +123,33 @@ class InventarisController extends Controller
         return view('modules.inventaris.aset.create', compact('kategoriOptions', 'kondisiOptions'));
     }
 
-    public function petugasIndex()
+    public function petugasIndex(Request $request)
     {
-        return view('modules.inventaris.petugas.index');
+        $query = User::query();
+
+        // Search (nama/username/email) - mockup search by name, username, or role
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(function ($q) use ($s) {
+                $q->where('name', 'like', "%$s%")
+                    ->orWhere('username', 'like', "%$s%")
+                    ->orWhere('email', 'like', "%$s%");
+            });
+        }
+
+        // kalau model User kamu punya relasi roles (Spatie), ini akan jalan
+        // kalau belum, Laravel akan error kalau dipanggil ->with('roles')
+        // jadi kita cek method_exists dulu.
+        if (method_exists(User::class, 'roles')) {
+            $query->with('roles');
+        }
+
+        $petugas = $query->orderBy('name')->paginate(10)->withQueryString();
+
+        return view('modules.inventaris.petugas.index', compact('petugas'));
     }
+
+
 
     public function petugasCreate()
     {

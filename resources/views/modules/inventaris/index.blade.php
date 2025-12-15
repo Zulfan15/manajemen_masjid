@@ -181,9 +181,9 @@
                 <p class="text-xs text-gray-500 mb-3 text-center">
                     Lihat daftar petugas yang bertanggung jawab atas inventaris masjid.
                 </p>
-                <a href="#"
-                   class="text-xs px-3 py-1 rounded bg-gray-800 text-white hover:bg-gray-900 transition">
-                    Lihat
+                <a href="{{ route('inventaris.petugas.index') }}"
+                    class="inline-flex items-center px-3 py-1.5 text-xs rounded bg-gray-800 text-white hover:bg-gray-900">
+                        Lihat
                 </a>
             </div>
         </div>
