@@ -50,7 +50,7 @@ class AnnouncementController extends Controller
             $emails = User::pluck('email')->toArray();
 
             // Kirim email (bcc agar privasi aman)
-            Mail::to('no-reply@masjid.id')
+            Mail::to('ajirahman215@gmail.com')
                 ->bcc($emails)
                 ->queue(new InformasiNotificationMail(
                     $save->title,
