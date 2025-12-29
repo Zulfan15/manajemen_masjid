@@ -1,0 +1,21 @@
+{
+  "name": "manajemen_masjid",
+  "version": "1.0.0",
+  "description": "<p align=\"center\">\r <img src=\"https://img.shields.io/badge/Laravel-10%2B-red\" alt=\"Laravel\">\r <img src=\"https://img.shields.io/badge/PHP-8.1%2B-blue\" alt=\"PHP\">\r <img src=\"https://img.shields.io/badge/MySQL-8.0%2B-orange\" alt=\"MySQL\">\r </p>",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Zulfan15/manajemen_masjid.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Zulfan15/manajemen_masjid/issues"
+  },
+  "homepage": "https://github.com/Zulfan15/manajemen_masjid#readme"
+}

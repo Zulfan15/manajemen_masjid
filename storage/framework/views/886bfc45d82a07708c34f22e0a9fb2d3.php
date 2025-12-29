@@ -19,7 +19,8 @@
             <h2 class="text-xl font-semibold text-gray-700 mb-4">Akses Ditolak</h2>
             
             <p class="text-gray-600 mb-6">
-                {{ $exception->getMessage() ?: 'Anda tidak memiliki izin untuk mengakses halaman ini.' }}
+                <?php echo e($exception->getMessage() ?: 'Anda tidak memiliki izin untuk mengakses halaman ini.'); ?>
+
             </p>
 
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 text-left">
@@ -39,19 +40,20 @@
             </div>
 
             <div class="space-y-3">
-                <a href="{{ route('dashboard') }}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition duration-200">
+                <a href="<?php echo e(route('dashboard')); ?>" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition duration-200">
                     Kembali ke Dashboard
                 </a>
                 
-                @auth
+                <?php if(auth()->guard()->check()): ?>
                 <div class="text-sm text-gray-600">
-                    Login sebagai: <strong>{{ auth()->user()->name }}</strong>
+                    Login sebagai: <strong><?php echo e(auth()->user()->name); ?></strong>
                     <br>
-                    Role: <strong>{{ auth()->user()->getRoleNames()->implode(', ') ?: 'Jamaah' }}</strong>
+                    Role: <strong><?php echo e(auth()->user()->getRoleNames()->implode(', ') ?: 'Jamaah'); ?></strong>
                 </div>
-                @endauth
+                <?php endif; ?>
             </div>
         </div>
     </div>
 </body>
 </html>
+<?php /**PATH E:\Ney\Kuliah\Semester 7\MANAJEMEN PROYEK\manajemen_masjid\resources\views/errors/403.blade.php ENDPATH**/ ?>

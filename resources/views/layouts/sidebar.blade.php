@@ -39,6 +39,7 @@
 
             @foreach ($modules as $key => $module)
                 @if (auth()->user()->canAccessModule($key))
+                    {{-- User has module access (admin or super admin) - use regular route --}}
                     <a href="{{ route($key . '.index') }}"
                         class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs($key . '.*') ? 'bg-green-100 text-green-700' : '' }}">
                         <i class="fas {{ $module['icon'] }} w-6"></i>
@@ -53,6 +54,38 @@
                             </span>
                         @endif
                     </a>
+                @elseif ($key === 'kegiatan' && auth()->user()->hasRole('jamaah'))
+                    {{-- Show kegiatan submenu for Jamaah role (read-only) --}}
+                    <div x-data="{ open: {{ request()->routeIs('jamaah.kegiatan.*') || request()->routeIs('jamaah.pengumuman.*') || request()->routeIs('jamaah.sertifikat.*') ? 'true' : 'false' }} }">
+                        <button @click="open = !open" 
+                                class="flex items-center justify-between w-full px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('jamaah.kegiatan.*') || request()->routeIs('jamaah.pengumuman.*') || request()->routeIs('jamaah.sertifikat.*') ? 'bg-green-100 text-green-700' : '' }}">
+                            <div class="flex items-center">
+                                <i class="fas {{ $module['icon'] }} w-6"></i>
+                                <span>{{ $module['label'] }}</span>
+                            </div>
+                            <i class="fas fa-chevron-down transition-transform" :class="{ 'rotate-180': open }"></i>
+                        </button>
+                        
+                        <div x-show="open" x-collapse class="ml-6 mt-1 space-y-1">
+                            <a href="{{ route('jamaah.pengumuman.index') }}" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('jamaah.pengumuman.*') ? 'bg-green-100 text-green-700 font-semibold' : '' }}">
+                                <i class="fas fa-bullhorn w-5 mr-2"></i>
+                                <span>Pengumuman</span>
+                            </a>
+                            
+                            <a href="{{ route('jamaah.kegiatan.index') }}" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('jamaah.kegiatan.*') ? 'bg-green-100 text-green-700 font-semibold' : '' }}">
+                                <i class="fas fa-calendar-check w-5 mr-2"></i>
+                                <span>Kegiatan</span>
+                            </a>
+                            
+                            <a href="{{ route('jamaah.sertifikat.index') }}" 
+                               class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('jamaah.sertifikat.*') ? 'bg-green-100 text-green-700 font-semibold' : '' }}">
+                                <i class="fas fa-certificate w-5 mr-2"></i>
+                                <span>Sertifikat Saya</span>
+                            </a>
+                        </div>
+                    </div>
                 @endif
             @endforeach
 

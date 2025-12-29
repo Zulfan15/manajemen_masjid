@@ -61,6 +61,29 @@ Route::middleware('auth')->group(function () {
     Route::get('/{module}/logs', [ActivityLogController::class, 'moduleLog'])->name('module.logs');
 
     // =========================================================================
+    // JAMAAH USER ROUTES (for jamaah role, not module admins)
+    // =========================================================================
+    
+    // Kegiatan for Jamaah (read-only access)
+    Route::middleware(['role:jamaah'])->prefix('jamaah/kegiatan')->name('jamaah.kegiatan.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Jamaah\KegiatanController::class, 'index'])->name('index');
+        Route::get('/{id}', [App\Http\Controllers\Jamaah\KegiatanController::class, 'show'])->name('show');
+        Route::post('/{id}/daftar', [App\Http\Controllers\Jamaah\KegiatanController::class, 'register'])->name('register');
+    });
+    
+    // Pengumuman for Jamaah (read-only access)
+    Route::middleware(['role:jamaah'])->prefix('jamaah/pengumuman')->name('jamaah.pengumuman.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Jamaah\PengumumanController::class, 'index'])->name('index');
+        Route::get('/{id}', [App\Http\Controllers\Jamaah\PengumumanController::class, 'show'])->name('show');
+    });
+    
+    // Sertifikat for Jamaah (certificates from participated events)
+    Route::middleware(['role:jamaah'])->prefix('jamaah/sertifikat')->name('jamaah.sertifikat.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Jamaah\SertifikatController::class, 'index'])->name('index');
+        Route::get('/{id}/download', [App\Http\Controllers\Jamaah\SertifikatController::class, 'download'])->name('download');
+    });
+
+    // =========================================================================
     // MODULE ROUTES - NAVIGATION ONLY (No Implementation)
     // =========================================================================
     
