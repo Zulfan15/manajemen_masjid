@@ -33,11 +33,12 @@ h1 { font-size: 34pt; font-weight: bold; letter-spacing: 3pt; margin-bottom: 8pt
 <div class="icon">🕌</div>
 <h1>SERTIFIKAT</h1>
 <div class="sub">Diberikan Kepada</div>
-<div class="namebox"><div class="name">{{ $sertifikat->nama_peserta }}</div></div>
+<div class="namebox"><div class="name"><?php echo e($sertifikat->nama_peserta); ?></div></div>
 <div class="lbl">Telah mengikuti kegiatan</div>
-<div class="evt">{{ $sertifikat->nama_kegiatan }}</div>
+<div class="evt"><?php echo e($sertifikat->nama_kegiatan); ?></div>
 <div class="line"></div>
-<div class="ft">Template: {{ strtoupper($sertifikat->template) }}</div>
+<div class="ft">Template: <?php echo e(strtoupper($sertifikat->template)); ?></div>
 </div></div></div>
 </body>
 </html>
+<?php /**PATH E:\Ney\Kuliah\Semester 7\MANAJEMEN PROYEK\manajemen_masjid\resources\views/modules/kegiatan/sertifikat/pdf.blade.php ENDPATH**/ ?>
