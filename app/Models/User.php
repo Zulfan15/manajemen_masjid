@@ -191,6 +191,23 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has specific permission
+     */
+    public function hasPermission(string $permission): bool
+    {
+        // Super admin has all permissions (read-only)
+        if ($this->hasRole('super_admin')) {
+            // Super admin can only view, not create/update/delete
+            if (str_contains($permission, 'create') || str_contains($permission, 'update') || str_contains($permission, 'delete')) {
+                return false;
+            }
+            return true;
+        }
+
+        return $this->hasPermissionTo($permission);
+    }
+
+    /**
      * Activity logs relationship
      */
     public function activityLogs()

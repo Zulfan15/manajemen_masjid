@@ -15,3 +15,11 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+
+# composer jangan masuk ke github
+composer-setup.php
+composer.phar
+
+# Laravel generated cache files
+/bootstrap/cache/*.php
+!bootstrap/cache/.gitignore

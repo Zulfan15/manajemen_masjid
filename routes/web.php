@@ -8,6 +8,7 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\LaporanKegiatanController;
 use App\Http\Controllers\SertifikatController;
+use App\Http\Controllers\KurbanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,6 +60,34 @@ Route::middleware('auth')->group(function () {
 
     // Module Activity Logs
     Route::get('/{module}/logs', [ActivityLogController::class, 'moduleLog'])->name('module.logs');
+
+    // =========================================================================
+    // MODULE 5: QURBAN MANAGEMENT (FULLY IMPLEMENTED)
+    // =========================================================================
+    Route::middleware(['permission:kurban.view'])->prefix('kurban')->name('kurban.')->group(function () {
+        // Data Kurban (Main CRUD)
+        Route::get('/', [KurbanController::class, 'index'])->name('index');
+        Route::get('/create', [KurbanController::class, 'create'])->name('create');
+        Route::post('/', [KurbanController::class, 'store'])->name('store');
+        Route::get('/{kurban}', [KurbanController::class, 'show'])->name('show');
+        Route::get('/{kurban}/edit', [KurbanController::class, 'edit'])->name('edit');
+        Route::put('/{kurban}', [KurbanController::class, 'update'])->name('update');
+        Route::delete('/{kurban}', [KurbanController::class, 'destroy'])->name('destroy');
+
+        // Peserta Kurban
+        Route::get('/{kurban}/peserta/create', [KurbanController::class, 'createPeserta'])->name('peserta.create');
+        Route::post('/{kurban}/peserta', [KurbanController::class, 'storePeserta'])->name('peserta.store');
+        Route::get('/{kurban}/peserta/{peserta}/edit', [KurbanController::class, 'editPeserta'])->name('peserta.edit');
+        Route::put('/{kurban}/peserta/{peserta}', [KurbanController::class, 'updatePeserta'])->name('peserta.update');
+        Route::delete('/{kurban}/peserta/{peserta}', [KurbanController::class, 'destroyPeserta'])->name('peserta.destroy');
+
+        // Distribusi Kurban
+        Route::get('/{kurban}/distribusi/create', [KurbanController::class, 'createDistribusi'])->name('distribusi.create');
+        Route::post('/{kurban}/distribusi', [KurbanController::class, 'storeDistribusi'])->name('distribusi.store');
+        Route::get('/{kurban}/distribusi/{distribusi}/edit', [KurbanController::class, 'editDistribusi'])->name('distribusi.edit');
+        Route::put('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'updateDistribusi'])->name('distribusi.update');
+        Route::delete('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'destroyDistribusi'])->name('distribusi.destroy');
+    });
 
     // =========================================================================
     // MODULE ROUTES - NAVIGATION ONLY (No Implementation)
@@ -139,13 +168,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['module.access:zis'])->prefix('zis')->name('zis.')->group(function () {
         Route::get('/', function () {
             return view('modules.zis.index');
-        })->name('index');
-    });
-
-    // Module 5: Qurban Management
-    Route::middleware(['module.access:kurban'])->prefix('kurban')->name('kurban.')->group(function () {
-        Route::get('/', function () {
-            return view('modules.kurban.index');
         })->name('index');
     });
 
