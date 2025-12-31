@@ -35,7 +35,7 @@ class RolesAndPermissionsSeeder extends Seeder
         // Create permissions for each module
         foreach ($modules as $moduleKey => $moduleLabel) {
             foreach ($actions as $action) {
-                Permission::create([
+                Permission::firstOrCreate([
                     'name' => "{$moduleKey}.{$action}",
                     'guard_name' => 'web',
                 ]);
@@ -43,7 +43,7 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         // Create Super Admin Role (READ-ONLY)
-        $superAdmin = Role::create([
+        $superAdmin = Role::firstOrCreate([
             'name' => 'super_admin',
             'guard_name' => 'web',
         ]);
@@ -55,7 +55,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Create Module Admin Roles with FULL CRUD
         foreach ($modules as $moduleKey => $moduleLabel) {
-            $adminRole = Role::create([
+            $adminRole = Role::firstOrCreate([
                 'name' => "admin_{$moduleKey}",
                 'guard_name' => 'web',
             ]);
@@ -68,7 +68,7 @@ class RolesAndPermissionsSeeder extends Seeder
 
         // Create Module Officer (Pengurus) Roles with LIMITED permissions
         foreach ($modules as $moduleKey => $moduleLabel) {
-            $pengurusRole = Role::create([
+            $pengurusRole = Role::firstOrCreate([
                 'name' => "pengurus_{$moduleKey}",
                 'guard_name' => 'web',
             ]);
@@ -79,7 +79,7 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         // Create Jamaah Role (limited access)
-        $jamaahRole = Role::create([
+        $jamaahRole = Role::firstOrCreate([
             'name' => 'jamaah',
             'guard_name' => 'web',
         ]);

@@ -14,15 +14,19 @@ class UsersSeeder extends Seeder
     public function run(): void
     {
         // Create Super Admin
-        $superAdmin = User::create([
-            'name' => 'Super Administrator',
-            'email' => 'superadmin@masjid.com',
-            'username' => 'superadmin',
-            'password' => Hash::make('password'),
-            'phone' => '081234567890',
-            'email_verified_at' => now(),
-        ]);
-        $superAdmin->assignRole('super_admin');
+        $superAdmin = User::firstOrCreate(
+            ['email' => 'superadmin@masjid.com'],
+            [
+                'name' => 'Super Administrator',
+                'username' => 'superadmin',
+                'password' => Hash::make('password'),
+                'phone' => '081234567890',
+                'email_verified_at' => now(),
+            ]
+        );
+        if (!$superAdmin->hasRole('super_admin')) {
+            $superAdmin->assignRole('super_admin');
+        }
 
         // Define modules
         $modules = [
@@ -39,43 +43,55 @@ class UsersSeeder extends Seeder
 
         // Create Module Admins
         foreach ($modules as $moduleKey => $moduleLabel) {
-            $admin = User::create([
-                'name' => "Admin {$moduleLabel}",
-                'email' => "admin.{$moduleKey}@masjid.com",
-                'username' => "admin_{$moduleKey}",
-                'password' => Hash::make('password'),
-                'phone' => '0812' . rand(10000000, 99999999),
-                'email_verified_at' => now(),
-            ]);
-            $admin->assignRole("admin_{$moduleKey}");
+            $admin = User::firstOrCreate(
+                ['email' => "admin.{$moduleKey}@masjid.com"],
+                [
+                    'name' => "Admin {$moduleLabel}",
+                    'username' => "admin_{$moduleKey}",
+                    'password' => Hash::make('password'),
+                    'phone' => '0812' . rand(10000000, 99999999),
+                    'email_verified_at' => now(),
+                ]
+            );
+            if (!$admin->hasRole("admin_{$moduleKey}")) {
+                $admin->assignRole("admin_{$moduleKey}");
+            }
         }
 
         // Create Sample Jamaah Users
         for ($i = 1; $i <= 5; $i++) {
-            $jamaah = User::create([
-                'name' => "Jamaah User {$i}",
-                'email' => "jamaah{$i}@example.com",
-                'username' => "jamaah{$i}",
-                'password' => Hash::make('password'),
-                'phone' => '0813' . rand(10000000, 99999999),
-                'address' => "Alamat Jamaah {$i}",
-                'email_verified_at' => now(),
-            ]);
-            $jamaah->assignRole('jamaah');
+            $jamaah = User::firstOrCreate(
+                ['email' => "jamaah{$i}@example.com"],
+                [
+                    'name' => "Jamaah User {$i}",
+                    'username' => "jamaah{$i}",
+                    'password' => Hash::make('password'),
+                    'phone' => '0813' . rand(10000000, 99999999),
+                    'address' => "Alamat Jamaah {$i}",
+                    'email_verified_at' => now(),
+                ]
+            );
+            if (!$jamaah->hasRole('jamaah')) {
+                $jamaah->assignRole('jamaah');
+            }
         }
 
         // Create Sample Pengurus (Officers)
         $sampleModules = ['keuangan', 'kegiatan', 'zis'];
         foreach ($sampleModules as $module) {
-            $pengurus = User::create([
-                'name' => "Pengurus " . ucfirst($module),
-                'email' => "pengurus.{$module}@masjid.com",
-                'username' => "pengurus_{$module}",
-                'password' => Hash::make('password'),
-                'phone' => '0814' . rand(10000000, 99999999),
-                'email_verified_at' => now(),
-            ]);
-            $pengurus->assignRole("pengurus_{$module}");
+            $pengurus = User::firstOrCreate(
+                ['email' => "pengurus.{$module}@masjid.com"],
+                [
+                    'name' => "Pengurus " . ucfirst($module),
+                    'username' => "pengurus_{$module}",
+                    'password' => Hash::make('password'),
+                    'phone' => '0814' . rand(10000000, 99999999),
+                    'email_verified_at' => now(),
+                ]
+            );
+            if (!$pengurus->hasRole("pengurus_{$module}")) {
+                $pengurus->assignRole("pengurus_{$module}");
+            }
         }
 
         echo "\nUsers created successfully!\n";
