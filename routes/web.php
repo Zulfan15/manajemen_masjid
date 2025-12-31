@@ -25,7 +25,7 @@ Route::middleware('guest')->group(function () {
 // Authenticated routes
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    
+
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -36,12 +36,12 @@ Route::middleware('auth')->group(function () {
     // User Management (Admin access)
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserManagementController::class, 'index'])->name('index');
-        
+
         // Module-specific promotion (for module admins)
         Route::get('/promote/{module}', [UserManagementController::class, 'showPromote'])->name('promote.show');
         Route::post('/promote/{module}', [UserManagementController::class, 'promote'])->name('promote');
         Route::delete('/demote/{module}/{userId}', [UserManagementController::class, 'demote'])->name('demote');
-        
+
         // Role management (super admin only)
         Route::get('/{userId}/roles', [UserManagementController::class, 'showRoles'])->name('roles');
         Route::post('/{userId}/roles', [UserManagementController::class, 'assignRole'])->name('roles.assign');
@@ -60,7 +60,7 @@ Route::middleware('auth')->group(function () {
     // =========================================================================
     // MODULE ROUTES - NAVIGATION ONLY (No Implementation)
     // =========================================================================
-    
+
     // Module 1: Jamaah Management
     Route::middleware(['module.access:jamaah'])->prefix('jamaah')->name('jamaah.')->group(function () {
         Route::get('/', function () {
@@ -105,9 +105,27 @@ Route::middleware('auth')->group(function () {
 
     // Module 7: Takmir Management
     Route::middleware(['module.access:takmir'])->prefix('takmir')->name('takmir.')->group(function () {
-        Route::get('/', function () {
-            return view('modules.takmir.index');
-        })->name('index');
+        // Aktivitas Harian routes - HARUS DI ATAS resource root untuk menghindari konflik
+        Route::resource('aktivitas', \App\Http\Controllers\AktivitasHarianController::class)->parameters(['aktivitas' => 'aktivita']);
+
+        // Pemilihan routes
+        Route::prefix('pemilihan')->name('pemilihan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\PemilihanController::class, 'index'])->name('index');
+            Route::get('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'vote'])->name('vote');
+            Route::post('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'submitVote'])->name('submitVote');
+            Route::get('/{id}/hasil', [\App\Http\Controllers\PemilihanController::class, 'hasil'])->name('hasil');
+
+            // Admin routes
+            Route::get('/create', [\App\Http\Controllers\PemilihanController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\PemilihanController::class, 'store'])->name('store');
+            Route::get('/{id}', [\App\Http\Controllers\PemilihanController::class, 'show'])->name('show');
+            Route::get('/{id}/edit', [\App\Http\Controllers\PemilihanController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [\App\Http\Controllers\PemilihanController::class, 'update'])->name('update');
+            Route::delete('/{id}', [\App\Http\Controllers\PemilihanController::class, 'destroy'])->name('destroy');
+        });
+
+        // Takmir resource (menggunakan root)
+        Route::resource('/', \App\Http\Controllers\TakmirController::class)->parameters(['' => 'takmir']);
     });
 
     // Module 8: Information & Announcements
@@ -131,9 +149,9 @@ Route::get('/test-user', function () {
     if (!$user) {
         return 'User superadmin tidak ditemukan!';
     }
-    
+
     $passwordValid = \Illuminate\Support\Facades\Hash::check('password', $user->password);
-    
+
     return [
         'user_found' => true,
         'username' => $user->username,
