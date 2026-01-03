@@ -14,6 +14,7 @@ use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\InventarisController;
 
 /*
 |--------------------------------------------------------------------------
