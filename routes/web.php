@@ -110,6 +110,18 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return view('modules.keuangan.index');
         })->name('index');
+        
+        // Kategori Pengeluaran
+        Route::resource('kategori-pengeluaran', \App\Http\Controllers\KategoriPengeluaranController::class)
+            ->except(['create', 'edit', 'show']);
+        
+        // Cetak Laporan (before resource route)
+        Route::get('pengeluaran/cetak-laporan', [\App\Http\Controllers\PengeluaranController::class, 'cetakLaporan'])
+            ->name('pengeluaran.cetak');
+        
+        // Transaksi Pengeluaran
+        Route::resource('pengeluaran', \App\Http\Controllers\PengeluaranController::class)
+            ->except(['create', 'edit', 'show']);
     });
 
     // Module 3: Activities & Events
