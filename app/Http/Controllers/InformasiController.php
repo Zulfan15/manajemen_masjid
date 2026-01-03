@@ -90,11 +90,11 @@ class InformasiController extends Controller
         $berita     = News::latest()->take(20)->get();
         $artikel    = Article::with('category')->latest()->take(20)->get();
 
-        return view('modules.informasi.index', [
+        return response()->view('modules.informasi.index', [
             'tab' => $tab,
             'pengumuman' => $pengumuman,
             'berita' => $berita,
             'artikel' => $artikel,
-        ]);
+        ])->header('Content-Type', 'text/html; charset=UTF-8');
     }
 }

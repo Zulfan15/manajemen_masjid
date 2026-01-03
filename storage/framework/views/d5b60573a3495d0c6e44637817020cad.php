@@ -1,33 +1,82 @@
 
-<?php $__env->startSection('title', 'Informasi & Pengumuman'); ?>
+
 <?php $__env->startSection('content'); ?>
-<div class="container mx-auto">
-    <div class="bg-white rounded-lg shadow p-6">
-        <div class="flex items-center justify-between mb-6">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">
-                    <i class="fas fa-bullhorn text-green-700 mr-2"></i>Informasi & Pengumuman
-                </h1>
-                <p class="text-gray-600 mt-2">Kelola informasi dan pengumuman masjid</p>
-            </div>
-            <?php if(!auth()->user()->isSuperAdmin()): ?>
-                <button class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 transition">
-                    <i class="fas fa-plus mr-2"></i>Tambah Pengumuman
-                </button>
-            <?php endif; ?>
-        </div>
-        <?php if(auth()->user()->isSuperAdmin()): ?>
-            <div class="bg-blue-100 border-l-4 border-blue-500 p-4 mb-6">
-                <p class="text-blue-700"><i class="fas fa-info-circle mr-2"></i><strong>Mode View Only</strong></p>
-            </div>
-        <?php endif; ?>
-        <div class="text-center py-16 text-gray-500">
-            <i class="fas fa-bullhorn text-6xl mb-4 text-gray-300"></i>
-            <h3 class="text-xl font-semibold mb-2">Halaman Navigasi Modul</h3>
-            <p>Konten detail modul ini akan dikembangkan oleh tim lain.</p>
+<div class="p-6">
+
+    <h1 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+        <i class="fas fa-bullhorn text-green-600 mr-2"></i>
+        Manajemen Informasi Masjid
+    </h1>
+
+    <!-- Tabs -->
+    <div class="flex space-x-3 mb-6">
+        <a href="?tab=pengumuman"
+           class="px-4 py-2 rounded-lg transition <?php echo e($tab=='pengumuman' ? 'bg-green-600 text-white shadow' : 'bg-gray-200 hover:bg-gray-300'); ?>">
+            Pengumuman
+        </a>
+
+        <a href="?tab=berita"
+           class="px-4 py-2 rounded-lg transition <?php echo e($tab=='berita' ? 'bg-green-600 text-white shadow' : 'bg-gray-200 hover:bg-gray-300'); ?>">
+            Berita
+        </a>
+
+        <a href="?tab=artikel"
+           class="px-4 py-2 rounded-lg transition <?php echo e($tab=='artikel' ? 'bg-green-600 text-white shadow' : 'bg-gray-200 hover:bg-gray-300'); ?>">
+            Artikel
+        </a>
+    </div>
+
+    <!-- Dropdown Tambah -->
+    <div class="mb-4 relative inline-block">
+        <button onclick="toggleMenu()"
+            class="bg-green-600 text-white px-5 py-2.5 rounded-lg shadow hover:bg-green-700 flex items-center">
+            <i class="fas fa-plus mr-2"></i> Tambah Informasi
+            <i class="fas fa-chevron-down ml-2 text-sm"></i>
+        </button>
+
+        <div id="menuTambah"
+             class="hidden absolute mt-2 w-48 bg-white shadow-lg rounded-lg border z-10">
+
+            <a href="<?php echo e(route('informasi.pengumuman.create')); ?>"
+               class="block px-4 py-2 hover:bg-gray-100">
+                📢 Tambah Pengumuman
+            </a>
+
+            <a href="<?php echo e(route('informasi.berita.create')); ?>"
+               class="block px-4 py-2 hover:bg-gray-100">
+                📰 Tambah Berita
+            </a>
+
+            <a href="<?php echo e(route('informasi.artikel.create')); ?>"
+               class="block px-4 py-2 hover:bg-gray-100">
+                📝 Tambah Artikel
+            </a>
         </div>
     </div>
+
+    <!-- TABLE CONTENT -->
+    <?php if($tab == 'pengumuman'): ?>
+        <?php echo $__env->make('modules.informasi.partials.table_pengumuman', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    <?php elseif($tab == 'berita'): ?>
+        <?php echo $__env->make('modules.informasi.partials.table_berita', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    <?php else: ?>
+        <?php echo $__env->make('modules.informasi.partials.table_artikel', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+    <?php endif; ?>
+
 </div>
+
+<script>
+function toggleMenu() {
+    document.getElementById('menuTambah').classList.toggle('hidden');
+}
+
+document.addEventListener('click', function(e) {
+    let menu = document.getElementById('menuTambah');
+    if (!menu.contains(e.target) && !e.target.closest('button')) {
+        menu.classList.add('hidden');
+    }
+});
+</script>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\Users\ACER\Downloads\Manpro Masjid\resources\views/modules/informasi/index.blade.php ENDPATH**/ ?>
