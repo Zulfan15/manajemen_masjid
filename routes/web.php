@@ -9,6 +9,11 @@ use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\LaporanKegiatanController;
 use App\Http\Controllers\SertifikatController;
 use App\Http\Controllers\KurbanController;
+use App\Http\Controllers\InformasiController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -205,9 +210,17 @@ Route::middleware('auth')->group(function () {
 
     // Module 8: Information & Announcements
     Route::middleware(['module.access:informasi'])->prefix('informasi')->name('informasi.')->group(function () {
-        Route::get('/', function () {
-            return view('modules.informasi.index');
-        })->name('index');
+        // Dashboard Informasi (card Berita / Pengumuman / Artikel / Notifikasi)
+        Route::get('/', [InformasiController::class, 'index'])->name('index');
+
+        // CRUD masing-masing resource
+        Route::resource('berita', NewsController::class);
+        Route::resource('pengumuman', AnnouncementController::class);
+        Route::resource('artikel', ArticleController::class);
+
+        // Notifikasi
+        Route::get('notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
+        Route::post('notifikasi/send', [NotificationController::class, 'send'])->name('notifikasi.send');
     });
 
     // Module 9: Reports & Statistics
