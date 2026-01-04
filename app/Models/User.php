@@ -244,4 +244,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityLog::class);
     }
+
+    /**
+     * Alias for hasPermissionTo() for backward compatibility
+     */
+    public function hasPermission($permission)
+    {
+        return $this->hasPermissionTo($permission);
+    }
 }
