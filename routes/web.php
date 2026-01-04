@@ -43,56 +43,129 @@ Route::middleware('auth')->group(function () {
     // My Activity Logs
     Route::get('/my-logs', [ActivityLogController::class, 'myLogs'])->name('my-logs');
 
-    // User Management (Admin access)
+    // =========================================================================
+    // MODULE 10: USER MANAGEMENT & ACTIVITY LOGS
+    // =========================================================================
+    
+    // User Management (Module Admins can promote their users)
     Route::prefix('users')->name('users.')->group(function () {
-        Route::get('/', [UserManagementController::class, 'index'])->name('index');
+        // Super Admin & Module Admins can view users
+        Route::get('/', [UserManagementController::class, 'index'])
+            ->name('index')
+            ->middleware('can:view,App\Models\User');
+
+        Route::get('/{userId}', [UserManagementController::class, 'show'])
+            ->name('show');
 
         // Module-specific promotion (for module admins)
-        Route::get('/promote/{module}', [UserManagementController::class, 'showPromote'])->name('promote.show');
-        Route::post('/promote/{module}', [UserManagementController::class, 'promote'])->name('promote');
-        Route::delete('/demote/{module}/{userId}', [UserManagementController::class, 'demote'])->name('demote');
+        Route::middleware(['auth'])->group(function () {
+            Route::get('/promote/{module}', [UserManagementController::class, 'showPromote'])
+                ->name('promote.show');
+            Route::post('/promote/{module}', [UserManagementController::class, 'promote'])
+                ->name('promote');
+            Route::delete('/demote/{module}/{userId}', [UserManagementController::class, 'demote'])
+                ->name('demote');
+        });
 
         // Role management (super admin only)
-        Route::get('/{userId}/roles', [UserManagementController::class, 'showRoles'])->name('roles');
-        Route::post('/{userId}/roles', [UserManagementController::class, 'assignRole'])->name('roles.assign');
-        Route::delete('/{userId}/roles/{roleName}', [UserManagementController::class, 'removeRole'])->name('roles.remove');
+        Route::middleware(['role:super_admin'])->group(function () {
+            Route::get('/{userId}/roles', [UserManagementController::class, 'showRoles'])->name('roles');
+            Route::post('/{userId}/roles', [UserManagementController::class, 'assignRole'])->name('roles.assign');
+            Route::delete('/{userId}/roles/{roleName}', [UserManagementController::class, 'removeRole'])->name('roles.remove');
+        });
     });
 
     // Activity Logs (Super Admin)
     Route::middleware(['role:super_admin'])->prefix('activity-logs')->name('activity-logs.')->group(function () {
         Route::get('/', [ActivityLogController::class, 'index'])->name('index');
         Route::get('/recent', [ActivityLogController::class, 'recent'])->name('recent');
+        Route::get('/export', [ActivityLogController::class, 'export'])->name('export');
     });
 
-    // Module Activity Logs
-    Route::get('/{module}/logs', [ActivityLogController::class, 'moduleLog'])->name('module.logs');
+    // Module Activity Logs (Module Admins can view their module logs)
+    Route::get('/{module}/logs', [ActivityLogController::class, 'moduleLog'])
+        ->name('module.logs')
+        ->middleware(['auth', 'module.access:{module}']);
 
     // =========================================================================
-    // MODULE 5: QURBAN MANAGEMENT (FULLY IMPLEMENTED)
+    // MODULE 5: QURBAN MANAGEMENT (FULLY IMPLEMENTED WITH GRANULAR PERMISSIONS)
     // =========================================================================
-    Route::middleware(['permission:kurban.view'])->prefix('kurban')->name('kurban.')->group(function () {
+    Route::middleware(['module.access:kurban'])->prefix('kurban')->name('kurban.')->group(function () {
         // Data Kurban (Main CRUD)
-        Route::get('/', [KurbanController::class, 'index'])->name('index');
-        Route::get('/create', [KurbanController::class, 'create'])->name('create');
-        Route::post('/', [KurbanController::class, 'store'])->name('store');
-        Route::get('/{kurban}', [KurbanController::class, 'show'])->name('show');
-        Route::get('/{kurban}/edit', [KurbanController::class, 'edit'])->name('edit');
-        Route::put('/{kurban}', [KurbanController::class, 'update'])->name('update');
-        Route::delete('/{kurban}', [KurbanController::class, 'destroy'])->name('destroy');
+        Route::get('/', [KurbanController::class, 'index'])
+            ->name('index')
+            ->middleware('permission:kurban.view');
+        
+        Route::get('/create', [KurbanController::class, 'create'])
+            ->name('create')
+            ->middleware('permission:kurban.create');
+        
+        Route::post('/', [KurbanController::class, 'store'])
+            ->name('store')
+            ->middleware('permission:kurban.create');
+        
+        Route::get('/{kurban}', [KurbanController::class, 'show'])
+            ->name('show')
+            ->middleware('permission:kurban.view');
+        
+        Route::get('/{kurban}/edit', [KurbanController::class, 'edit'])
+            ->name('edit')
+            ->middleware('permission:kurban.update');
+        
+        Route::put('/{kurban}', [KurbanController::class, 'update'])
+            ->name('update')
+            ->middleware('permission:kurban.update');
+        
+        Route::delete('/{kurban}', [KurbanController::class, 'destroy'])
+            ->name('destroy')
+            ->middleware('permission:kurban.delete');
 
         // Peserta Kurban
-        Route::get('/{kurban}/peserta/create', [KurbanController::class, 'createPeserta'])->name('peserta.create');
-        Route::post('/{kurban}/peserta', [KurbanController::class, 'storePeserta'])->name('peserta.store');
-        Route::get('/{kurban}/peserta/{peserta}/edit', [KurbanController::class, 'editPeserta'])->name('peserta.edit');
-        Route::put('/{kurban}/peserta/{peserta}', [KurbanController::class, 'updatePeserta'])->name('peserta.update');
-        Route::delete('/{kurban}/peserta/{peserta}', [KurbanController::class, 'destroyPeserta'])->name('peserta.destroy');
+        Route::get('/{kurban}/peserta/create', [KurbanController::class, 'createPeserta'])
+            ->name('peserta.create')
+            ->middleware('permission:kurban.peserta.create');
+        
+        Route::post('/{kurban}/peserta', [KurbanController::class, 'storePeserta'])
+            ->name('peserta.store')
+            ->middleware('permission:kurban.peserta.create');
+        
+        Route::get('/{kurban}/peserta/{peserta}/edit', [KurbanController::class, 'editPeserta'])
+            ->name('peserta.edit')
+            ->middleware('permission:kurban.peserta.update');
+        
+        Route::put('/{kurban}/peserta/{peserta}', [KurbanController::class, 'updatePeserta'])
+            ->name('peserta.update')
+            ->middleware('permission:kurban.peserta.update');
+        
+        Route::delete('/{kurban}/peserta/{peserta}', [KurbanController::class, 'destroyPeserta'])
+            ->name('peserta.destroy')
+            ->middleware('permission:kurban.peserta.delete');
 
         // Distribusi Kurban
-        Route::get('/{kurban}/distribusi/create', [KurbanController::class, 'createDistribusi'])->name('distribusi.create');
-        Route::post('/{kurban}/distribusi', [KurbanController::class, 'storeDistribusi'])->name('distribusi.store');
-        Route::get('/{kurban}/distribusi/{distribusi}/edit', [KurbanController::class, 'editDistribusi'])->name('distribusi.edit');
-        Route::put('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'updateDistribusi'])->name('distribusi.update');
-        Route::delete('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'destroyDistribusi'])->name('distribusi.destroy');
+        Route::get('/{kurban}/distribusi/create', [KurbanController::class, 'createDistribusi'])
+            ->name('distribusi.create')
+            ->middleware('permission:kurban.distribusi.create');
+        
+        Route::post('/{kurban}/distribusi', [KurbanController::class, 'storeDistribusi'])
+            ->name('distribusi.store')
+            ->middleware('permission:kurban.distribusi.create');
+        
+        Route::get('/{kurban}/distribusi/{distribusi}/edit', [KurbanController::class, 'editDistribusi'])
+            ->name('distribusi.edit')
+            ->middleware('permission:kurban.distribusi.update');
+        
+        Route::put('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'updateDistribusi'])
+            ->name('distribusi.update')
+            ->middleware('permission:kurban.distribusi.update');
+        
+        Route::delete('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'destroyDistribusi'])
+            ->name('distribusi.destroy')
+            ->middleware('permission:kurban.distribusi.delete');
+        
+        // Export
+        Route::get('/export', [KurbanController::class, 'export'])
+            ->name('export')
+            ->middleware('permission:kurban.export');
     });
 
     // =========================================================================
@@ -212,48 +285,152 @@ Route::middleware('auth')->group(function () {
 
     // Module 7: Takmir Management
     Route::middleware(['module.access:takmir'])->prefix('takmir')->name('takmir.')->group(function () {
-        // Dashboard Modul
-        Route::get('/dashboard', [\App\Http\Controllers\TakmirController::class, 'dashboard'])->name('dashboard');
+        // Dashboard Modul - View only
+        Route::get('/dashboard', [\App\Http\Controllers\TakmirController::class, 'dashboard'])
+            ->name('dashboard')
+            ->middleware('permission:takmir.dashboard.view');
 
-        // Struktur Organisasi
-        Route::get('/struktur-organisasi', [\App\Http\Controllers\TakmirController::class, 'strukturOrganisasi'])->name('struktur-organisasi');
+        // Struktur Organisasi - View only
+        Route::get('/struktur-organisasi', [\App\Http\Controllers\TakmirController::class, 'strukturOrganisasi'])
+            ->name('struktur-organisasi')
+            ->middleware('permission:takmir.struktur_organisasi.view');
 
-        // Export
-        Route::get('/export', [\App\Http\Controllers\TakmirController::class, 'export'])->name('export');
+        // Export - Requires export permission
+        Route::get('/export', [\App\Http\Controllers\TakmirController::class, 'export'])
+            ->name('export')
+            ->middleware('permission:takmir.export');
 
-        // Verifikasi Jamaah
+        // Verifikasi Jamaah - Admin only
         Route::prefix('verifikasi-jamaah')->name('verifikasi-jamaah.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\JamaahVerificationController::class, 'index'])->name('index');
-            Route::post('/{user}/verify', [\App\Http\Controllers\JamaahVerificationController::class, 'verify'])->name('verify');
-            Route::delete('/{user}/unverify', [\App\Http\Controllers\JamaahVerificationController::class, 'unverify'])->name('unverify');
+            Route::get('/', [\App\Http\Controllers\JamaahVerificationController::class, 'index'])
+                ->name('index')
+                ->middleware('permission:takmir.verifikasi_jamaah.view');
+            
+            Route::post('/{user}/verify', [\App\Http\Controllers\JamaahVerificationController::class, 'verify'])
+                ->name('verify')
+                ->middleware('permission:takmir.verifikasi_jamaah.approve');
+            
+            Route::delete('/{user}/unverify', [\App\Http\Controllers\JamaahVerificationController::class, 'unverify'])
+                ->name('unverify')
+                ->middleware('permission:takmir.verifikasi_jamaah.approve');
         });
 
-        // Aktivitas Harian routes - HARUS DI ATAS resource root untuk menghindari konflik
-        Route::get('/aktivitas/export', [\App\Http\Controllers\AktivitasHarianController::class, 'export'])->name('aktivitas.export');
-        Route::resource('aktivitas', \App\Http\Controllers\AktivitasHarianController::class)->parameters(['aktivitas' => 'aktivita']);
+        // Aktivitas Harian - Full CRUD with granular permissions
+        Route::prefix('aktivitas')->name('aktivitas.')->group(function () {
+            Route::get('/export', [\App\Http\Controllers\AktivitasHarianController::class, 'export'])
+                ->name('export')
+                ->middleware('permission:takmir.export');
+            
+            Route::get('/', [\App\Http\Controllers\AktivitasHarianController::class, 'index'])
+                ->name('index')
+                ->middleware('permission:takmir.aktivitas.view');
+            
+            Route::get('/create', [\App\Http\Controllers\AktivitasHarianController::class, 'create'])
+                ->name('create')
+                ->middleware('permission:takmir.aktivitas.create');
+            
+            Route::post('/', [\App\Http\Controllers\AktivitasHarianController::class, 'store'])
+                ->name('store')
+                ->middleware('permission:takmir.aktivitas.create');
+            
+            Route::get('/{aktivita}', [\App\Http\Controllers\AktivitasHarianController::class, 'show'])
+                ->name('show')
+                ->middleware('permission:takmir.aktivitas.view');
+            
+            Route::get('/{aktivita}/edit', [\App\Http\Controllers\AktivitasHarianController::class, 'edit'])
+                ->name('edit')
+                ->middleware('permission:takmir.aktivitas.update');
+            
+            Route::put('/{aktivita}', [\App\Http\Controllers\AktivitasHarianController::class, 'update'])
+                ->name('update')
+                ->middleware('permission:takmir.aktivitas.update');
+            
+            Route::delete('/{aktivita}', [\App\Http\Controllers\AktivitasHarianController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('permission:takmir.aktivitas.delete');
+        });
 
-        // Pemilihan routes
+        // Pemilihan - Granular permissions
         Route::prefix('pemilihan')->name('pemilihan.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\PemilihanController::class, 'index'])->name('index');
-            Route::get('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'vote'])->name('vote');
-            Route::post('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'submitVote'])->name('submitVote');
-            Route::get('/{id}/hasil', [\App\Http\Controllers\PemilihanController::class, 'hasil'])->name('hasil');
+            Route::get('/', [\App\Http\Controllers\PemilihanController::class, 'index'])
+                ->name('index')
+                ->middleware('permission:takmir.pemilihan.view');
+            
+            Route::get('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'vote'])
+                ->name('vote')
+                ->middleware('permission:takmir.pemilihan.vote');
+            
+            Route::post('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'submitVote'])
+                ->name('submitVote')
+                ->middleware('permission:takmir.pemilihan.vote');
+            
+            Route::get('/{id}/hasil', [\App\Http\Controllers\PemilihanController::class, 'hasil'])
+                ->name('hasil')
+                ->middleware('permission:takmir.pemilihan.view');
 
-            // Admin routes
-            Route::get('/create', [\App\Http\Controllers\PemilihanController::class, 'create'])->name('create');
-            Route::post('/', [\App\Http\Controllers\PemilihanController::class, 'store'])->name('store');
-            Route::get('/{id}', [\App\Http\Controllers\PemilihanController::class, 'show'])->name('show');
-            Route::get('/{id}/edit', [\App\Http\Controllers\PemilihanController::class, 'edit'])->name('edit');
-            Route::put('/{id}', [\App\Http\Controllers\PemilihanController::class, 'update'])->name('update');
-            Route::delete('/{id}', [\App\Http\Controllers\PemilihanController::class, 'destroy'])->name('destroy');
+            // Admin routes - Create, Edit, Delete
+            Route::get('/create', [\App\Http\Controllers\PemilihanController::class, 'create'])
+                ->name('create')
+                ->middleware('permission:takmir.pemilihan.create');
+            
+            Route::post('/', [\App\Http\Controllers\PemilihanController::class, 'store'])
+                ->name('store')
+                ->middleware('permission:takmir.pemilihan.create');
+            
+            Route::get('/{id}', [\App\Http\Controllers\PemilihanController::class, 'show'])
+                ->name('show')
+                ->middleware('permission:takmir.pemilihan.view');
+            
+            Route::get('/{id}/edit', [\App\Http\Controllers\PemilihanController::class, 'edit'])
+                ->name('edit')
+                ->middleware('permission:takmir.pemilihan.update');
+            
+            Route::put('/{id}', [\App\Http\Controllers\PemilihanController::class, 'update'])
+                ->name('update')
+                ->middleware('permission:takmir.pemilihan.update');
+            
+            Route::delete('/{id}', [\App\Http\Controllers\PemilihanController::class, 'destroy'])
+                ->name('destroy')
+                ->middleware('permission:takmir.pemilihan.delete');
 
-            // Kandidat routes
-            Route::post('/{id}/kandidat', [\App\Http\Controllers\PemilihanController::class, 'storeKandidat'])->name('kandidat.store');
-            Route::delete('/{pemilihanId}/kandidat/{kandidatId}', [\App\Http\Controllers\PemilihanController::class, 'destroyKandidat'])->name('kandidat.destroy');
+            // Kandidat routes - Admin only
+            Route::post('/{id}/kandidat', [\App\Http\Controllers\PemilihanController::class, 'storeKandidat'])
+                ->name('kandidat.store')
+                ->middleware('permission:takmir.pemilihan.create');
+            
+            Route::delete('/{pemilihanId}/kandidat/{kandidatId}', [\App\Http\Controllers\PemilihanController::class, 'destroyKandidat'])
+                ->name('kandidat.destroy')
+                ->middleware('permission:takmir.pemilihan.delete');
         });
 
-        // Takmir resource (menggunakan root)
-        Route::resource('/', \App\Http\Controllers\TakmirController::class)->parameters(['' => 'takmir']);
+        // Takmir resource - CRUD operations with granular permissions
+        Route::get('/', [\App\Http\Controllers\TakmirController::class, 'index'])
+            ->name('index')
+            ->middleware('permission:takmir.view');
+        
+        Route::get('/create', [\App\Http\Controllers\TakmirController::class, 'create'])
+            ->name('create')
+            ->middleware('permission:takmir.create');
+        
+        Route::post('/', [\App\Http\Controllers\TakmirController::class, 'store'])
+            ->name('store')
+            ->middleware('permission:takmir.create');
+        
+        Route::get('/{takmir}/show', [\App\Http\Controllers\TakmirController::class, 'show'])
+            ->name('show')
+            ->middleware('permission:takmir.view');
+        
+        Route::get('/{takmir}/edit', [\App\Http\Controllers\TakmirController::class, 'edit'])
+            ->name('edit')
+            ->middleware('permission:takmir.update');
+        
+        Route::put('/{takmir}', [\App\Http\Controllers\TakmirController::class, 'update'])
+            ->name('update')
+            ->middleware('permission:takmir.update');
+        
+        Route::delete('/{takmir}', [\App\Http\Controllers\TakmirController::class, 'destroy'])
+            ->name('destroy')
+            ->middleware('permission:takmir.delete');
     });
 
     // Module 8: Information & Announcements
