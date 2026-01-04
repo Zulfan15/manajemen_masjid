@@ -15,10 +15,18 @@ class ActivityLog extends Model
 
     /**
      * Indicates if the model should be timestamped.
+     * Disabled because activity logs only need created_at (no updates)
      *
      * @var bool
      */
-    public $timestamps = true;
+    public $timestamps = false;
+    
+    /**
+     * The name of the "created at" column.
+     *
+     * @var string
+     */
+    const CREATED_AT = 'created_at';
 
     /**
      * The attributes that are mass assignable.
