@@ -47,25 +47,22 @@ Route::middleware('auth')->group(function () {
     // MODULE 10: USER MANAGEMENT & ACTIVITY LOGS
     // =========================================================================
     
-    // User Management (Module Admins can promote their users)
+    // User Management (Only Super Admin and Module Admins)
     Route::prefix('users')->name('users.')->group(function () {
         // Super Admin & Module Admins can view users
         Route::get('/', [UserManagementController::class, 'index'])
-            ->name('index')
-            ->middleware('can:view,App\Models\User');
+            ->name('index');
 
         Route::get('/{userId}', [UserManagementController::class, 'show'])
             ->name('show');
 
         // Module-specific promotion (for module admins)
-        Route::middleware(['auth'])->group(function () {
-            Route::get('/promote/{module}', [UserManagementController::class, 'showPromote'])
-                ->name('promote.show');
-            Route::post('/promote/{module}', [UserManagementController::class, 'promote'])
-                ->name('promote');
-            Route::delete('/demote/{module}/{userId}', [UserManagementController::class, 'demote'])
-                ->name('demote');
-        });
+        Route::get('/promote/{module}', [UserManagementController::class, 'showPromote'])
+            ->name('promote.show');
+        Route::post('/promote/{module}', [UserManagementController::class, 'promote'])
+            ->name('promote');
+        Route::delete('/demote/{module}/{userId}', [UserManagementController::class, 'demote'])
+            ->name('demote');
 
         // Role management (super admin only)
         Route::middleware(['role:super_admin'])->group(function () {
