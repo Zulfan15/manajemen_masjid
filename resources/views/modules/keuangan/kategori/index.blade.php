@@ -10,7 +10,7 @@
         <button class="py-2 px-4 text-gray-500 hover:text-green-600 focus:outline-none">
             Pemasukan (Coming Soon)
         </button>
-        <a href="{{ route('pengeluaran.index') }}" class="py-2 px-4 text-gray-500 hover:text-green-600 focus:outline-none">
+        <a href="{{ route('keuangan.pengeluaran.index') }}" class="py-2 px-4 text-gray-500 hover:text-green-600 focus:outline-none">
             Pengeluaran
         </a>
         <button class="py-2 px-4 border-b-2 border-green-600 text-green-600 font-semibold focus:outline-none">
@@ -71,7 +71,7 @@
                                         <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path></svg>
                                     </button>
 
-                                    <form action="{{ route('kategori-pengeluaran.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus kategori ini? Data pengeluaran terkait juga akan terhapus.')">
+                                    <form action="{{ route('keuangan.kategori-pengeluaran.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Hapus kategori ini? Data pengeluaran terkait juga akan terhapus.')">
                                         @csrf
                                         @method('DELETE')
                                         <button class="px-2 py-2 text-sm font-medium leading-5 text-red-600 rounded-lg focus:outline-none focus:shadow-outline-gray" aria-label="Delete">
@@ -111,7 +111,7 @@
                     </button>
                 </header>
 
-                <form :action="isEdit ? '{{ url('kategori-pengeluaran') }}/' + formData.id : '{{ route('kategori-pengeluaran.store') }}'" method="POST">
+                <form :action="isEdit ? '{{ url('keuangan/kategori-pengeluaran') }}/' + formData.id : '{{ route('keuangan.kategori-pengeluaran.store') }}'" method="POST">
                     @csrf
                     <template x-if="isEdit">
                         <input type="hidden" name="_method" value="PUT">
