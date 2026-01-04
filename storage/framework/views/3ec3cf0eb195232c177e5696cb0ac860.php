@@ -38,4 +38,4 @@
         </div>
     </div>
 </nav>
-<?php /**PATH C:\Users\ACER\Downloads\Manpro Masjid\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>
+<?php /**PATH D:\Semester paeh part 1\Menpro\mm3\manajemen_masjid\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>

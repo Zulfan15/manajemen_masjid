@@ -119,6 +119,7 @@ Route::middleware('auth')->group(function () {
         // Cetak Laporan (before resource route)
         Route::get('pengeluaran/cetak-laporan', [\App\Http\Controllers\PengeluaranController::class, 'cetakLaporan'])
             ->name('pengeluaran.cetak');
+        Route::get('pengeluaran/cetak-semua', [\App\Http\Controllers\PengeluaranController::class, 'cetakSemua'])->name('pengeluaran.cetakAll');
         
         // Transaksi Pengeluaran
         Route::resource('pengeluaran', \App\Http\Controllers\PengeluaranController::class)
@@ -251,9 +252,11 @@ Route::middleware('auth')->group(function () {
 
     // Module 9: Reports & Statistics
     Route::middleware(['module.access:laporan'])->prefix('laporan')->name('laporan.')->group(function () {
-        Route::get('/', function () {
-            return view('modules.laporan.index');
-        })->name('index');
+        Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
+        Route::get('/data-keuangan', [\App\Http\Controllers\LaporanController::class, 'getDataKeuangan'])->name('data-keuangan');
+Route::get('/data-kegiatan-bulanan',
+    [\App\Http\Controllers\LaporanController::class, 'getDataKegiatanBulanan']
+)->name('data-kegiatan-bulanan');
     });
 });
 

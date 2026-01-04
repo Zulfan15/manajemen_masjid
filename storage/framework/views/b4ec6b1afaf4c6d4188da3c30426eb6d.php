@@ -69,4 +69,4 @@
 
 </body>
 </html>
-<?php /**PATH C:\Users\ACER\Downloads\Manpro Masjid\resources\views/layouts/app.blade.php ENDPATH**/ ?>
+<?php /**PATH D:\Semester paeh part 1\Menpro\mm3\manajemen_masjid\resources\views/layouts/app.blade.php ENDPATH**/ ?>

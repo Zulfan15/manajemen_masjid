@@ -44,11 +44,11 @@
                 </a>
                 
                 @auth
-                <div class="text-sm text-gray-600">
-                    Login sebagai: <strong>{{ Auth::user()->name }}</strong>
-                    <br>
-                    Role: <strong>{{ Auth::user()->getRoleNames()->implode(', ') ?: 'Jamaah' }}</strong>
-                </div>
+<div class="text-sm text-gray-600">
+    Login sebagai: <strong>{{ auth()->user()->name }}</strong>
+    <br>
+    Role: <strong>{{ auth()->user()->getRoleNames()->implode(', ') ?: 'Jamaah' }}</strong>
+</div>
                 @endauth
             </div>
         </div>

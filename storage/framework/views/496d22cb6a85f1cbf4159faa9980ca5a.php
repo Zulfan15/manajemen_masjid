@@ -1,11 +1,11 @@
-@extends('layouts.app')
-@section('title', 'Laporan & Statistik')
-@section('content')
+
+<?php $__env->startSection('title', 'Laporan & Statistik'); ?>
+<?php $__env->startSection('content'); ?>
 
 <div class="container mx-auto">
     <div class="bg-white rounded-lg shadow p-6">
 
-        {{-- HEADER --}}
+        
         <div class="flex items-center justify-between mb-6">
             <div>
                 <h1 class="text-3xl font-bold text-gray-800">
@@ -14,26 +14,26 @@
                 <p class="text-gray-600 mt-2">Kelola laporan dan statistik masjid</p>
             </div>
 
-            {{-- ⚠️ FITUR UNDUH PDF TIDAK DIUBAH --}}
-            @if(!auth()->user()->isSuperAdmin())
+            
+            <?php if(!auth()->user()->isSuperAdmin()): ?>
             <button id="laporanActionBtn"
                 class="bg-green-700 inline-flex items-center text-white px-4 py-2 rounded hover:bg-green-800 transition"
                 type="button">
                 <i class="fas fa-download mr-2"></i>
                 <span id="laporanActionLabel">Download Semua Pengeluaran</span>
             </button>
-            @endif
+            <?php endif; ?>
         </div>
 
-        @if(auth()->user()->isSuperAdmin())
+        <?php if(auth()->user()->isSuperAdmin()): ?>
         <div class="bg-blue-100 border-l-4 border-blue-500 p-4 mb-6">
             <p class="text-blue-700">
                 <i class="fas fa-info-circle mr-2"></i><strong>Mode View Only</strong>
             </p>
         </div>
-        @endif
+        <?php endif; ?>
 
-        {{-- MENU TAB --}}
+        
         <div class="border-b mb-6">
             <nav class="flex space-x-6 text-gray-600 font-semibold">
                 <button data-target="keuangan"
@@ -47,18 +47,19 @@
             </nav>
         </div>
 
-        {{-- LAPORAN KEUANGAN --}}
+        
         <div id="keuangan" class="tab-panel">
             <h3 class="text-xl font-bold text-green-700 mb-6">Laporan Keuangan</h3>
-<form method="GET" action="{{ route('laporan.index') }}" class="mb-6 flex items-center gap-4">
+<form method="GET" action="<?php echo e(route('laporan.index')); ?>" class="mb-6 flex items-center gap-4">
     <label class="font-semibold text-gray-700">Tahun:</label>
 
     <select name="tahun" class="border rounded px-3 py-2">
-        @for ($y = date('Y'); $y >= date('Y') - 5; $y--)
-            <option value="{{ $y }}" {{ $tahun == $y ? 'selected' : '' }}>
-                {{ $y }}
+        <?php for($y = date('Y'); $y >= date('Y') - 5; $y--): ?>
+            <option value="<?php echo e($y); ?>" <?php echo e($tahun == $y ? 'selected' : ''); ?>>
+                <?php echo e($y); ?>
+
             </option>
-        @endfor
+        <?php endfor; ?>
     </select>
 
     <button type="submit"
@@ -79,7 +80,8 @@
                 <div>
                     <p class="text-sm font-medium text-red-700">Total Pengeluaran Keseluruhan</p>
                     <p class="text-3xl font-bold text-red-600 mt-1">
-                        Rp {{ number_format($totalPengeluaran ?? 0, 0, ',', '.') }}
+                        Rp <?php echo e(number_format($totalPengeluaran ?? 0, 0, ',', '.')); ?>
+
                     </p>
                 </div>
                 <div class="text-5xl text-red-200 opacity-50">
@@ -105,21 +107,21 @@
                 </table>
             </div>
         </div>
-                {{-- ================= KEGIATAN ================= --}}
+                
 <div id="kegiatan" class="tab-panel hidden">
 
     <h3 class="text-xl font-bold text-green-700 mb-6">
         Laporan Kegiatan
     </h3>
 
-    {{-- FILTER TAHUN (IDENTIK LOGIKA KEUANGAN) --}}
+    
     <div class="mb-6 flex items-center gap-4">
         <label class="font-semibold text-gray-700">Tahun:</label>
         <select id="tahun-kegiatan"
             class="border border-gray-300 rounded px-3 py-2 focus:ring-green-500 focus:border-green-500">
-            @foreach($tahunKegiatan as $y)
-                <option value="{{ $y }}">{{ $y }}</option>
-            @endforeach
+            <?php $__currentLoopData = $tahunKegiatan; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $y): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <option value="<?php echo e($y); ?>"><?php echo e($y); ?></option>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </select>
         <button id="btn-filter-kegiatan"
             class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 transition">
@@ -127,7 +129,7 @@
         </button>
     </div>
 
-    {{-- CARD GRAFIK (SAMA DENGAN KEUANGAN) --}}
+    
     <div
         class="bg-gradient-to-br from-blue-50 to-green-50 rounded-lg p-6 mb-8 shadow-sm border border-green-100">
 
@@ -139,13 +141,13 @@
         <div id="chart-kegiatan"></div>
     </div>
 
-    {{-- JUDUL TABEL --}}
+    
     <h4 class="text-lg font-semibold mb-4 flex items-center">
         <i class="fas fa-table text-green-600 mr-2"></i>
         Rekap Kegiatan Bulanan
     </h4>
 
-    {{-- TABEL (IDENTIK DENGAN KEUANGAN) --}}
+    
     <div class="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-200">
         <table class="w-full text-sm">
             <thead class="bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200">
@@ -189,7 +191,7 @@
     });
 
     // ================= PDF DOWNLOAD (TIDAK DIUBAH) =================
-    const cetakAllUrl = "{{ route('keuangan.pengeluaran.cetakAll') }}";
+    const cetakAllUrl = "<?php echo e(route('keuangan.pengeluaran.cetakAll')); ?>";
     const actionBtn = document.getElementById('laporanActionBtn');
     const actionLabel = document.getElementById('laporanActionLabel');
 
@@ -213,9 +215,9 @@
 
     // ❗ FIX UTAMA: tidak ada pemasukan
     const pemasukan = new Array(12).fill(0);
-    const pengeluaran = @json($pengeluaranChart);
+    const pengeluaran = <?php echo json_encode($pengeluaranChart, 15, 512) ?>;
 
-    const anggaran = @json($anggaran);
+    const anggaran = <?php echo json_encode($anggaran, 15, 512) ?>;
     const body = document.getElementById("tabel-anggaran");
 
     anggaran.forEach((item, i) => {
@@ -245,7 +247,7 @@
     }).render();
 
 function loadKegiatan(tahun) {
-    fetch(`{{ route('laporan.data-kegiatan-bulanan') }}?tahun=${tahun}`)
+    fetch(`<?php echo e(route('laporan.data-kegiatan-bulanan')); ?>?tahun=${tahun}`)
         .then(res => res.json())
         .then(res => {
 
@@ -312,4 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\Semester paeh part 1\Menpro\mm3\manajemen_masjid\resources\views/modules/laporan/index.blade.php ENDPATH**/ ?>
