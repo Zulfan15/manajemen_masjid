@@ -70,7 +70,7 @@
     <div x-data="{ 
         openModal: false, 
         isEdit: false, 
-        actionUrl: '{{ route('pengeluaran.store') }}',
+        actionUrl: '{{ route('keuangan.pengeluaran.store') }}',
         data: { id: '', judul: '', kategori_id: '', jumlah: '', tanggal: '', deskripsi: '' } 
     }">
         
@@ -78,7 +78,7 @@
             <h4 class="text-lg font-semibold text-gray-600 self-center">Daftar Pengeluaran</h4>
             
             <div class="flex gap-2">
-                <form action="{{ route('pengeluaran.cetak') }}" method="GET" target="_blank" class="flex gap-2">
+                <form action="{{ route('keuangan.pengeluaran.cetak') }}" method="GET" target="_blank" class="flex gap-2">
                     <select name="bulan" class="text-sm border-gray-300 rounded-md focus:border-green-400 focus:shadow-outline-green">
                         @for($i=1; $i<=12; $i++)
                             <option value="{{ $i }}" {{ date('n') == $i ? 'selected' : '' }}>{{ date('F', mktime(0, 0, 0, $i, 10)) }}</option>
@@ -98,7 +98,7 @@
                     @click="
                         openModal = true; 
                         isEdit = false; 
-                        actionUrl = '{{ route('pengeluaran.store') }}';
+                        actionUrl = '{{ route('keuangan.pengeluaran.store') }}';
                         data = { id: '', judul: '', kategori_id: '', jumlah: '', tanggal: '{{ date('Y-m-d') }}', deskripsi: '' };
                     "
                     class="px-4 py-2 text-sm font-medium leading-5 text-white transition-colors duration-150 bg-green-600 border border-transparent rounded-lg active:bg-green-600 hover:bg-green-700 focus:outline-none focus:shadow-outline-purple">
@@ -151,7 +151,7 @@
                                         @click="
                                             openModal = true; 
                                             isEdit = true;
-                                            actionUrl = '{{ url('pengeluaran') }}/{{ $item->id }}';
+                                            actionUrl = '{{ url('keuangan/pengeluaran') }}/{{ $item->id }}';
                                             data = {
                                                 id: '{{ $item->id }}',
                                                 judul: '{{ addslashes($item->judul_pengeluaran) }}',
@@ -166,7 +166,7 @@
                                         <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path></svg>
                                     </button>
 
-                                    <form action="{{ route('pengeluaran.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin hapus data ini?')">
+                                    <form action="{{ route('keuangan.pengeluaran.destroy', $item->id) }}" method="POST" onsubmit="return confirm('Yakin hapus data ini?')">
                                         @csrf
                                         @method('DELETE')
                                         <button class="px-2 py-2 text-sm font-medium leading-5 text-red-600 rounded-lg focus:outline-none focus:shadow-outline-gray" aria-label="Delete">
