@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Services\ActivityLogService;
-// use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Facades\Excel;
 
 class TakmirController extends Controller
 {
@@ -344,10 +344,7 @@ class TakmirController extends Controller
      */
     public function export()
     {
-        // Temporarily disabled - requires maatwebsite/excel package
-        return redirect()->back()->with('error', 'Fitur export Excel belum tersedia. Install package maatwebsite/excel terlebih dahulu.');
-        
-        // $this->activityLogService->log('export', 'takmir', 'Export data takmir ke Excel');
-        // return Excel::download(new TakmirExport, 'data-takmir-' . date('Y-m-d') . '.xlsx');
+        $this->activityLogService->log('export', 'takmir', 'Export data takmir ke Excel');
+        return Excel::download(new TakmirExport, 'data-takmir-' . date('Y-m-d') . '.xlsx');
     }
 }
