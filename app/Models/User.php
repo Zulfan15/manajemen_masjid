@@ -29,6 +29,10 @@ class User extends Authenticatable
         'last_login_at',
         'login_attempts',
         'locked_until',
+        'is_verified',
+        'verified_at',
+        'verified_by',
+        'verification_notes',
     ];
 
     /**
@@ -52,7 +56,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'locked_until' => 'datetime',
+            'verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_verified' => 'boolean',
         ];
     }
 
@@ -102,7 +108,7 @@ class User extends Authenticatable
     public function incrementLoginAttempts(): void
     {
         $this->increment('login_attempts');
-        
+
         // Lock after 5 failed attempts
         if ($this->login_attempts >= 5) {
             $this->lockAccount();
@@ -149,8 +155,15 @@ class User extends Authenticatable
     {
         if ($this->hasRole('super_admin')) {
             return [
-                'jamaah', 'keuangan', 'kegiatan', 'zis', 
-                'kurban', 'inventaris', 'takmir', 'informasi', 'laporan'
+                'jamaah',
+                'keuangan',
+                'kegiatan',
+                'zis',
+                'kurban',
+                'inventaris',
+                'takmir',
+                'informasi',
+                'laporan'
             ];
         }
 
@@ -188,6 +201,40 @@ class User extends Authenticatable
     public function isModuleOfficer(string $module): bool
     {
         return $this->hasRole("pengurus_{$module}");
+    }
+
+    /**
+     * Verify user as jamaah member
+     */
+    public function verify($verifiedBy = null, $notes = null): void
+    {
+        $this->update([
+            'is_verified' => true,
+            'verified_at' => now(),
+            'verified_by' => $verifiedBy ?? auth()->id(),
+            'verification_notes' => $notes,
+        ]);
+    }
+
+    /**
+     * Unverify user
+     */
+    public function unverify(): void
+    {
+        $this->update([
+            'is_verified' => false,
+            'verified_at' => null,
+            'verified_by' => null,
+            'verification_notes' => null,
+        ]);
+    }
+
+    /**
+     * Get verifier
+     */
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 
     /**

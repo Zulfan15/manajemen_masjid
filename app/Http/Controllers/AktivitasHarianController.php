@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AktivitasHarian;
 use App\Models\Takmir;
+use App\Exports\AktivitasHarianExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogService;
+use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
 class AktivitasHarianController extends Controller
@@ -262,5 +264,15 @@ class AktivitasHarianController extends Controller
 
         return redirect()->route('takmir.aktivitas.index')
             ->with('success', 'Aktivitas harian berhasil dihapus');
+    }
+
+    /**
+     * Export aktivitas data to Excel
+     */
+    public function export()
+    {
+        $this->activityLogService->log('export', 'aktivitas_harian', 'Export data aktivitas harian ke Excel');
+
+        return Excel::download(new AktivitasHarianExport, 'data-aktivitas-harian-' . date('Y-m-d') . '.xlsx');
     }
 }

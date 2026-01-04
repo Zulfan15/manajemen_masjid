@@ -203,10 +203,18 @@ class PemilihanController extends Controller
         $this->authorize('takmir.view');
 
         $pemilihan = Pemilihan::with(['kandidat.takmir', 'kandidat.votes'])
-            ->withCount('votes')
+            ->withCount(['votes', 'kandidat'])
             ->findOrFail($id);
 
-        return view('modules.takmir.pemilihan.show', compact('pemilihan'));
+        // Get takmir aktif untuk dropdown kandidat (exclude yang sudah jadi kandidat)
+        $existingKandidatTakmirIds = $pemilihan->kandidat->pluck('takmir_id')->toArray();
+        $takmirAktif = \App\Models\Takmir::where('status', 'aktif')
+            ->whereNotIn('id', $existingKandidatTakmirIds)
+            ->get();
+
+        $this->activityLogService->log('view', 'pemilihan', "Melihat detail pemilihan: {$pemilihan->judul}");
+
+        return view('modules.takmir.pemilihan.show', compact('pemilihan', 'takmirAktif'));
     }
 
     /**
@@ -216,7 +224,9 @@ class PemilihanController extends Controller
     {
         $this->authorize('takmir.update');
 
-        $pemilihan = Pemilihan::findOrFail($id);
+        $pemilihan = Pemilihan::withCount('votes')->findOrFail($id);
+
+        $this->activityLogService->log('view', 'pemilihan', "Membuka form edit pemilihan: {$pemilihan->judul}");
 
         return view('modules.takmir.pemilihan.edit', compact('pemilihan'));
     }
@@ -272,5 +282,59 @@ class PemilihanController extends Controller
 
         return redirect()->route('takmir.pemilihan.index')
             ->with('success', 'Pemilihan berhasil dihapus.');
+    }
+
+    /**
+     * Store kandidat baru untuk pemilihan
+     */
+    public function storeKandidat(Request $request, $pemilihanId)
+    {
+        $this->authorize('takmir.create');
+
+        $pemilihan = Pemilihan::findOrFail($pemilihanId);
+
+        $validated = $request->validate([
+            'takmir_id' => 'required|exists:takmir,id',
+            'nomor_urut' => 'required|integer|min:1',
+            'visi' => 'required|string',
+            'misi' => 'required|string',
+        ]);
+
+        $validated['pemilihan_id'] = $pemilihan->id;
+
+        $kandidat = Kandidat::create($validated);
+
+        $this->activityLogService->log(
+            'create',
+            'kandidat',
+            "Menambah kandidat: {$kandidat->takmir->nama} - Nomor {$kandidat->nomor_urut}",
+            ['pemilihan_id' => $pemilihan->id, 'kandidat_id' => $kandidat->id]
+        );
+
+        return redirect()->route('takmir.pemilihan.show', $pemilihan->id)
+            ->with('success', 'Kandidat berhasil ditambahkan.');
+    }
+
+    /**
+     * Delete kandidat dari pemilihan
+     */
+    public function destroyKandidat($pemilihanId, $kandidatId)
+    {
+        $this->authorize('takmir.delete');
+
+        $kandidat = Kandidat::where('pemilihan_id', $pemilihanId)
+            ->findOrFail($kandidatId);
+
+        $nama = $kandidat->takmir->nama;
+        $kandidat->delete();
+
+        $this->activityLogService->log(
+            'delete',
+            'kandidat',
+            "Menghapus kandidat: {$nama}"
+        );
+
+        return redirect()->route('takmir.pemilihan.show', $pemilihanId)
+            ->with('success', 'Kandidat berhasil dihapus.');
     }
 }

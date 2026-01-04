@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Manajemen Masjid')</title>
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
+    <title><?php echo $__env->yieldContent('title', 'Manajemen Masjid'); ?></title>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -52,24 +52,24 @@
         }
     </style>
     
-    @stack('styles')
+    <?php echo $__env->yieldPushContent('styles'); ?>
 </head>
 <body class="bg-gray-100">
-    @auth
-        @include('layouts.navbar')
+    <?php if(auth()->guard()->check()): ?>
+        <?php echo $__env->make('layouts.navbar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
         
         <div class="flex">
-            @include('layouts.sidebar')
+            <?php echo $__env->make('layouts.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
             
             <main class="flex-1 p-6 md:ml-64 mt-16">
-                @yield('content')
+                <?php echo $__env->yieldContent('content'); ?>
             </main>
         </div>
-    @else
+    <?php else: ?>
         <main>
-            @yield('content')
+            <?php echo $__env->yieldContent('content'); ?>
         </main>
-    @endauth
+    <?php endif; ?>
 
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-20 right-4 z-50 space-y-2" x-data="toastManager()">
@@ -122,21 +122,21 @@
                 
                 init() {
                     // Show Laravel session messages
-                    @if(session('success'))
-                        this.showToast('success', '{{ session('success') }}');
-                    @endif
+                    <?php if(session('success')): ?>
+                        this.showToast('success', '<?php echo e(session('success')); ?>');
+                    <?php endif; ?>
                     
-                    @if(session('error'))
-                        this.showToast('error', '{{ session('error') }}');
-                    @endif
+                    <?php if(session('error')): ?>
+                        this.showToast('error', '<?php echo e(session('error')); ?>');
+                    <?php endif; ?>
                     
-                    @if(session('info'))
-                        this.showToast('info', '{{ session('info') }}');
-                    @endif
+                    <?php if(session('info')): ?>
+                        this.showToast('info', '<?php echo e(session('info')); ?>');
+                    <?php endif; ?>
                     
-                    @if(session('warning'))
-                        this.showToast('warning', '{{ session('warning') }}');
-                    @endif
+                    <?php if(session('warning')): ?>
+                        this.showToast('warning', '<?php echo e(session('warning')); ?>');
+                    <?php endif; ?>
                     
                     // Listen for custom toast events
                     window.addEventListener('show-toast', (event) => {
@@ -179,6 +179,7 @@
         }
     </script>
     
-    @stack('scripts')
+    <?php echo $__env->yieldPushContent('scripts'); ?>
 </body>
 </html>
+<?php /**PATH D:\!KULIAH\!SEM7\menpro\manajemen_masjid\resources\views/layouts/app.blade.php ENDPATH**/ ?>

@@ -7,8 +7,9 @@
     "require": {
         "php": "^8.1",
         "laravel/framework": "^10.0|^11.0",
-        "spatie/laravel-permission": "^5.10|^6.0",
-        "spatie/laravel-activitylog": "^4.7"
+        "maatwebsite/excel": "^3.1",
+        "spatie/laravel-activitylog": "^4.7",
+        "spatie/laravel-permission": "^5.10|^6.0"
     },
     "require-dev": {
         "laravel/breeze": "^1.0",

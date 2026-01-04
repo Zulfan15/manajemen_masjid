@@ -105,7 +105,24 @@ Route::middleware('auth')->group(function () {
 
     // Module 7: Takmir Management
     Route::middleware(['module.access:takmir'])->prefix('takmir')->name('takmir.')->group(function () {
+        // Dashboard Modul
+        Route::get('/dashboard', [\App\Http\Controllers\TakmirController::class, 'dashboard'])->name('dashboard');
+
+        // Struktur Organisasi
+        Route::get('/struktur-organisasi', [\App\Http\Controllers\TakmirController::class, 'strukturOrganisasi'])->name('struktur-organisasi');
+
+        // Export
+        Route::get('/export', [\App\Http\Controllers\TakmirController::class, 'export'])->name('export');
+
+        // Verifikasi Jamaah
+        Route::prefix('verifikasi-jamaah')->name('verifikasi-jamaah.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\JamaahVerificationController::class, 'index'])->name('index');
+            Route::post('/{user}/verify', [\App\Http\Controllers\JamaahVerificationController::class, 'verify'])->name('verify');
+            Route::delete('/{user}/unverify', [\App\Http\Controllers\JamaahVerificationController::class, 'unverify'])->name('unverify');
+        });
+
         // Aktivitas Harian routes - HARUS DI ATAS resource root untuk menghindari konflik
+        Route::get('/aktivitas/export', [\App\Http\Controllers\AktivitasHarianController::class, 'export'])->name('aktivitas.export');
         Route::resource('aktivitas', \App\Http\Controllers\AktivitasHarianController::class)->parameters(['aktivitas' => 'aktivita']);
 
         // Pemilihan routes
@@ -122,6 +139,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/{id}/edit', [\App\Http\Controllers\PemilihanController::class, 'edit'])->name('edit');
             Route::put('/{id}', [\App\Http\Controllers\PemilihanController::class, 'update'])->name('update');
             Route::delete('/{id}', [\App\Http\Controllers\PemilihanController::class, 'destroy'])->name('destroy');
+
+            // Kandidat routes
+            Route::post('/{id}/kandidat', [\App\Http\Controllers\PemilihanController::class, 'storeKandidat'])->name('kandidat.store');
+            Route::delete('/{pemilihanId}/kandidat/{kandidatId}', [\App\Http\Controllers\PemilihanController::class, 'destroyKandidat'])->name('kandidat.destroy');
         });
 
         // Takmir resource (menggunakan root)
