@@ -8,7 +8,7 @@ use App\Exports\AktivitasHarianExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Services\ActivityLogService;
-use Maatwebsite\Excel\Facades\Excel;
+// use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
 class AktivitasHarianController extends Controller
@@ -271,8 +271,10 @@ class AktivitasHarianController extends Controller
      */
     public function export()
     {
-        $this->activityLogService->log('export', 'aktivitas_harian', 'Export data aktivitas harian ke Excel');
-
-        return Excel::download(new AktivitasHarianExport, 'data-aktivitas-harian-' . date('Y-m-d') . '.xlsx');
+        // Temporarily disabled - requires maatwebsite/excel package
+        return redirect()->back()->with('error', 'Fitur export Excel belum tersedia. Install package maatwebsite/excel terlebih dahulu.');
+        
+        // $this->activityLogService->log('export', 'aktivitas_harian', 'Export data aktivitas harian ke Excel');
+        // return Excel::download(new AktivitasHarianExport, 'data-aktivitas-harian-' . date('Y-m-d') . '.xlsx');
     }
 }

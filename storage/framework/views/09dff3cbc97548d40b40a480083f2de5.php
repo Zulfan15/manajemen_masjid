@@ -1,5 +1,5 @@
-<aside class="bg-white w-64 fixed left-0 top-16 bottom-0 overflow-y-auto shadow-lg hidden md:block"
-    x-data="{ sidebarOpen: true }">
+<aside class="bg-white w-64 fixed left-0 top-16 bottom-0 overflow-y-auto shadow-lg hidden md:block" 
+       x-data="{ sidebarOpen: true }">
     <div class="p-4">
         <div class="mb-4">
             <p class="text-xs text-gray-500 uppercase font-semibold mb-2">Peran Anda</p>
@@ -15,12 +15,6 @@
 
         <!-- Navigation Menu -->
         <nav>
-            <a href="<?php echo e(route('dashboard')); ?>"
-                class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('dashboard') ? 'bg-green-100 text-green-700' : ''); ?>">
-                <i class="fas fa-home w-6"></i>
-                <span>Dashboard</span>
-            </a>
-
             <?php
                 $modules = [
                     'jamaah' => ['icon' => 'fa-users', 'label' => 'Manajemen Jamaah'],
@@ -40,35 +34,81 @@
 
             <?php $__currentLoopData = $modules; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $module): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <?php if(auth()->user()->canAccessModule($key)): ?>
-                    <a href="<?php echo e(route($key . '.index')); ?>"
-                        class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs($key . '.*') ? 'bg-green-100 text-green-700' : ''); ?>">
-                        <i class="fas <?php echo e($module['icon']); ?> w-6"></i>
-                        <span><?php echo e($module['label']); ?></span>
-                        <?php if(!auth()->user()->isSuperAdmin()): ?>
-                            <span class="ml-auto text-xs text-green-600">
-                                <i class="fas fa-edit"></i>
-                            </span>
-                        <?php else: ?>
-                            <span class="ml-auto text-xs text-blue-600">
-                                <i class="fas fa-eye"></i>
-                            </span>
-                        <?php endif; ?>
-                    </a>
+                    <?php if($key === 'takmir'): ?>
+                        <!-- Takmir Module with Submenu -->
+                        <div x-data="{ open: <?php echo e(request()->routeIs('takmir.*') ? 'true' : 'false'); ?> }">
+                            <button @click="open = !open" 
+                                   class="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('takmir.*') ? 'bg-green-100 text-green-700' : ''); ?>">
+                                <div class="flex items-center">
+                                    <i class="fas <?php echo e($module['icon']); ?> w-6"></i>
+                                    <span><?php echo e($module['label']); ?></span>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            <div x-show="open" x-collapse class="ml-4 mt-1 space-y-1">
+                                <a href="<?php echo e(route('takmir.dashboard')); ?>" 
+                                   class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('takmir.dashboard') ? 'bg-green-50 text-green-700' : ''); ?>">
+                                    <i class="fas fa-tachometer-alt w-6 text-xs"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                                <a href="<?php echo e(route('takmir.index')); ?>" 
+                                   class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('takmir.index') || request()->routeIs('takmir.create') || request()->routeIs('takmir.edit') || request()->routeIs('takmir.show') ? 'bg-green-50 text-green-700' : ''); ?>">
+                                    <i class="fas fa-users w-6 text-xs"></i>
+                                    <span>Data Pengurus</span>
+                                </a>
+                                <a href="<?php echo e(route('takmir.struktur-organisasi')); ?>" 
+                                   class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('takmir.struktur-organisasi') ? 'bg-green-50 text-green-700' : ''); ?>">
+                                    <i class="fas fa-sitemap w-6 text-xs"></i>
+                                    <span>Struktur Organisasi</span>
+                                </a>
+                                <a href="<?php echo e(route('takmir.verifikasi-jamaah.index')); ?>" 
+                                   class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('takmir.verifikasi-jamaah.*') ? 'bg-green-50 text-green-700' : ''); ?>">
+                                    <i class="fas fa-user-check w-6 text-xs"></i>
+                                    <span>Verifikasi Jamaah</span>
+                                </a>
+                                <a href="<?php echo e(route('takmir.aktivitas.index')); ?>" 
+                                   class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('takmir.aktivitas.*') ? 'bg-green-50 text-green-700' : ''); ?>">
+                                    <i class="fas fa-clipboard-list w-6 text-xs"></i>
+                                    <span>Aktivitas Harian</span>
+                                </a>
+                                <a href="<?php echo e(route('takmir.pemilihan.index')); ?>" 
+                                   class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('takmir.pemilihan.*') ? 'bg-green-50 text-green-700' : ''); ?>">
+                                    <i class="fas fa-vote-yea w-6 text-xs"></i>
+                                    <span>Pemilihan</span>
+                                </a>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                        <a href="<?php echo e(route($key . '.index')); ?>" 
+                           class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs($key . '.*') ? 'bg-green-100 text-green-700' : ''); ?>">
+                            <i class="fas <?php echo e($module['icon']); ?> w-6"></i>
+                            <span><?php echo e($module['label']); ?></span>
+                            <?php if(!auth()->user()->isSuperAdmin()): ?>
+                                <span class="ml-auto text-xs text-green-600">
+                                    <i class="fas fa-edit"></i>
+                                </span>
+                            <?php else: ?>
+                                <span class="ml-auto text-xs text-blue-600">
+                                    <i class="fas fa-eye"></i>
+                                </span>
+                            <?php endif; ?>
+                        </a>
+                    <?php endif; ?>
                 <?php endif; ?>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
             <?php if(auth()->user()->hasRole('super_admin')): ?>
                 <hr class="my-4">
                 <p class="text-xs text-gray-500 uppercase font-semibold px-4 mb-2">Super Admin</p>
-
-                <a href="<?php echo e(route('activity-logs.index')); ?>"
-                    class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition">
+                
+                <a href="<?php echo e(route('activity-logs.index')); ?>" 
+                   class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition">
                     <i class="fas fa-history w-6"></i>
                     <span>Log Aktivitas</span>
                 </a>
-
-                <a href="<?php echo e(route('users.index')); ?>"
-                    class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition">
+                
+                <a href="<?php echo e(route('users.index')); ?>" 
+                   class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition">
                     <i class="fas fa-users-cog w-6"></i>
                     <span>Manajemen User</span>
                 </a>
@@ -78,29 +118,9 @@
                 <?php if(auth()->user()->hasRole("admin_{$module}")): ?>
                     <hr class="my-4">
                     <p class="text-xs text-gray-500 uppercase font-semibold px-4 mb-2">Admin <?php echo e(ucfirst($module)); ?></p>
-
-                    <?php if($module === 'kegiatan'): ?>
-                        <a href="<?php echo e(route('kegiatan.pengumuman.index')); ?>"
-                            class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('kegiatan.pengumuman.*') ? 'bg-green-100 text-green-700' : ''); ?>">
-                            <i class="fas fa-bullhorn w-6"></i>
-                            <span>Pengumuman</span>
-                        </a>
-
-                        <a href="<?php echo e(route('kegiatan.laporan.index')); ?>"
-                            class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('kegiatan.laporan.*') ? 'bg-green-100 text-green-700' : ''); ?>">
-                            <i class="fas fa-file-alt w-6"></i>
-                            <span>Laporan Kegiatan</span>
-                        </a>
-
-                        <a href="<?php echo e(route('kegiatan.sertifikat.index')); ?>"
-                            class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs('kegiatan.sertifikat.*') ? 'bg-green-100 text-green-700' : ''); ?>">
-                            <i class="fas fa-certificate w-6"></i>
-                            <span>Generate Sertifikat</span>
-                        </a>
-                    <?php endif; ?>
-
-                    <a href="<?php echo e(route('users.promote.show', $module)); ?>"
-                        class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition">
+                    
+                    <a href="<?php echo e(route('users.promote.show', $module)); ?>" 
+                       class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition">
                         <i class="fas fa-user-plus w-6"></i>
                         <span>Kelola Pengurus</span>
                     </a>
