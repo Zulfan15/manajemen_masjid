@@ -38,8 +38,4 @@
         </div>
     </div>
 </nav>
-<<<<<<<< HEAD:storage/framework/views/3ec3cf0eb195232c177e5696cb0ac860.php
-<?php /**PATH D:\Semester paeh part 1\Menpro\mm3\manajemen_masjid\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>
-========
-<?php /**PATH D:\!KULIAH\!SEM7\menpro\manajemen_masjid\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>
->>>>>>>> origin/modul-manajemen-takmir:storage/framework/views/e6d5d795aa5ff7b1d6a0c324f950d1ea.php
+<?php /**PATH C:\Users\ACER\Downloads\Manpro Masjid\resources\views/layouts/navbar.blade.php ENDPATH**/ ?>

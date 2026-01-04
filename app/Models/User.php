@@ -9,12 +9,6 @@ use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
-use App\Models\KondisiBarang;
-use App\Models\TransaksiAset;
-use App\Models\JadwalPerawatan;
-use App\Models\ActivityLog;
-
-
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasRoles, LogsActivity;
@@ -35,6 +29,10 @@ class User extends Authenticatable
         'last_login_at',
         'login_attempts',
         'locked_until',
+        'is_verified',
+        'verified_at',
+        'verified_by',
+        'verification_notes',
     ];
 
     /**
@@ -58,7 +56,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
             'locked_until' => 'datetime',
+            'verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_verified' => 'boolean',
         ];
     }
 
@@ -204,20 +204,37 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has specific permission
+     * Verify user as jamaah member
      */
-    public function hasPermission(string $permission): bool
+    public function verify($verifiedBy = null, $notes = null): void
     {
-        // Super admin has all permissions (read-only)
-        if ($this->hasRole('super_admin')) {
-            // Super admin can only view, not create/update/delete
-            if (str_contains($permission, 'create') || str_contains($permission, 'update') || str_contains($permission, 'delete')) {
-                return false;
-            }
-            return true;
-        }
+        $this->update([
+            'is_verified' => true,
+            'verified_at' => now(),
+            'verified_by' => $verifiedBy ?? auth()->id(),
+            'verification_notes' => $notes,
+        ]);
+    }
 
-        return $this->hasPermissionTo($permission);
+    /**
+     * Unverify user
+     */
+    public function unverify(): void
+    {
+        $this->update([
+            'is_verified' => false,
+            'verified_at' => null,
+            'verified_by' => null,
+            'verification_notes' => null,
+        ]);
+    }
+
+    /**
+     * Get verifier
+     */
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 
     /**
@@ -226,19 +243,5 @@ class User extends Authenticatable
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
-    }
-    public function kondisiBarang()
-    {
-        return $this->hasMany(KondisiBarang::class, 'id_petugas', 'id');
-    }
-
-    public function transaksiAset()
-    {
-        return $this->hasMany(TransaksiAset::class, 'id_petugas', 'id');
-    }
-
-    public function jadwalPerawatan()
-    {
-        return $this->hasMany(JadwalPerawatan::class, 'id_petugas', 'id');
     }
 }
