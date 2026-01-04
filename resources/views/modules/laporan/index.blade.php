@@ -14,8 +14,8 @@
                 <p class="text-gray-600 mt-2">Kelola laporan dan statistik masjid</p>
             </div>
 
-            {{-- ⚠️ FITUR UNDUH PDF TIDAK DIUBAH --}}
-            @if(!auth()->user()->isSuperAdmin())
+            {{-- Download button only for users with export permission --}}
+            @if(auth()->user()->hasPermission('laporan.export'))
             <button id="laporanActionBtn"
                 class="bg-green-700 inline-flex items-center text-white px-4 py-2 rounded hover:bg-green-800 transition"
                 type="button">

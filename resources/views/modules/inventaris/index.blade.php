@@ -14,7 +14,7 @@
                 <p class="text-gray-600 mt-2">Ringkasan kondisi aset dan aktivitas inventaris masjid.</p>
             </div>
 
-            @if(!auth()->user()->isSuperAdmin())
+            @if(auth()->user()->hasPermission('inventaris.create'))
                 <div class="flex gap-3">
                     <a href="#"
                        class="inline-flex items-center bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition">

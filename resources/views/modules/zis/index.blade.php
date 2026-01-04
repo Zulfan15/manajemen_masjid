@@ -10,7 +10,7 @@
                 </h1>
                 <p class="text-gray-600 mt-2">Kelola Zakat, Infaq, dan Sedekah</p>
             </div>
-            @if(!auth()->user()->isSuperAdmin())
+            @if(auth()->user()->hasPermission('zis.create'))
                 <button class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 transition">
                     <i class="fas fa-plus mr-2"></i>Tambah Data ZIS
                 </button>

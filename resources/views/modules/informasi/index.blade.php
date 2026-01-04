@@ -27,6 +27,7 @@
     </div>
 
     <!-- Dropdown Tambah -->
+    @if(auth()->user()->hasPermission('informasi.create'))
     <div class="mb-4 relative inline-block">
         <button onclick="toggleMenu()"
             class="bg-green-600 text-white px-5 py-2.5 rounded-lg shadow hover:bg-green-700 flex items-center">
@@ -53,6 +54,7 @@
             </a>
         </div>
     </div>
+    @endif
 
     <!-- TABLE CONTENT -->
     @if($tab == 'pengumuman')

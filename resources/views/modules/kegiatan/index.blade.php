@@ -25,7 +25,7 @@
                     </h1>
                     <p class="text-gray-600 mt-2">Kelola kegiatan dan acara masjid</p>
                 </div>
-                @if (!auth()->user()->isSuperAdmin())
+                @if(auth()->user()->hasPermission('kegiatan.create'))
                     <a href="{{ route('kegiatan.create') }}"
                         class="bg-green-700 text-white px-4 py-2 rounded hover:bg-green-800 transition">
                         <i class="fas fa-plus mr-2"></i>Tambah Kegiatan
@@ -170,11 +170,13 @@
                                     class="text-blue-600 hover:text-blue-800 p-2" title="Lihat Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                @if (!auth()->user()->isSuperAdmin())
+                                @if(auth()->user()->hasPermission('kegiatan.update'))
                                     <a href="{{ route('kegiatan.edit', $kegiatan->id) }}"
                                         class="text-green-600 hover:text-green-800 p-2" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                @endif
+                                @if(auth()->user()->hasPermission('kegiatan.delete'))
                                     <form action="{{ route('kegiatan.destroy', $kegiatan->id) }}" method="POST"
                                         class="inline" onsubmit="return confirm('Yakin ingin menghapus kegiatan ini?')">
                                         @csrf
