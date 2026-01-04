@@ -13,7 +13,7 @@
         <button class="py-2 px-4 border-b-2 border-green-600 text-green-600 font-semibold focus:outline-none">
             Pengeluaran
         </button>
-        <a href="{{ route('kategori-pengeluaran.index') }}" class="py-2 px-4 text-gray-500 hover:text-green-600 focus:outline-none">
+        <a href="{{ route('keuangan.kategori-pengeluaran.index') }}" class="py-2 px-4 text-gray-500 hover:text-green-600 focus:outline-none">
             Kategori
         </a>
     </div>
