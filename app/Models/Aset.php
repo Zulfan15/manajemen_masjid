@@ -27,6 +27,7 @@ class Aset extends Model
         'status',
         'keterangan',
         'qr_payload',
+        'foto_path',
     ];
 
     // Relasi – yang bawah ini boleh kamu biarkan seperti yang sudah ada

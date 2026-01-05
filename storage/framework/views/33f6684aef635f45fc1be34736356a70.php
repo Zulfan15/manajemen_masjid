@@ -68,12 +68,11 @@
                                 : 'bg-gray-100 text-gray-800';
 
                             // STATUS (users.status enum aktif/nonaktif)
-                            $status = strtolower($p->status ?? '-');
-                            $statusBadgeClass = $status === 'aktif'
+                            $isActive = empty($p->locked_until); // NULL => aktif
+                            $statusText = $isActive ? 'Aktif' : 'Nonaktif';
+                            $statusBadgeClass = $isActive
                                 ? 'bg-green-100 text-green-800'
-                                : ($status === 'nonaktif'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-gray-100 text-gray-700');
+                                : 'bg-red-100 text-red-800';
 
                             // Avatar placeholder: inisial
                             $initials = collect(explode(' ', trim($p->name ?? 'U')))
@@ -110,7 +109,7 @@
 
                             <td class="whitespace-nowrap px-6 py-4">
                                 <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold leading-5 <?php echo e($statusBadgeClass); ?>">
-                                    <?php echo e($status !== '-' ? ucfirst($status) : '-'); ?>
+                                    <?php echo e($statusText); ?>
 
                                 </span>
                             </td>
@@ -118,13 +117,22 @@
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
                                 <div class="flex items-center gap-3">
                                     
-                                    <button type="button" class="text-gray-400 hover:text-emerald-800" title="Edit (coming soon)">
+                                    <button type="button"
+                                        class="<?php echo e($isActive ? 'text-gray-400 hover:text-emerald-800' : 'text-gray-300 cursor-not-allowed'); ?>"
+                                        title="<?php echo e($isActive ? 'Edit (coming soon)' : 'Akun nonaktif'); ?>"
+                                        <?php echo e($isActive ? '' : 'disabled'); ?>>
                                         <i class="fa-regular fa-pen-to-square text-lg"></i>
                                     </button>
-                                    <button type="button" class="text-gray-400 hover:text-emerald-800" title="Reset Password (coming soon)">
+                                    <button type="button"
+                                        class="<?php echo e($isActive ? 'text-gray-400 hover:text-emerald-800' : 'text-gray-300 cursor-not-allowed'); ?>"
+                                        title="<?php echo e($isActive ? 'Reset Password (coming soon)' : 'Akun nonaktif'); ?>"
+                                        <?php echo e($isActive ? '' : 'disabled'); ?>>
                                         <i class="fa-solid fa-key text-lg"></i>
                                     </button>
-                                    <button type="button" class="text-gray-400 hover:text-red-500" title="Hapus (coming soon)">
+                                    <button type="button"
+                                        class="<?php echo e($isActive ? 'text-gray-400 hover:text-emerald-800' : 'text-gray-300 cursor-not-allowed'); ?>"
+                                        title="<?php echo e($isActive ? 'Hapus (coming soon)' : 'Akun nonaktif'); ?>"
+                                        <?php echo e($isActive ? '' : 'disabled'); ?>>
                                         <i class="fa-regular fa-trash-can text-lg"></i>
                                     </button>
                                 </div>
@@ -132,11 +140,22 @@
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-sm text-gray-500">
-                                Belum ada data petugas.
+                            <td colspan="6" class="px-6 py-12">
+                                <div class="flex flex-col items-center justify-center text-center">
+                                    <div class="h-12 w-12 rounded-full bg-emerald-800/10 flex items-center justify-center text-emerald-800">
+                                        <i class="fa-solid fa-user-plus"></i>
+                                    </div>
+                                    <p class="mt-3 text-sm font-semibold text-gray-900">Belum ada petugas</p>
+                                    <p class="mt-1 text-sm text-gray-500">Tambahkan petugas baru untuk mulai mengelola inventaris.</p>
+                                    <a href="<?php echo e(route('inventaris.petugas.create')); ?>"
+                                    class="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-800 px-4 text-sm font-bold text-white hover:bg-emerald-800/90">
+                                        <i class="fa-solid fa-plus text-sm"></i>
+                                        Tambah Petugas Baru
+                                    </a>
+                                </div>
                             </td>
                         </tr>
-                    <?php endif; ?>
+                        <?php endif; ?>
                 </tbody>
             </table>
         </div>

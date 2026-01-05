@@ -111,15 +111,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return view('modules.keuangan.index');
         })->name('index');
-        
+
         // Kategori Pengeluaran
         Route::resource('kategori-pengeluaran', \App\Http\Controllers\KategoriPengeluaranController::class)
             ->except(['create', 'edit', 'show']);
-        
+
         // Cetak Laporan (before resource route)
         Route::get('pengeluaran/cetak-laporan', [\App\Http\Controllers\PengeluaranController::class, 'cetakLaporan'])
             ->name('pengeluaran.cetak');
-        
+
         // Transaksi Pengeluaran
         Route::resource('pengeluaran', \App\Http\Controllers\PengeluaranController::class)
             ->except(['create', 'edit', 'show']);
@@ -137,7 +137,7 @@ Route::middleware('auth')->group(function () {
             Route::put('/{pengumuman}', [PengumumanController::class, 'update'])->name('update')->middleware('permission:kegiatan.update');
             Route::delete('/{pengumuman}', [PengumumanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
         });
-        
+
         // Laporan Kegiatan
         Route::prefix('laporan')->name('laporan.')->group(function () {
             Route::get('/', [LaporanKegiatanController::class, 'index'])->name('index');
@@ -149,7 +149,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{laporan}', [LaporanKegiatanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
             Route::get('/{laporan}/download', [LaporanKegiatanController::class, 'download'])->name('download');
         });
-        
+
         // Generate Sertifikat
         Route::prefix('sertifikat')->name('sertifikat.')->group(function () {
             Route::get('/', [SertifikatController::class, 'index'])->name('index');
@@ -159,22 +159,22 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{sertifikat}', [App\Http\Controllers\SertifikatController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
             Route::get('/peserta', [App\Http\Controllers\SertifikatController::class, 'getPeserta'])->name('peserta');
         });
-        
+
         // CRUD Kegiatan (MUST BE AFTER all prefixed routes)
         Route::get('/', [App\Http\Controllers\KegiatanController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\KegiatanController::class, 'create'])->name('create')->middleware('permission:kegiatan.create');
         Route::post('/', [App\Http\Controllers\KegiatanController::class, 'store'])->name('store')->middleware('permission:kegiatan.create');
-        
+
         // Pendaftaran Peserta
         Route::post('/{id}/register', [App\Http\Controllers\KegiatanController::class, 'registerPeserta'])->name('register');
-        
+
         // Absensi
         Route::get('/{id}/absensi', [App\Http\Controllers\KegiatanController::class, 'absensi'])->name('absensi')->middleware('permission:kegiatan.update');
         Route::post('/{id}/absensi', [App\Http\Controllers\KegiatanController::class, 'storeAbsensi'])->name('absensi.store')->middleware('permission:kegiatan.update');
-        
+
         // Notifikasi
         Route::post('/{id}/broadcast', [App\Http\Controllers\KegiatanController::class, 'broadcastNotification'])->name('broadcast')->middleware('permission:kegiatan.create');
-        
+
         // Dynamic routes with {id} parameter (MUST BE LAST)
         Route::get('/{id}', [App\Http\Controllers\KegiatanController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [App\Http\Controllers\KegiatanController::class, 'edit'])->name('edit')->middleware('permission:kegiatan.update');
@@ -207,6 +207,7 @@ Route::middleware('auth')->group(function () {
 
             Route::get('/petugas', [InventarisController::class, 'petugasIndex'])->name('petugas.index');
             Route::get('/petugas/create', [InventarisController::class, 'petugasCreate'])->name('petugas.create');
+            Route::post('/petugas', [InventarisController::class, 'petugasStore'])->name('petugas.store');
         });
 
     // Module 7: Takmir Management
@@ -249,10 +250,10 @@ Route::middleware('auth')->group(function () {
         Route::post('notifikasi/send', [NotificationController::class, 'send'])->name('notifikasi.send');
     });
     Route::get('/info-masjid', [InformasiController::class, 'publicIndex'])
-    ->name('public.home');
+        ->name('public.home');
 
     Route::get('/info-masjid/{slug}', [InformasiController::class, 'publicShow'])
-    ->name('public.info.show');
+        ->name('public.info.show');
 
     // Module 9: Reports & Statistics
     Route::middleware(['module.access:laporan'])->prefix('laporan')->name('laporan.')->group(function () {

@@ -10,6 +10,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
 
 class InventarisController extends Controller
 {
@@ -95,7 +97,7 @@ class InventarisController extends Controller
             $umurText = count($parts) ? implode(' ', $parts) : '0 Bulan';
         }
 
-        $qrCodeText = $asset->qr_payload ?: ('AST-' . str_pad($asset->aset_id, 3, '0', STR_PAD_LEFT));
+        $qrCodeText = $asset->qr_payload ?: ('AST-' . str_pad((string)$asset->aset_id, 6, '0', STR_PAD_LEFT));
 
         return view('modules.inventaris.aset.show', compact(
             'asset',
@@ -167,6 +169,17 @@ class InventarisController extends Controller
             'keterangan' => $validated['keterangan'] ?? null,
         ]);
 
+        // Generate QR payload (AST-000123) kalau belum ada
+        $payload = 'AST-' . str_pad((string)$aset->aset_id, 6, '0', STR_PAD_LEFT);
+        $aset->update(['qr_payload' => $payload]);
+
+        if ($request->hasFile('foto')) {
+            $path = $request->file('foto')->store('aset', 'public');
+            $aset->update([
+                'foto_path' => $path,
+            ]);
+        }
+
         return redirect()
             ->route('inventaris.aset.index')
             ->with('success', 'Aset berhasil ditambahkan.');
@@ -196,6 +209,18 @@ class InventarisController extends Controller
 
         $asset->update($validated);
 
+        if ($request->hasFile('foto')) {
+            // hapus foto lama (opsional tapi rapi)
+            if ($asset->foto_path && Storage::disk('public')->exists($asset->foto_path)) {
+                Storage::disk('public')->delete($asset->foto_path);
+            }
+
+            $path = $request->file('foto')->store('aset', 'public');
+            $asset->update([
+                'foto_path' => $path,
+            ]);
+        }
+
         return redirect()->route('inventaris.aset.show', $asset->aset_id)
             ->with('success', 'Aset berhasil diupdate.');
     }
@@ -213,5 +238,34 @@ class InventarisController extends Controller
     {
         $roles = Role::orderBy('name')->get();
         return view('modules.inventaris.petugas.create', compact('roles'));
+    }
+
+    public function petugasStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name'     => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'unique:users,username'],
+            'email'    => ['required', 'email', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'role'     => ['required', 'exists:roles,name'],
+            'status'   => ['required', 'in:aktif,nonaktif'],
+        ]);
+
+        $user = User::create([
+            'name'     => $validated['name'],
+            'username' => $validated['username'],
+            'email'    => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            // status pakai locked_until (AMAN, tidak ubah DB)
+            'locked_until' => $validated['status'] === 'nonaktif'
+                ? Carbon::now()
+                : null,
+        ]);
+
+        $user->assignRole($validated['role']);
+
+        return redirect()
+            ->route('inventaris.petugas.index')
+            ->with('success', 'Petugas berhasil ditambahkan.');
     }
 }

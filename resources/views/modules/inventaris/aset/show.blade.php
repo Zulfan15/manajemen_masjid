@@ -32,9 +32,16 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- FOTO --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <div class="aspect-[4/3] rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
-                {{-- kalau nanti ada kolom foto, tinggal ganti jadi <img ...> --}}
-                Foto Barang
+            <div class="aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden">
+                @if($asset->foto_path)
+                    <img src="{{ asset('storage/'.$asset->foto_path) }}"
+                        alt="Foto {{ $asset->nama_aset }}"
+                        class="w-full h-full object-cover">
+                @else
+                    <div class="w-full h-full flex items-center justify-center text-gray-400">
+                        Foto Barang
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -97,10 +104,12 @@
 
             {{-- QR --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center">
-                <div class="h-28 w-28 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
-                    <i class="fa-solid fa-qrcode text-2xl"></i>
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center">
+                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                        {!! QrCode::size(130)->margin(1)->generate($qrCodeText) !!}
+                    </div>
+                    <div class="mt-3 text-sm font-medium text-gray-700">{{ $qrCodeText }}</div>
                 </div>
-                <div class="mt-3 text-sm font-medium text-gray-700">{{ $qrCodeText }}</div>
             </div>
         </div>
     </div>

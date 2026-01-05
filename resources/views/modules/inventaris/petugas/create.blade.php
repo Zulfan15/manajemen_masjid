@@ -25,7 +25,7 @@
         {{-- Form Container --}}
         <div class="bg-white rounded-xl p-8 border border-gray-200">
             {{-- UI-only: action sementara arahkan ke # --}}
-            <form action="#" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <form action="{{ route('inventaris.petugas.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                 @csrf
 
                 {{-- Nama Petugas (col-span-2) --}}
@@ -62,6 +62,27 @@
                     />
                 </div>
 
+                {{-- Email --}}
+                <div class="flex flex-col">
+                    <label class="text-gray-800 text-base font-medium leading-normal pb-2" for="email">
+                        Email
+                    </label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value="{{ old('email') }}"
+                        placeholder="Masukkan email"
+                        class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg
+                            text-gray-800 focus:outline-0 focus:ring-2 focus:ring-emerald-800/30
+                            border border-gray-300 bg-[#f6f8f7] h-12 placeholder:text-gray-400 px-4
+                            text-base font-normal leading-normal"
+                    />
+                    @error('email')
+                        <div class="text-sm text-red-600 mt-2">{{ $message }}</div>
+                    @enderror
+                </div>
+
                 {{-- Password + icon (UI only) --}}
                 <div class="flex flex-col">
                     <label class="text-gray-800 text-base font-medium leading-normal pb-2" for="password">
@@ -89,6 +110,25 @@
                             <i id="pwIcon" class="fa-regular fa-eye-slash text-lg"></i>
                         </button>
                     </div>
+                </div>
+
+                {{-- Konfirmasi Password --}}
+                <div class="flex flex-col">
+                    <label class="text-gray-800 text-base font-medium leading-normal pb-2"
+                        for="password_confirmation">
+                        Konfirmasi Password
+                    </label>
+
+                    <input
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        type="password"
+                        placeholder="Ulangi password"
+                        class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg
+                            text-gray-800 focus:outline-0 focus:ring-2 focus:ring-emerald-800/30
+                            border border-gray-300 bg-[#f6f8f7] h-12 placeholder:text-gray-400 px-4
+                            text-base font-normal leading-normal"
+                    />
                 </div>
 
                 {{-- Role --}}
@@ -139,11 +179,9 @@
 
                     {{-- UI-only dulu: biar tidak bikin data, tetap tombol tampil --}}
                     <button
-                        type="button"
+                        type="submit"
                         class="rounded-lg h-12 px-6 text-base font-bold bg-emerald-800 text-white
-                               hover:bg-emerald-800/90 transition-colors cursor-not-allowed opacity-90"
-                        title="Simpan akan diaktifkan setelah tahap CRUD"
-                    >
+                            hover:bg-emerald-800/90 transition-colors">
                         Simpan Petugas
                     </button>
                 </div>
