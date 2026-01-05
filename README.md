@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Sistem Manajemen Masjid
 
 <p align="center">
@@ -370,3 +371,6 @@ Untuk pertanyaan atau bantuan, hubungi tim development.
 ---
 
 **© 2024 Manajemen Masjid. All Rights Reserved.**
+=======
+# manajemen_masjid-main
+>>>>>>> 0bd98f2d0321a80273f60fd9dd71424d94a20dcd
