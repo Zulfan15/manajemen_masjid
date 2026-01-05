@@ -54,21 +54,40 @@ class InventarisController extends Controller
 
     public function asetIndex(Request $request)
     {
-        $query = Aset::query();
+        // Subquery: ambil kondisi terbaru per aset (pakai MAX(kondisi_id) sebagai yang paling baru)
+        $latestKondisi = DB::table('kondisi_barang')
+            ->select('aset_id', DB::raw('MAX(kondisi_id) as latest_kondisi_id'))
+            ->groupBy('aset_id');
 
+        $query = Aset::query()
+            ->leftJoinSub($latestKondisi, 'lk', function ($join) {
+                // pastikan nama tabel aset sesuai yang dipakai query
+                $join->on('aset.aset_id', '=', 'lk.aset_id');
+            })
+            ->leftJoin('kondisi_barang as kb', 'kb.kondisi_id', '=', 'lk.latest_kondisi_id')
+            ->select('aset.*', 'kb.kondisi as kondisi_terbaru');
+
+        // Search
         if ($request->filled('search')) {
-            $query->where('nama_aset', 'like', '%' . $request->search . '%');
+            $query->where('aset.nama_aset', 'like', '%' . $request->search . '%');
         }
 
+        // Filter kategori
         if ($request->filled('kategori')) {
-            $query->where('kategori', $request->kategori);
+            $query->where('aset.kategori', $request->kategori);
         }
 
+        // ✅ Jalur A (tetap): Filter status
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $query->where('aset.status', $request->status);
         }
 
-        $assets = $query->orderByDesc('aset_id')
+        // ✅ Jalur B: Filter kondisi terbaru
+        if ($request->filled('kondisi')) {
+            $query->where('kb.kondisi', $request->kondisi);
+        }
+
+        $assets = $query->orderByDesc('aset.aset_id')
             ->paginate(10)
             ->withQueryString();
 
@@ -273,5 +292,90 @@ class InventarisController extends Controller
         return redirect()
             ->route('inventaris.petugas.index')
             ->with('success', 'Petugas berhasil ditambahkan.');
+    }
+
+    public function petugasEdit($id)
+    {
+        $user = User::findOrFail($id);
+        $roles = Role::orderBy('name')->get();
+
+        return view('modules.inventaris.petugas.edit', compact('user', 'roles'));
+    }
+
+    public function petugasUpdate(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'username' => 'required|string|max:255|unique:users,username,' . $user->id,
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'role' => 'required|string',
+            'status' => 'required|in:aktif,nonaktif',
+            'password' => 'nullable|min:8|confirmed',
+        ]);
+
+        // DATA WAJIB
+        $data = [
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+            'email' => $validated['email'],
+            'locked_until' => $validated['status'] === 'nonaktif' ? now() : null,
+        ];
+
+        // ✅ PASSWORD HANYA DI-UPDATE JIKA DIISI
+        if (!empty($validated['password'])) {
+            $data['password'] = Hash::make($validated['password']);
+        }
+
+        $user->update($data);
+
+        // update role (kalau pakai spatie)
+        if (method_exists($user, 'syncRoles')) {
+            $user->syncRoles([$validated['role']]);
+        }
+
+        return redirect()
+            ->route('inventaris.petugas.index')
+            ->with('success', 'Data petugas berhasil diperbarui.');
+    }
+
+
+    public function petugasDestroy($id)
+    {
+        $user = User::findOrFail($id);
+
+        // safety: jangan bisa hapus diri sendiri
+        if (auth()->check() && auth()->id() === $user->id) {
+            return back()->with('error', 'Tidak bisa menghapus akun yang sedang digunakan.');
+        }
+
+        // optional: jangan hapus super_admin lain (kalau mau aman)
+        // if ($user->hasRole('super_admin')) { ... }
+
+        $user->delete();
+
+        return redirect()
+            ->route('inventaris.petugas.index')
+            ->with('success', 'Petugas berhasil dihapus.');
+    }
+
+    public function petugasResetPassword($id)
+    {
+        $user = User::findOrFail($id);
+
+        // safety: jangan reset diri sendiri (opsional)
+        // if (auth()->check() && auth()->id() === $user->id) { ... }
+
+        // generate password baru (ditampilkan sekali via flash message)
+        $newPassword = substr(str_shuffle('ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$'), 0, 10);
+
+        $user->update([
+            'password' => Hash::make($newPassword),
+        ]);
+
+        return redirect()
+            ->route('inventaris.petugas.index')
+            ->with('success', "Password berhasil di-reset. Password baru untuk {$user->username}: {$newPassword}");
     }
 }

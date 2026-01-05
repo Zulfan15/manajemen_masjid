@@ -67,7 +67,7 @@
                 <select name="status"
                         onchange="this.form.submit()"
                         class="w-full md:w-44 text-sm border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="">Status</option>
+                    <option value="">Kondisi</option>
                     <option value="aktif"  @selected(request('status') == 'aktif')>Aktif</option>
                     <option value="hilang" @selected(request('status') == 'hilang')>Hilang</option>
                     <option value="dibuang" @selected(request('status') == 'dibuang')>Dibuang</option>
@@ -117,12 +117,26 @@
                             };
                         @endphp
                         <tr class="hover:bg-gray-50">
-                            {{-- FOTO BARANG: sementara placeholder --}}
+                            {{-- FOTO BARANG --}}
                             <td class="px-4 py-3">
-                                <div class="h-10 w-16 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">
-                                    Foto
+                                @php
+                                    $img = $asset->foto_path ? asset('storage/' . $asset->foto_path) : null;
+                                @endphp
+
+                                <div class="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                    @if($img)
+                                    <img
+                                        src="{{ $img }}"
+                                        alt="Foto {{ $asset->nama_aset }}"
+                                        class="h-full w-full object-cover"
+                                        loading="lazy"
+                                        onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=&quot;text-[10px] text-gray-500&quot;>No Foto</span>';"
+                                    >
+                                    @else
+                                    <span class="text-[10px] text-gray-500">No Foto</span>
+                                    @endif
                                 </div>
-                            </td>
+                                </td>
 
                             {{-- NAMA BARANG --}}
                             <td class="px-4 py-3 text-gray-800 font-medium">

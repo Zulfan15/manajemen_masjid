@@ -111,25 +111,33 @@
 
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
                                 <div class="flex items-center gap-3">
-                                    {{-- view-only dulu: tombol masih non-aktif --}}
-                                    <button type="button"
-                                        class="{{ $isActive ? 'text-gray-400 hover:text-emerald-800' : 'text-gray-300 cursor-not-allowed' }}"
-                                        title="{{ $isActive ? 'Edit (coming soon)' : 'Akun nonaktif' }}"
-                                        {{ $isActive ? '' : 'disabled' }}>
-                                        <i class="fa-regular fa-pen-to-square text-lg"></i>
-                                    </button>
-                                    <button type="button"
-                                        class="{{ $isActive ? 'text-gray-400 hover:text-emerald-800' : 'text-gray-300 cursor-not-allowed' }}"
-                                        title="{{ $isActive ? 'Reset Password (coming soon)' : 'Akun nonaktif' }}"
-                                        {{ $isActive ? '' : 'disabled' }}>
-                                        <i class="fa-solid fa-key text-lg"></i>
-                                    </button>
-                                    <button type="button"
-                                        class="{{ $isActive ? 'text-gray-400 hover:text-emerald-800' : 'text-gray-300 cursor-not-allowed' }}"
-                                        title="{{ $isActive ? 'Hapus (coming soon)' : 'Akun nonaktif' }}"
-                                        {{ $isActive ? '' : 'disabled' }}>
-                                        <i class="fa-regular fa-trash-can text-lg"></i>
-                                    </button>
+
+                                {{-- EDIT --}}
+                            <a href="{{ route('inventaris.petugas.edit', $p->id) }}"
+                            class="text-emerald-700 hover:text-emerald-800"
+                            title="Edit">
+                            <i class="fa-regular fa-pen-to-square text-lg"></i>
+                            </a>
+
+                            {{-- RESET PASSWORD --}}
+                            <form method="POST" action="{{ route('inventaris.petugas.reset_password', $p->id) }}"
+                                onsubmit="return confirm('Reset password untuk {{ $p->username }}? Password baru akan ditampilkan sekali.')">
+                            @csrf
+                            <button type="submit" class="text-amber-600 hover:text-amber-700" title="Reset Password">
+                                <i class="fa-solid fa-key text-lg"></i>
+                            </button>
+                            </form>
+
+                            {{-- DELETE --}}
+                            <form method="POST" action="{{ route('inventaris.petugas.destroy', $p->id) }}"
+                                onsubmit="return confirm('Hapus petugas {{ $p->username }}?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-rose-600 hover:text-rose-700" title="Hapus">
+                                <i class="fa-regular fa-trash-can text-lg"></i>
+                            </button>
+                            </form>
+
                                 </div>
                             </td>
                         </tr>

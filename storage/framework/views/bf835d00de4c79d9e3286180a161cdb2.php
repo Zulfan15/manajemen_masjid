@@ -68,7 +68,7 @@
                 <select name="status"
                         onchange="this.form.submit()"
                         class="w-full md:w-44 text-sm border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="">Status</option>
+                    <option value="">Kondisi</option>
                     <option value="aktif"  <?php if(request('status') == 'aktif'): echo 'selected'; endif; ?>>Aktif</option>
                     <option value="hilang" <?php if(request('status') == 'hilang'): echo 'selected'; endif; ?>>Hilang</option>
                     <option value="dibuang" <?php if(request('status') == 'dibuang'): echo 'selected'; endif; ?>>Dibuang</option>
@@ -120,10 +120,24 @@
                         <tr class="hover:bg-gray-50">
                             
                             <td class="px-4 py-3">
-                                <div class="h-10 w-16 rounded-lg bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">
-                                    Foto
+                                <?php
+                                    $img = $asset->foto_path ? asset('storage/' . $asset->foto_path) : null;
+                                ?>
+
+                                <div class="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                    <?php if($img): ?>
+                                    <img
+                                        src="<?php echo e($img); ?>"
+                                        alt="Foto <?php echo e($asset->nama_aset); ?>"
+                                        class="h-full w-full object-cover"
+                                        loading="lazy"
+                                        onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=&quot;text-[10px] text-gray-500&quot;>No Foto</span>';"
+                                    >
+                                    <?php else: ?>
+                                    <span class="text-[10px] text-gray-500">No Foto</span>
+                                    <?php endif; ?>
                                 </div>
-                            </td>
+                                </td>
 
                             
                             <td class="px-4 py-3 text-gray-800 font-medium">

@@ -116,25 +116,33 @@
 
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-medium">
                                 <div class="flex items-center gap-3">
-                                    
-                                    <button type="button"
-                                        class="<?php echo e($isActive ? 'text-gray-400 hover:text-emerald-800' : 'text-gray-300 cursor-not-allowed'); ?>"
-                                        title="<?php echo e($isActive ? 'Edit (coming soon)' : 'Akun nonaktif'); ?>"
-                                        <?php echo e($isActive ? '' : 'disabled'); ?>>
-                                        <i class="fa-regular fa-pen-to-square text-lg"></i>
-                                    </button>
-                                    <button type="button"
-                                        class="<?php echo e($isActive ? 'text-gray-400 hover:text-emerald-800' : 'text-gray-300 cursor-not-allowed'); ?>"
-                                        title="<?php echo e($isActive ? 'Reset Password (coming soon)' : 'Akun nonaktif'); ?>"
-                                        <?php echo e($isActive ? '' : 'disabled'); ?>>
-                                        <i class="fa-solid fa-key text-lg"></i>
-                                    </button>
-                                    <button type="button"
-                                        class="<?php echo e($isActive ? 'text-gray-400 hover:text-emerald-800' : 'text-gray-300 cursor-not-allowed'); ?>"
-                                        title="<?php echo e($isActive ? 'Hapus (coming soon)' : 'Akun nonaktif'); ?>"
-                                        <?php echo e($isActive ? '' : 'disabled'); ?>>
-                                        <i class="fa-regular fa-trash-can text-lg"></i>
-                                    </button>
+
+                                
+                            <a href="<?php echo e(route('inventaris.petugas.edit', $p->id)); ?>"
+                            class="text-emerald-700 hover:text-emerald-800"
+                            title="Edit">
+                            <i class="fa-regular fa-pen-to-square text-lg"></i>
+                            </a>
+
+                            
+                            <form method="POST" action="<?php echo e(route('inventaris.petugas.reset_password', $p->id)); ?>"
+                                onsubmit="return confirm('Reset password untuk <?php echo e($p->username); ?>? Password baru akan ditampilkan sekali.')">
+                            <?php echo csrf_field(); ?>
+                            <button type="submit" class="text-amber-600 hover:text-amber-700" title="Reset Password">
+                                <i class="fa-solid fa-key text-lg"></i>
+                            </button>
+                            </form>
+
+                            
+                            <form method="POST" action="<?php echo e(route('inventaris.petugas.destroy', $p->id)); ?>"
+                                onsubmit="return confirm('Hapus petugas <?php echo e($p->username); ?>?')">
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('DELETE'); ?>
+                            <button type="submit" class="text-rose-600 hover:text-rose-700" title="Hapus">
+                                <i class="fa-regular fa-trash-can text-lg"></i>
+                            </button>
+                            </form>
+
                                 </div>
                             </td>
                         </tr>

@@ -208,6 +208,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/petugas', [InventarisController::class, 'petugasIndex'])->name('petugas.index');
             Route::get('/petugas/create', [InventarisController::class, 'petugasCreate'])->name('petugas.create');
             Route::post('/petugas', [InventarisController::class, 'petugasStore'])->name('petugas.store');
+            Route::get('/petugas/{id}/edit', [InventarisController::class, 'petugasEdit'])->name('petugas.edit');
+            Route::put('/petugas/{id}', [InventarisController::class, 'petugasUpdate'])->name('petugas.update');
+            Route::delete('/petugas/{id}', [InventarisController::class, 'petugasDestroy'])->name('petugas.destroy');
+
+            Route::post('/petugas/{id}/reset-password', [InventarisController::class, 'petugasResetPassword'])->name('petugas.reset_password');
         });
 
     // Module 7: Takmir Management
