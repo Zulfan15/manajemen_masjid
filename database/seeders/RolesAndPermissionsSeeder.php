@@ -79,7 +79,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'takmir.export',
 
             // INFORMASI MODULE (3 sub-modules)
-            'informasi.view',
+            'informasi.view', 'informasi.create', 'informasi.update', 'informasi.delete',
             'informasi.berita.view', 'informasi.berita.create',
             'informasi.berita.update', 'informasi.berita.delete',
             'informasi.artikel.view', 'informasi.artikel.create',
