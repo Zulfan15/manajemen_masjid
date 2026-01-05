@@ -24,6 +24,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'zis' => [
+            'driver' => 'session',
+            'provider' => 'zis_users',
+        ],
     ],
 
     /*
@@ -36,6 +41,11 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+
+        'zis_users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\ZISUser::class,
         ],
 
         // 'users' => [

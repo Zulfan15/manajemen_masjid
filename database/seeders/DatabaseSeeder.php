@@ -20,10 +20,7 @@ class DatabaseSeeder extends Seeder
             KegiatanSeeder::class,
             KurbanSeeder::class,
             ModulTambahanSeeder::class,
-            CategoriesSeeder::class,
-            ArticlesSeeder::class,
-            AnnouncementsSeeder::class,
-            NewsSeeder::class,
+            ZISUserSeeder::class,
         ]);
     }
 }

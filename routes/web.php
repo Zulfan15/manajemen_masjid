@@ -15,6 +15,14 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\InventarisController;
+use App\Http\Controllers\ZISAuthController;
+use App\Http\Controllers\ZISUserController;
+use App\Http\Controllers\ZISDashboardController;
+use App\Http\Controllers\ZISMuzakkiController;
+use App\Http\Controllers\ZISMustahiqController;
+use App\Http\Controllers\ZISTransaksiController;
+use App\Http\Controllers\ZISPenyaluranController;
+use App\Http\Controllers\ZISLaporanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -183,10 +191,31 @@ Route::middleware('auth')->group(function () {
     });
 
     // Module 4: ZIS Management
-    Route::middleware(['module.access:zis'])->prefix('zis')->name('zis.')->group(function () {
-        Route::get('/', function () {
-            return view('modules.zis.index');
-        })->name('index');
+    Route::prefix('zis')->name('zis.')->group(function () {
+        Route::middleware(['module.access:zis'])->group(function () {
+            Route::get('/', function () {
+                if (auth('zis')->check()) {
+                    return redirect()->route('zis.dashboard');
+                }
+                return redirect()->route('zis.login');
+            })->name('index');
+        });
+
+        Route::middleware('guest:zis')->group(function () {
+            Route::get('/login', [ZISAuthController::class, 'index'])->name('login');
+            Route::post('/login', [ZISAuthController::class, 'authenticate']);
+        });
+
+        Route::middleware(\App\Http\Middleware\EnsureZISAuthenticated::class)->group(function () {
+            Route::get('/dashboard', [ZISDashboardController::class, 'index'])->name('dashboard');
+            Route::post('/logout', [ZISAuthController::class, 'logout'])->name('logout');
+            Route::resource('muzakki', ZISMuzakkiController::class);
+            Route::resource('mustahiq', ZISMustahiqController::class);
+            Route::resource('transaksi', ZISTransaksiController::class);
+            Route::resource('penyaluran', ZISPenyaluranController::class);
+            Route::get('/laporan', [ZISLaporanController::class, 'index'])->name('laporan.index');
+            Route::resource('user', ZISUserController::class);
+        });
     });
 
     // Module 6: Inventory Management
@@ -248,11 +277,6 @@ Route::middleware('auth')->group(function () {
         Route::get('notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
         Route::post('notifikasi/send', [NotificationController::class, 'send'])->name('notifikasi.send');
     });
-    Route::get('/info-masjid', [InformasiController::class, 'publicIndex'])
-    ->name('public.home');
-
-    Route::get('/info-masjid/{slug}', [InformasiController::class, 'publicShow'])
-    ->name('public.info.show');
 
     // Module 9: Reports & Statistics
     Route::middleware(['module.access:laporan'])->prefix('laporan')->name('laporan.')->group(function () {
