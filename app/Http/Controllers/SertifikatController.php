@@ -63,7 +63,9 @@ class SertifikatController extends Controller
             'kegiatan_id' => 'required|exists:kegiatans,id',
             'template' => 'required|in:kajian,workshop,pelatihan,default',
             'input_method' => 'required|in:manual,upload,from_peserta',
-            'participants' => 'required_if:input_method,manual|string',
+            'participants' => 'required_if:input_method,manual|nullable|string',
+            'peserta_selected' => 'required_if:input_method,from_peserta|nullable|array',
+            'peserta_selected.*' => 'string',
             'excel_file' => 'required_if:input_method,upload|file|mimes:xlsx,xls',
             'ttd_pejabat' => 'nullable|string|max:255',
             'jabatan_pejabat' => 'nullable|string|max:255',
@@ -86,16 +88,11 @@ class SertifikatController extends Controller
             // TODO: Implement Excel parsing
             return back()->with('error', 'Upload Excel belum diimplementasikan');
         } elseif ($validated['input_method'] === 'from_peserta') {
-            // Get from registered participants who attended
-            $peserta = KegiatanPeserta::where('kegiatan_id', $kegiatan->id)
-                ->whereHas('absensi', function ($q) {
-                    $q->where('status_kehadiran', 'hadir');
-                })
-                ->with('user')
-                ->get();
+            // Get from selected participants (via checkboxes)
+            $pesertaList = $request->input('peserta_selected', []);
             
-            foreach ($peserta as $p) {
-                $pesertaList[] = $p->user ? $p->user->name : $p->nama_peserta;
+            if (empty($pesertaList)) {
+                return back()->with('error', 'Tidak ada peserta yang dipilih. Silakan pilih minimal 1 peserta.');
             }
         }
 
@@ -105,7 +102,22 @@ class SertifikatController extends Controller
 
         // Generate certificates
         $generated = [];
-        $urutan = Sertifikat::where('kegiatan_id', $kegiatan->id)->count() + 1;
+        
+        // Get max urutan for this kegiatan (including soft deleted)
+        $lastCert = Sertifikat::withTrashed()
+            ->where('kegiatan_id', $kegiatan->id)
+            ->orderBy('id', 'desc')
+            ->first();
+        
+        // Extract urutan from last nomor_sertifikat if exists, else start from 1
+        $urutan = 1;
+        if ($lastCert && $lastCert->nomor_sertifikat) {
+            // Format: CERT/YYYYMMDD/KID/URUT
+            $parts = explode('/', $lastCert->nomor_sertifikat);
+            if (count($parts) === 4) {
+                $urutan = intval($parts[3]) + 1;
+            }
+        }
 
         foreach ($pesertaList as $namaPeserta) {
             if (empty($namaPeserta)) continue;
@@ -135,12 +147,12 @@ class SertifikatController extends Controller
         $this->activityLog->log(
             'create',
             'Sertifikat',
-            "Generate " . count($generated) . " sertifikat untuk kegiatan: {$kegiatan->nama}",
+            "Generate " . count($generated) . " sertifikat untuk kegiatan: {$kegiatan->nama_kegiatan}",
             ['kegiatan_id' => $kegiatan->id, 'jumlah' => count($generated)]
         );
 
         return redirect()
-            ->route('kegiatan.sertifikat.index')
+            ->route('kegiatan.sertifikat.index', ['tab' => 'history'])
             ->with('success', count($generated) . ' sertifikat berhasil digenerate');
     }
 
@@ -216,7 +228,7 @@ class SertifikatController extends Controller
         );
 
         return redirect()
-            ->route('kegiatan.sertifikat.index')
+            ->route('kegiatan.sertifikat.index', ['tab' => 'history'])
             ->with('success', 'Sertifikat berhasil dihapus');
     }
 
@@ -227,16 +239,15 @@ class SertifikatController extends Controller
     {
         $kegiatanId = $request->input('kegiatan_id');
         
+        // Get all registered participants for this kegiatan
         $peserta = KegiatanPeserta::where('kegiatan_id', $kegiatanId)
-            ->whereHas('absensi', function ($q) {
-                $q->where('status_kehadiran', 'hadir');
-            })
             ->with('user')
             ->get()
             ->map(function ($p) {
                 return [
                     'nama' => $p->user ? $p->user->name : $p->nama_peserta,
                     'email' => $p->email,
+                    'status' => $p->status_pendaftaran ?? 'terdaftar',
                 ];
             });
 
