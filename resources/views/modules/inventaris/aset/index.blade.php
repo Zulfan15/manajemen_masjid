@@ -44,6 +44,7 @@
 
                 {{-- Filter kategori --}}
                 <select name="kategori"
+                        onchange="this.form.submit()"
                         class="w-full md:w-44 text-sm border border-gray-200 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <option value="">Kategori</option>
                     @isset($kategoriOptions)
@@ -63,13 +64,20 @@
                 </select>
 
                 {{-- Filter kondisi (pakai nilai yang kamu pakai di tabel kondisi_barang) --}}
-                <select name="kondisi"
-                        class="w-full md:w-44 text-sm border border-gray-200 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="">Kondisi</option>
-                    <option value="baik" @selected(request('kondisi') == 'baik')>Layak</option>
-                    <option value="perlu_perbaikan" @selected(request('kondisi') == 'perlu_perbaikan')>Perbaikan</option>
-                    <option value="rusak" @selected(request('kondisi') == 'rusak')>Rusak</option>
+                <select name="status"
+                        onchange="this.form.submit()"
+                        class="w-full md:w-44 text-sm border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Status</option>
+                    <option value="aktif"  @selected(request('status') == 'aktif')>Aktif</option>
+                    <option value="hilang" @selected(request('status') == 'hilang')>Hilang</option>
+                    <option value="dibuang" @selected(request('status') == 'dibuang')>Dibuang</option>
+                    <option value="rusak"  @selected(request('status') == 'rusak')>Rusak</option>
                 </select>
+
+                <a href="{{ route('inventaris.aset.index') }}"
+                class="w-full md:w-auto text-center text-sm border border-gray-200 rounded-lg py-2 px-3 bg-white text-gray-700 hover:bg-gray-50">
+                    Reset
+                </a>
             </form>
         </div>
 
@@ -164,26 +172,34 @@
                             {{-- AKSI --}}
                             <td class="px-4 py-3">
                                 <div class="flex items-center justify-center gap-2">
+
                                     {{-- DETAIL --}}
-                                    <a href="{{ route('inventaris.aset.show', $asset->aset_id ?? $asset->kode_aset) }}"
-                                       class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                       title="Detail">
+                                    <a href="{{ route('inventaris.aset.show', $asset->aset_id) }}"
+                                    class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    title="Detail">
                                         <i class="fa-regular fa-eye text-xs"></i>
                                     </a>
 
-                                    {{-- EDIT (nanti aktif saat CRUD sudah jadi) --}}
-                                    <button type="button"
-                                            class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-amber-50 text-amber-600 cursor-not-allowed"
-                                            title="Edit (coming soon)">
+                                    {{-- EDIT --}}
+                                    <a href="{{ route('inventaris.aset.edit', $asset->aset_id) }}"
+                                    class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100"
+                                    title="Edit">
                                         <i class="fa-regular fa-pen-to-square text-xs"></i>
-                                    </button>
+                                    </a>
 
-                                    {{-- DELETE (nanti aktif saat CRUD sudah jadi) --}}
-                                    <button type="button"
-                                            class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-rose-50 text-rose-600 cursor-not-allowed"
-                                            title="Hapus (coming soon)">
-                                        <i class="fa-regular fa-trash-can text-xs"></i>
-                                    </button>
+                                    {{-- DELETE --}}
+                                    <form action="{{ route('inventaris.aset.destroy', $asset->aset_id) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Yakin ingin menghapus aset: {{ addslashes($asset->nama_aset) }} ?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100"
+                                                title="Hapus">
+                                            <i class="fa-regular fa-trash-can text-xs"></i>
+                                        </button>
+                                    </form>
+
                                 </div>
                             </td>
                         </tr>

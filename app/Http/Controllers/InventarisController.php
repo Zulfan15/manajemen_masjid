@@ -12,6 +12,8 @@ use Carbon\Carbon;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+
 
 class InventarisController extends Controller
 {
@@ -60,6 +62,10 @@ class InventarisController extends Controller
 
         if ($request->filled('kategori')) {
             $query->where('kategori', $request->kategori);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
         $assets = $query->orderByDesc('aset_id')

@@ -158,23 +158,21 @@
 
         
         <div class="space-y-4">
-            <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center h-full min-h-[150px]
-                        <?php if(auth()->user()->isSuperAdmin()): ?> opacity-60 cursor-not-allowed <?php endif; ?>">
+            <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center h-full min-h-[150px]">
                 <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
                     <i class="fas fa-plus text-green-700"></i>
                 </div>
+
                 <h3 class="text-sm font-semibold text-gray-800 mb-1">Tambah Aset</h3>
+
                 <p class="text-xs text-gray-500 mb-3 text-center">
                     Tambahkan aset baru ke dalam sistem inventaris masjid.
                 </p>
-                <?php if(!auth()->user()->isSuperAdmin()): ?>
-                    <a href="#"
-                       class="text-xs px-3 py-1 rounded bg-green-700 text-white hover:bg-green-800 transition">
-                        Mulai
-                    </a>
-                <?php else: ?>
-                    <span class="text-[10px] text-gray-400">Hanya petugas inventaris yang dapat menambah aset.</span>
-                <?php endif; ?>
+
+                <a href="<?php echo e(route('inventaris.aset.create')); ?>"
+                class="text-xs px-3 py-1 rounded bg-green-700 text-white hover:bg-green-800 transition">
+                    Mulai
+                </a>
             </div>
 
             <div class="bg-white rounded-lg shadow p-6 flex flex-col items-center justify-center h-full min-h-[150px]">

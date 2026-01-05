@@ -44,6 +44,7 @@
 
                 
                 <select name="kategori"
+                        onchange="this.form.submit()"
                         class="w-full md:w-44 text-sm border border-gray-200 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <option value="">Kategori</option>
                     <?php if(isset($kategoriOptions)): ?>
@@ -64,13 +65,20 @@
                 </select>
 
                 
-                <select name="kondisi"
-                        class="w-full md:w-44 text-sm border border-gray-200 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="">Kondisi</option>
-                    <option value="baik" <?php if(request('kondisi') == 'baik'): echo 'selected'; endif; ?>>Layak</option>
-                    <option value="perlu_perbaikan" <?php if(request('kondisi') == 'perlu_perbaikan'): echo 'selected'; endif; ?>>Perbaikan</option>
-                    <option value="rusak" <?php if(request('kondisi') == 'rusak'): echo 'selected'; endif; ?>>Rusak</option>
+                <select name="status"
+                        onchange="this.form.submit()"
+                        class="w-full md:w-44 text-sm border rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">Status</option>
+                    <option value="aktif"  <?php if(request('status') == 'aktif'): echo 'selected'; endif; ?>>Aktif</option>
+                    <option value="hilang" <?php if(request('status') == 'hilang'): echo 'selected'; endif; ?>>Hilang</option>
+                    <option value="dibuang" <?php if(request('status') == 'dibuang'): echo 'selected'; endif; ?>>Dibuang</option>
+                    <option value="rusak"  <?php if(request('status') == 'rusak'): echo 'selected'; endif; ?>>Rusak</option>
                 </select>
+
+                <a href="<?php echo e(route('inventaris.aset.index')); ?>"
+                class="w-full md:w-auto text-center text-sm border border-gray-200 rounded-lg py-2 px-3 bg-white text-gray-700 hover:bg-gray-50">
+                    Reset
+                </a>
             </form>
         </div>
 
@@ -170,26 +178,34 @@
                             
                             <td class="px-4 py-3">
                                 <div class="flex items-center justify-center gap-2">
+
                                     
-                                    <a href="<?php echo e(route('inventaris.aset.show', $asset->aset_id ?? $asset->kode_aset)); ?>"
-                                       class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                       title="Detail">
+                                    <a href="<?php echo e(route('inventaris.aset.show', $asset->aset_id)); ?>"
+                                    class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                    title="Detail">
                                         <i class="fa-regular fa-eye text-xs"></i>
                                     </a>
 
                                     
-                                    <button type="button"
-                                            class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-amber-50 text-amber-600 cursor-not-allowed"
-                                            title="Edit (coming soon)">
+                                    <a href="<?php echo e(route('inventaris.aset.edit', $asset->aset_id)); ?>"
+                                    class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-amber-50 text-amber-600 hover:bg-amber-100"
+                                    title="Edit">
                                         <i class="fa-regular fa-pen-to-square text-xs"></i>
-                                    </button>
+                                    </a>
 
                                     
-                                    <button type="button"
-                                            class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-rose-50 text-rose-600 cursor-not-allowed"
-                                            title="Hapus (coming soon)">
-                                        <i class="fa-regular fa-trash-can text-xs"></i>
-                                    </button>
+                                    <form action="<?php echo e(route('inventaris.aset.destroy', $asset->aset_id)); ?>"
+                                        method="POST"
+                                        onsubmit="return confirm('Yakin ingin menghapus aset: <?php echo e(addslashes($asset->nama_aset)); ?> ?')">
+                                        <?php echo csrf_field(); ?>
+                                        <?php echo method_field('DELETE'); ?>
+                                        <button type="submit"
+                                                class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100"
+                                                title="Hapus">
+                                            <i class="fa-regular fa-trash-can text-xs"></i>
+                                        </button>
+                                    </form>
+
                                 </div>
                             </td>
                         </tr>
