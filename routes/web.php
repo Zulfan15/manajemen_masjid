@@ -15,6 +15,8 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\InventarisController;
+use App\Http\Controllers\PengeluaranController;
+use App\Http\Controllers\KategoriPengeluaranController;
 
 /*
 |--------------------------------------------------------------------------
@@ -96,7 +98,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // =========================================================================
-    // MODULE ROUTES - NAVIGATION ONLY (No Implementation)
+    // MODULE ROUTES - NAVIGATION ONLY
     // =========================================================================
 
     // Module 1: Jamaah Management
@@ -106,23 +108,26 @@ Route::middleware('auth')->group(function () {
         })->name('index');
     });
 
-    // Module 2: Finance
-    Route::middleware(['module.access:keuangan'])->prefix('keuangan')->name('keuangan.')->group(function () {
+    // =========================================================================
+    // MODULE 2: FINANCE (JALUR ALTERNATIF)
+    // =========================================================================
+    Route::middleware(['module.access:keuangan'])->prefix('keuangan')->group(function () {
+        
+        // 1. Dashboard (Nama: keuangan.index)
         Route::get('/', function () {
             return view('modules.keuangan.index');
-        })->name('index');
-        
-        // Kategori Pengeluaran
-        Route::resource('kategori-pengeluaran', \App\Http\Controllers\KategoriPengeluaranController::class)
-            ->except(['create', 'edit', 'show']);
-        
-        // Cetak Laporan (before resource route)
-        Route::get('pengeluaran/cetak-laporan', [\App\Http\Controllers\PengeluaranController::class, 'cetakLaporan'])
-            ->name('pengeluaran.cetak');
-        
-        // Transaksi Pengeluaran
-        Route::resource('pengeluaran', \App\Http\Controllers\PengeluaranController::class)
-            ->except(['create', 'edit', 'show']);
+        })->name('keuangan.index');
+
+        // 2. RUTE UTAMA (Versi Mas Seno - Biar Sidebar & CRUD Aman)
+        // URL: /keuangan/pengeluaran
+        Route::get('pengeluaran/cetak-laporan', [PengeluaranController::class, 'cetakLaporan'])->name('pengeluaran.cetak');
+        Route::resource('pengeluaran', PengeluaranController::class);
+        Route::resource('kategori-pengeluaran', KategoriPengeluaranController::class);
+
+        // 3. RUTE ALIAS (Versi Zulfan - Biar Dashboard Gak Error)
+        // Kita buat URL "bayangan" yang mengarah ke controller yang sama
+        Route::get('link-pengeluaran', [PengeluaranController::class, 'index'])->name('keuangan.pengeluaran.index');
+        Route::get('link-kategori', [KategoriPengeluaranController::class, 'index'])->name('keuangan.kategori-pengeluaran.index');
     });
 
     // Module 3: Activities & Events
@@ -156,8 +161,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/generate', [SertifikatController::class, 'generate'])->name('generate')->middleware('permission:kegiatan.create');
             Route::get('/{sertifikat}/download', [SertifikatController::class, 'download'])->name('download');
             Route::post('/download-batch', [SertifikatController::class, 'downloadBatch'])->name('download-batch')->middleware('permission:kegiatan.create');
-            Route::delete('/{sertifikat}', [App\Http\Controllers\SertifikatController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
-            Route::get('/peserta', [App\Http\Controllers\SertifikatController::class, 'getPeserta'])->name('peserta');
+            Route::delete('/{sertifikat}', [SertifikatController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
+            Route::get('/peserta', [SertifikatController::class, 'getPeserta'])->name('peserta');
         });
         
         // CRUD Kegiatan (MUST BE AFTER all prefixed routes)

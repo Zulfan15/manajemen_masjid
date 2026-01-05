@@ -44,7 +44,6 @@
                         class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition <?php echo e(request()->routeIs($key . '.*') ? 'bg-green-100 text-green-700' : ''); ?>">
                         <i class="fas <?php echo e($module['icon']); ?> w-6"></i>
                         <span><?php echo e($module['label']); ?></span>
-                        
                         <?php if(!auth()->user()->isSuperAdmin()): ?>
                             <span class="ml-auto text-xs text-green-600">
                                 <i class="fas fa-edit"></i>

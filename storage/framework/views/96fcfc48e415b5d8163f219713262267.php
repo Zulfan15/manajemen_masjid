@@ -47,7 +47,7 @@
 
         <!-- Quick Links -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <a href="<?php echo e(route('keuangan.pengeluaran.index')); ?>" class="block bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-green-500 hover:shadow-lg transition">
+            <a href="<?php echo e(route('pengeluaran.index')); ?>" class="block bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-green-500 hover:shadow-lg transition">
                 <div class="flex items-center">
                     <div class="bg-green-100 rounded-full p-4 mr-4">
                         <i class="fas fa-money-bill-wave text-green-600 text-2xl"></i>
@@ -59,7 +59,7 @@
                 </div>
             </a>
             
-            <a href="<?php echo e(route('keuangan.kategori-pengeluaran.index')); ?>" class="block bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-blue-500 hover:shadow-lg transition">
+            <a href="<?php echo e(route('kategori-pengeluaran.index')); ?>" class="block bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-blue-500 hover:shadow-lg transition">
                 <div class="flex items-center">
                     <div class="bg-blue-100 rounded-full p-4 mr-4">
                         <i class="fas fa-tags text-blue-600 text-2xl"></i>
@@ -132,4 +132,4 @@
 <?php $__env->stopSection(); ?>
 
 
-<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\Users\ACER\Downloads\Manpro Masjid\resources\views/modules/keuangan/index.blade.php ENDPATH**/ ?>
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\laragon\www\manajemen_masjid\resources\views/modules/keuangan/index.blade.php ENDPATH**/ ?>

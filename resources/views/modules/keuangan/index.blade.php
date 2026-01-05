@@ -47,7 +47,7 @@
 
         <!-- Quick Links -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <a href="{{ route('keuangan.pengeluaran.index') }}" class="block bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-green-500 hover:shadow-lg transition">
+            <a href="{{ route('pengeluaran.index') }}" class="block bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-green-500 hover:shadow-lg transition">
                 <div class="flex items-center">
                     <div class="bg-green-100 rounded-full p-4 mr-4">
                         <i class="fas fa-money-bill-wave text-green-600 text-2xl"></i>
@@ -59,7 +59,7 @@
                 </div>
             </a>
             
-            <a href="{{ route('keuangan.kategori-pengeluaran.index') }}" class="block bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-blue-500 hover:shadow-lg transition">
+            <a href="{{ route('kategori-pengeluaran.index') }}" class="block bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-blue-500 hover:shadow-lg transition">
                 <div class="flex items-center">
                     <div class="bg-blue-100 rounded-full p-4 mr-4">
                         <i class="fas fa-tags text-blue-600 text-2xl"></i>
