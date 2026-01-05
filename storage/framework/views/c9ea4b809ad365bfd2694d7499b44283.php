@@ -13,15 +13,17 @@
         <h1 class="text-3xl font-semibold text-gray-900">Detail Aset</h1>
 
         <div class="flex gap-3">
-            <button type="button"
-                class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50">
-                <i class="fa-solid fa-print mr-2 text-xs"></i>
+            <button
+                type="button"
+                onclick="printQrCode()"
+                class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium bg-white hover:bg-gray-50"
+            >
+                <i class="fa-solid fa-print"></i>
                 Cetak QR Code
             </button>
 
-            
             <a href="<?php echo e(route('inventaris.aset.edit', $asset->aset_id)); ?>"
-            class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+               class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                 <i class="fa-solid fa-pen mr-2 text-xs"></i>
                 Edit Aset
             </a>
@@ -35,8 +37,8 @@
             <div class="aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden">
                 <?php if($asset->foto_path): ?>
                     <img src="<?php echo e(asset('storage/'.$asset->foto_path)); ?>"
-                        alt="Foto <?php echo e($asset->nama_aset); ?>"
-                        class="w-full h-full object-cover">
+                         alt="Foto <?php echo e($asset->nama_aset); ?>"
+                         class="w-full h-full object-cover">
                 <?php else: ?>
                     <div class="w-full h-full flex items-center justify-center text-gray-400">
                         Foto Barang
@@ -107,7 +109,8 @@
             
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center">
-                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    
+                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100" data-qr-wrapper>
                         <?php echo QrCode::size(130)->margin(1)->generate($qrCodeText); ?>
 
                     </div>
@@ -141,9 +144,7 @@
                                 <?php echo e($row->note ?? $row->jenis_perawatan ?? '-'); ?>
 
                             </td>
-                            <td class="px-4 py-3 text-gray-700">
-                                -
-                            </td>
+                            <td class="px-4 py-3 text-gray-700">-</td>
                         </tr>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                         <tr>
@@ -159,9 +160,9 @@
         
         <div class="mt-6">
             <form action="<?php echo e(route('inventaris.aset.destroy', $asset->aset_id)); ?>"
-                method="POST"
-                onsubmit="return confirm('Yakin ingin menghapus aset ini?')"
-                class="inline-block">
+                  method="POST"
+                  onsubmit="return confirm('Yakin ingin menghapus aset ini?')"
+                  class="inline-block">
                 <?php echo csrf_field(); ?>
                 <?php echo method_field('DELETE'); ?>
                 <button type="submit"
@@ -173,6 +174,89 @@
         </div>
     </div>
 </div>
+
+<script>
+function printQrCode() {
+    // Ambil SVG QR yang sudah ada di halaman
+    const qrWrapper = document.querySelector('[data-qr-wrapper]');
+    const qrSvg = qrWrapper ? qrWrapper.innerHTML : '';
+
+    if (!qrSvg.trim()) {
+        alert('QR Code tidak ditemukan. Pastikan elemen QR memiliki atribut data-qr-wrapper.');
+        return;
+    }
+
+    const qrHtml = `
+        <html>
+        <head>
+            <title>Cetak QR Aset</title>
+            <style>
+                * { box-sizing: border-box; }
+                body {
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                    font-family: Arial, sans-serif;
+                    background: #fff;
+                }
+                .card {
+                    text-align: center;
+                    border: 1px solid #ddd;
+                    padding: 24px;
+                    border-radius: 12px;
+                    background: #fff;
+                }
+                svg {
+                    width: 220px;
+                    height: 220px;
+                    display: block;
+                    margin: 0 auto;
+                }
+                .code {
+                    margin-top: 12px;
+                    font-weight: bold;
+                    letter-spacing: 1px;
+                }
+                .name {
+                    margin-top: 6px;
+                    font-size: 14px;
+                    color: #555;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <div>${qrSvg}</div>
+                <div class="code"><?php echo e($qrCodeText); ?></div>
+                <div class="name"><?php echo e($asset->nama_aset); ?></div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    const win = window.open('', '_blank', 'width=450,height=600');
+    if (!win) {
+        alert('Popup diblokir browser. Izinkan popup untuk mencetak QR.');
+        return;
+    }
+
+    win.document.open();
+    win.document.write(qrHtml);
+    win.document.close();
+
+    // ✅ tunggu render SVG dulu baru print, lalu tutup
+    win.onload = function () {
+        setTimeout(() => {
+            win.focus();
+            win.print();
+            setTimeout(() => win.close(), 300);
+        }, 400);
+    };
+}
+</script>
+
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\Backup\tahun ajaran 4-1 smester 7\ManPro\Manajemen Masjid\manajemen_masjid\resources\views/modules/inventaris/aset/show.blade.php ENDPATH**/ ?>

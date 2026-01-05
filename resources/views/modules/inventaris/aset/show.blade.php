@@ -13,15 +13,17 @@
         <h1 class="text-3xl font-semibold text-gray-900">Detail Aset</h1>
 
         <div class="flex gap-3">
-            <button type="button"
-                class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50">
-                <i class="fa-solid fa-print mr-2 text-xs"></i>
+            <button
+                type="button"
+                onclick="printQrCode()"
+                class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium bg-white hover:bg-gray-50"
+            >
+                <i class="fa-solid fa-print"></i>
                 Cetak QR Code
             </button>
 
-            {{-- CRUD nanti, jadi tombolnya tampil dulu --}}
             <a href="{{ route('inventaris.aset.edit', $asset->aset_id) }}"
-            class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
+               class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">
                 <i class="fa-solid fa-pen mr-2 text-xs"></i>
                 Edit Aset
             </a>
@@ -35,8 +37,8 @@
             <div class="aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden">
                 @if($asset->foto_path)
                     <img src="{{ asset('storage/'.$asset->foto_path) }}"
-                        alt="Foto {{ $asset->nama_aset }}"
-                        class="w-full h-full object-cover">
+                         alt="Foto {{ $asset->nama_aset }}"
+                         class="w-full h-full object-cover">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-gray-400">
                         Foto Barang
@@ -59,13 +61,13 @@
                 <div class="text-lg font-semibold text-gray-900">{{ $asset->kategori ?? '-' }}</div>
             </div>
 
-            {{-- Jenis Aset (belum ada di tabel aset, placeholder) --}}
+            {{-- Jenis Aset (placeholder) --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <div class="text-xs text-gray-500 mb-1">Jenis Aset</div>
                 <div class="text-lg font-semibold text-gray-900">-</div>
             </div>
 
-            {{-- Tanggal Pembelian (pakai tanggal_perolehan) --}}
+            {{-- Tanggal Pembelian --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <div class="text-xs text-gray-500 mb-1">Tanggal Pembelian</div>
                 <div class="text-lg font-semibold text-gray-900">
@@ -79,7 +81,7 @@
                 <div class="text-lg font-semibold text-gray-900">{{ $asset->lokasi ?? '-' }}</div>
             </div>
 
-            {{-- Kondisi (ambil dari kondisi_barang terbaru) --}}
+            {{-- Kondisi --}}
             @php
                 $kondisi = strtolower($kondisiTerbaru->kondisi ?? '-');
                 $badge = match($kondisi) {
@@ -105,7 +107,8 @@
             {{-- QR --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center">
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center">
-                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                    {{-- ✅ INI YANG BENAR: data-qr-wrapper jadi ATRIBUT, bukan class --}}
+                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100" data-qr-wrapper>
                         {!! QrCode::size(130)->margin(1)->generate($qrCodeText) !!}
                     </div>
                     <div class="mt-3 text-sm font-medium text-gray-700">{{ $qrCodeText }}</div>
@@ -136,9 +139,7 @@
                             <td class="px-4 py-3 text-gray-700">
                                 {{ $row->note ?? $row->jenis_perawatan ?? '-' }}
                             </td>
-                            <td class="px-4 py-3 text-gray-700">
-                                -
-                            </td>
+                            <td class="px-4 py-3 text-gray-700">-</td>
                         </tr>
                     @empty
                         <tr>
@@ -151,12 +152,12 @@
             </table>
         </div>
 
-        {{-- tombol hapus (tampil dulu, belum aktif) --}}
+        {{-- tombol hapus --}}
         <div class="mt-6">
             <form action="{{ route('inventaris.aset.destroy', $asset->aset_id) }}"
-                method="POST"
-                onsubmit="return confirm('Yakin ingin menghapus aset ini?')"
-                class="inline-block">
+                  method="POST"
+                  onsubmit="return confirm('Yakin ingin menghapus aset ini?')"
+                  class="inline-block">
                 @csrf
                 @method('DELETE')
                 <button type="submit"
@@ -168,4 +169,87 @@
         </div>
     </div>
 </div>
+
+<script>
+function printQrCode() {
+    // Ambil SVG QR yang sudah ada di halaman
+    const qrWrapper = document.querySelector('[data-qr-wrapper]');
+    const qrSvg = qrWrapper ? qrWrapper.innerHTML : '';
+
+    if (!qrSvg.trim()) {
+        alert('QR Code tidak ditemukan. Pastikan elemen QR memiliki atribut data-qr-wrapper.');
+        return;
+    }
+
+    const qrHtml = `
+        <html>
+        <head>
+            <title>Cetak QR Aset</title>
+            <style>
+                * { box-sizing: border-box; }
+                body {
+                    margin: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                    font-family: Arial, sans-serif;
+                    background: #fff;
+                }
+                .card {
+                    text-align: center;
+                    border: 1px solid #ddd;
+                    padding: 24px;
+                    border-radius: 12px;
+                    background: #fff;
+                }
+                svg {
+                    width: 220px;
+                    height: 220px;
+                    display: block;
+                    margin: 0 auto;
+                }
+                .code {
+                    margin-top: 12px;
+                    font-weight: bold;
+                    letter-spacing: 1px;
+                }
+                .name {
+                    margin-top: 6px;
+                    font-size: 14px;
+                    color: #555;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <div>${qrSvg}</div>
+                <div class="code">{{ $qrCodeText }}</div>
+                <div class="name">{{ $asset->nama_aset }}</div>
+            </div>
+        </body>
+        </html>
+    `;
+
+    const win = window.open('', '_blank', 'width=450,height=600');
+    if (!win) {
+        alert('Popup diblokir browser. Izinkan popup untuk mencetak QR.');
+        return;
+    }
+
+    win.document.open();
+    win.document.write(qrHtml);
+    win.document.close();
+
+    // ✅ tunggu render SVG dulu baru print, lalu tutup
+    win.onload = function () {
+        setTimeout(() => {
+            win.focus();
+            win.print();
+            setTimeout(() => win.close(), 300);
+        }, 400);
+    };
+}
+</script>
+
 @endsection
