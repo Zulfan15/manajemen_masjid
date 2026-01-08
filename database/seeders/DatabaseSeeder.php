@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             KurbanSeeder::class,
             ModulTambahanSeeder::class,
             ZISUserSeeder::class,
+            MuzakkiSeeder::class,
+            MustahiqSeeder::class,
         ]);
     }
 }
