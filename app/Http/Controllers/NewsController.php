@@ -52,7 +52,11 @@ class NewsController extends Controller
                     $url = route('public.info.show', $news->slug);
 
                     // Ambil email user (jamaah)
-                    $emails = User::pluck('email')->toArray();
+                    
+                    $emails = User::whereNotNull('email')
+                        ->where('email', 'not like', '%@example.com')
+                        ->pluck('email')
+                        ->toArray();
 
                     // Kirim email (bcc agar privasi aman)
                     Mail::to('ajirahman215@gmail.com')

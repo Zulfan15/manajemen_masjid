@@ -47,12 +47,16 @@ class AnnouncementController extends Controller
             $url = route('public.info.show', $save->slug);
 
             // Ambil email user (jamaah)
-            $emails = User::pluck('email')->toArray();
+            
+            $emails = User::whereNotNull('email')
+                ->where('email', 'not like', '%@example.com')
+                ->pluck('email')
+                ->toArray();
 
             // Kirim email (bcc agar privasi aman)
             Mail::to('ajirahman215@gmail.com')
                 ->bcc($emails)
-                ->queue(new InformasiNotificationMail(
+                ->send(new InformasiNotificationMail(
                     $save->title,
                     $save->content,
                     $url
