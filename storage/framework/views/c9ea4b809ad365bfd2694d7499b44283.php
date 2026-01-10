@@ -13,12 +13,10 @@
         <h1 class="text-3xl font-semibold text-gray-900">Detail Aset</h1>
 
         <div class="flex gap-3">
-            <button
-                type="button"
+            <button type="button"
                 onclick="printQrCode()"
-                class="inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium bg-white hover:bg-gray-50"
-            >
-                <i class="fa-solid fa-print"></i>
+                class="inline-flex items-center px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50">
+                <i class="fa-solid fa-print mr-2 text-xs"></i>
                 Cetak QR Code
             </button>
 
@@ -36,9 +34,11 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div class="aspect-[4/3] rounded-xl bg-gray-100 overflow-hidden">
                 <?php if($asset->foto_path): ?>
-                    <img src="<?php echo e(asset('storage/'.$asset->foto_path)); ?>"
-                         alt="Foto <?php echo e($asset->nama_aset); ?>"
-                         class="w-full h-full object-cover">
+                    <img src="<?php echo e(\Illuminate\Support\Facades\Storage::url($asset->foto_path)); ?>"
+                        alt="Foto <?php echo e($asset->nama_aset); ?>"
+                        class="w-full h-full object-cover"
+                        loading="lazy"
+                        onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=&quot;w-full h-full flex items-center justify-center text-gray-400&quot;>Foto Barang</div>';">
                 <?php else: ?>
                     <div class="w-full h-full flex items-center justify-center text-gray-400">
                         Foto Barang
@@ -49,25 +49,21 @@
 
         
         <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-            
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <div class="text-xs text-gray-500 mb-1">Nama Barang</div>
                 <div class="text-lg font-semibold text-gray-900"><?php echo e($asset->nama_aset); ?></div>
             </div>
 
-            
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <div class="text-xs text-gray-500 mb-1">Kategori</div>
                 <div class="text-lg font-semibold text-gray-900"><?php echo e($asset->kategori ?? '-'); ?></div>
             </div>
 
-            
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <div class="text-xs text-gray-500 mb-1">Jenis Aset</div>
                 <div class="text-lg font-semibold text-gray-900">-</div>
             </div>
 
-            
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <div class="text-xs text-gray-500 mb-1">Tanggal Pembelian</div>
                 <div class="text-lg font-semibold text-gray-900">
@@ -76,7 +72,6 @@
                 </div>
             </div>
 
-            
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <div class="text-xs text-gray-500 mb-1">Lokasi</div>
                 <div class="text-lg font-semibold text-gray-900"><?php echo e($asset->lokasi ?? '-'); ?></div>
@@ -100,7 +95,6 @@
                 </span>
             </div>
 
-            
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <div class="text-xs text-gray-500 mb-1">Umur Aset</div>
                 <div class="text-lg font-semibold text-gray-900"><?php echo e($umurText); ?></div>
@@ -108,14 +102,11 @@
 
             
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col items-center justify-center">
-                    
-                    <div class="p-3 rounded-xl bg-gray-50 border border-gray-100" data-qr-wrapper>
-                        <?php echo QrCode::size(130)->margin(1)->generate($qrCodeText); ?>
+                <div class="p-3 rounded-xl bg-gray-50 border border-gray-100" data-qr-wrapper>
+                    <?php echo QrCode::size(130)->margin(1)->generate($qrCodeText); ?>
 
-                    </div>
-                    <div class="mt-3 text-sm font-medium text-gray-700"><?php echo e($qrCodeText); ?></div>
                 </div>
+                <div class="mt-3 text-sm font-medium text-gray-700"><?php echo e($qrCodeText); ?></div>
             </div>
         </div>
     </div>
@@ -157,12 +148,11 @@
             </table>
         </div>
 
-        
         <div class="mt-6">
             <form action="<?php echo e(route('inventaris.aset.destroy', $asset->aset_id)); ?>"
-                  method="POST"
-                  onsubmit="return confirm('Yakin ingin menghapus aset ini?')"
-                  class="inline-block">
+                method="POST"
+                onsubmit="return confirm('Yakin ingin menghapus aset ini?')"
+                class="inline-block">
                 <?php echo csrf_field(); ?>
                 <?php echo method_field('DELETE'); ?>
                 <button type="submit"
@@ -177,86 +167,67 @@
 
 <script>
 function printQrCode() {
-    // Ambil SVG QR yang sudah ada di halaman
     const qrWrapper = document.querySelector('[data-qr-wrapper]');
     const qrSvg = qrWrapper ? qrWrapper.innerHTML : '';
 
-    if (!qrSvg.trim()) {
-        alert('QR Code tidak ditemukan. Pastikan elemen QR memiliki atribut data-qr-wrapper.');
+    if (!qrSvg || !qrSvg.trim()) {
+        alert('QR Code belum siap / tidak ditemukan.');
         return;
     }
 
-    const qrHtml = `
-        <html>
-        <head>
-            <title>Cetak QR Aset</title>
-            <style>
-                * { box-sizing: border-box; }
-                body {
-                    margin: 0;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 100vh;
-                    font-family: Arial, sans-serif;
-                    background: #fff;
-                }
-                .card {
-                    text-align: center;
-                    border: 1px solid #ddd;
-                    padding: 24px;
-                    border-radius: 12px;
-                    background: #fff;
-                }
-                svg {
-                    width: 220px;
-                    height: 220px;
-                    display: block;
-                    margin: 0 auto;
-                }
-                .code {
-                    margin-top: 12px;
-                    font-weight: bold;
-                    letter-spacing: 1px;
-                }
-                .name {
-                    margin-top: 6px;
-                    font-size: 14px;
-                    color: #555;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="card">
-                <div>${qrSvg}</div>
-                <div class="code"><?php echo e($qrCodeText); ?></div>
-                <div class="name"><?php echo e($asset->nama_aset); ?></div>
-            </div>
-        </body>
-        </html>
+    const codeText = <?php echo json_encode($qrCodeText, 15, 512) ?>;
+    const asetName = <?php echo json_encode($asset->nama_aset, 15, 512) ?>;
+
+    const html = `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Cetak QR Aset</title>
+  <style>
+    body{
+      display:flex;align-items:center;justify-content:center;height:100vh;
+      font-family:Arial,sans-serif;background:#fff;margin:0;
+    }
+    .card{
+      text-align:center;border:1px solid #ddd;padding:24px;border-radius:12px;
+      min-width:280px;
+    }
+    .qr svg{ width:220px; height:220px; }
+    .code{ margin-top:12px; font-weight:700; letter-spacing:1px; }
+    .name{ margin-top:6px; font-size:14px; color:#555; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="qr">${qrSvg}</div>
+    <div class="code">${codeText}</div>
+    <div class="name">${asetName}</div>
+  </div>
+
+  <script>
+    window.onload = function () {
+      setTimeout(function () { window.print(); }, 250);
+    };
+    window.onafterprint = function () {
+      setTimeout(function(){ window.close(); }, 150);
+    };
+  <\/script>
+</body>
+</html>
     `;
 
-    const win = window.open('', '_blank', 'width=450,height=600');
+    const win = window.open('', '_blank', 'width=520,height=650');
     if (!win) {
-        alert('Popup diblokir browser. Izinkan popup untuk mencetak QR.');
+        alert('Pop-up diblokir browser. Izinin pop-up untuk cetak QR ya.');
         return;
     }
 
     win.document.open();
-    win.document.write(qrHtml);
+    win.document.write(html);
     win.document.close();
-
-    // ✅ tunggu render SVG dulu baru print, lalu tutup
-    win.onload = function () {
-        setTimeout(() => {
-            win.focus();
-            win.print();
-            setTimeout(() => win.close(), 300);
-        }, 400);
-    };
 }
 </script>
-
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\Backup\tahun ajaran 4-1 smester 7\ManPro\Manajemen Masjid\manajemen_masjid\resources\views/modules/inventaris/aset/show.blade.php ENDPATH**/ ?>

@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
             ArticlesSeeder::class,
             AnnouncementsSeeder::class,
             NewsSeeder::class,
+            PetugasSeeder::class,
+            AsetSeeder::class,
         ]);
     }
 }

@@ -118,24 +118,26 @@
                         @endphp
                         <tr class="hover:bg-gray-50">
                             {{-- FOTO BARANG --}}
-                            <td class="px-4 py-3">
-                                @php
-                                    $img = $asset->foto_path ? asset('storage/' . $asset->foto_path) : null;
-                                @endphp
+                                <td class="px-4 py-3">
+                                    @php
+                                        $img = !empty($asset->foto_path)
+                                            ? \Illuminate\Support\Facades\Storage::url($asset->foto_path)
+                                            : null;
+                                    @endphp
 
-                                <div class="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
-                                    @if($img)
-                                    <img
-                                        src="{{ $img }}"
-                                        alt="Foto {{ $asset->nama_aset }}"
-                                        class="h-full w-full object-cover"
-                                        loading="lazy"
-                                        onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=&quot;text-[10px] text-gray-500&quot;>No Foto</span>';"
-                                    >
-                                    @else
-                                    <span class="text-[10px] text-gray-500">No Foto</span>
-                                    @endif
-                                </div>
+                                    <div class="h-10 w-10 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 flex items-center justify-center">
+                                        @if($img)
+                                            <img
+                                                src="{{ $img }}"
+                                                alt="Foto {{ $asset->nama_aset }}"
+                                                class="h-full w-full object-cover"
+                                                loading="lazy"
+                                                onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=&quot;text-[10px] text-gray-500&quot;>No Foto</span>';"
+                                            >
+                                        @else
+                                            <span class="text-[10px] text-gray-500">No Foto</span>
+                                        @endif
+                                    </div>
                                 </td>
 
                             {{-- NAMA BARANG --}}
