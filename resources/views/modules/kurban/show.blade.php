@@ -4,7 +4,6 @@
 
 @section('content')
 <div class="container mx-auto">
-    <!-- Header -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <div class="flex items-center justify-between">
             <div>
@@ -14,12 +13,20 @@
                 <p class="text-gray-600 mt-2">Nomor: <strong>{{ $kurban->nomor_kurban }}</strong></p>
             </div>
             <div class="flex space-x-2">
+                @if($kurban->status == 'selesai')
+                    <a href="{{ route('kurban.export-pdf', $kurban) }}" target="_blank" class="bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition flex items-center space-x-2">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Cetak Laporan</span>
+                    </a>
+                @endif
+
                 @if(!auth()->user()->isSuperAdmin() && auth()->user()->hasPermission('kurban.update'))
                     <a href="{{ route('kurban.edit', $kurban) }}" class="bg-yellow-600 text-white px-4 py-3 rounded-lg hover:bg-yellow-700 transition flex items-center space-x-2">
                         <i class="fas fa-edit"></i>
                         <span>Edit</span>
                     </a>
                 @endif
+                
                 <a href="{{ route('kurban.index') }}" class="bg-gray-400 text-white px-4 py-3 rounded-lg hover:bg-gray-500 transition flex items-center space-x-2">
                     <i class="fas fa-arrow-left"></i>
                     <span>Kembali</span>
@@ -34,7 +41,6 @@
         @endif
     </div>
 
-    <!-- Alert Messages -->
     @if($message = session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center">
             <i class="fas fa-check-circle mr-3"></i>
@@ -42,12 +48,41 @@
         </div>
     @endif
 
-    <!-- Main Info -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <!-- Card 1: Info Dasar -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="mb-4 pb-4 border-b">
                 <h3 class="text-lg font-semibold text-gray-800">Informasi Dasar</h3>
+            </div>
+            
+            @php
+                $maxBagian = $kurban->jenis_hewan === 'sapi' ? 7 : 1;
+                $terpakai = $kurban->pesertaKurbans->sum('jumlah_bagian');
+                $sisa = $maxBagian - $terpakai;
+                $persen = ($terpakai / $maxBagian) * 100;
+                
+                // Warna Progress Bar
+                $barColor = 'bg-green-500'; 
+                if($persen >= 50) $barColor = 'bg-yellow-500';
+                if($persen >= 100) $barColor = 'bg-red-500';
+            @endphp
+
+            <div class="mb-6 bg-gray-50 p-3 rounded-lg border">
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="font-semibold text-gray-700">Slot Terisi</span>
+                    <span class="font-bold {{ $sisa <= 0 ? 'text-red-600' : 'text-green-600' }}">
+                        {{ (float)$terpakai }} / {{ $maxBagian }} Bagian
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div class="{{ $barColor }} h-2.5 rounded-full transition-all duration-500" style="width: {{ $persen > 100 ? 100 : $persen }}%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1 text-right">
+                    @if($sisa > 0)
+                        Masih tersedia <strong>{{ (float)$sisa }}</strong> bagian.
+                    @else
+                        <span class="text-red-600 font-bold">KUOTA PENUH</span>
+                    @endif
+                </p>
             </div>
             <div class="space-y-4">
                 <div>
@@ -69,7 +104,6 @@
             </div>
         </div>
 
-        <!-- Card 2: Status -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="mb-4 pb-4 border-b">
                 <h3 class="text-lg font-semibold text-gray-800">Status & Timeline</h3>
@@ -108,7 +142,6 @@
             </div>
         </div>
 
-        <!-- Card 3: Biaya -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="mb-4 pb-4 border-b">
                 <h3 class="text-lg font-semibold text-gray-800">Detail Biaya</h3>
@@ -130,17 +163,23 @@
         </div>
     </div>
 
-    <!-- Peserta Kurban Section -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <div class="flex items-center justify-between mb-4 pb-4 border-b">
             <h3 class="text-lg font-semibold text-gray-800">
                 <i class="fas fa-users text-green-700 mr-2"></i>Peserta Kurban
             </h3>
             @if(!auth()->user()->isSuperAdmin() && auth()->user()->hasPermission('kurban.create'))
-                <a href="{{ route('kurban.peserta.create', $kurban) }}" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center space-x-2">
-                    <i class="fas fa-plus"></i>
-                    <span>Tambah Peserta</span>
-                </a>
+                @if($sisa > 0)
+                    <a href="{{ route('kurban.peserta.create', $kurban) }}" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center space-x-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Tambah Peserta</span>
+                    </a>
+                @else
+                    <button disabled class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg cursor-not-allowed flex items-center space-x-2">
+                        <i class="fas fa-lock"></i>
+                        <span>Kuota Penuh</span>
+                    </button>
+                @endif
             @endif
         </div>
 
@@ -166,7 +205,7 @@
                                         {{ ucfirst($peserta->tipe_peserta) }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3 text-sm">{{ number_format($peserta->jumlah_bagian, 2) }} bagian</td>
+                                <td class="px-4 py-3 text-sm">{{ number_format($peserta->jumlah_bagian, 2) }}</td>
                                 <td class="px-4 py-3 text-sm">Rp {{ number_format($peserta->nominal_pembayaran, 0, ',', '.') }}</td>
                                 <td class="px-4 py-3 text-sm">
                                     @php
@@ -175,14 +214,9 @@
                                             'cicilan' => 'bg-yellow-100 text-yellow-800',
                                             'lunas' => 'bg-green-100 text-green-800',
                                         ];
-                                        $pembayaranLabel = [
-                                            'belum_lunas' => 'Belum Lunas',
-                                            'cicilan' => 'Cicilan',
-                                            'lunas' => 'Lunas',
-                                        ];
                                     @endphp
                                     <span class="inline-block px-2 py-1 {{ $pembayaranColors[$peserta->status_pembayaran] ?? 'bg-gray-100 text-gray-800' }} rounded text-xs font-medium">
-                                        {{ $pembayaranLabel[$peserta->status_pembayaran] ?? $peserta->status_pembayaran }}
+                                        {{ ucfirst(str_replace('_', ' ', $peserta->status_pembayaran)) }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
@@ -208,8 +242,6 @@
                     </tbody>
                 </table>
             </div>
-
-            <!-- Pagination for Peserta -->
             <div class="mt-4">
                 {{ $pesertaKurbans->render() }}
             </div>
@@ -217,8 +249,7 @@
             <p class="text-center py-8 text-gray-500">Belum ada peserta kurban</p>
         @endif
     </div>
-
-    <!-- Distribusi Kurban Section -->
+    
     <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center justify-between mb-4 pb-4 border-b">
             <h3 class="text-lg font-semibold text-gray-800">
@@ -231,9 +262,9 @@
                 </a>
             @endif
         </div>
-
+        
         @if($distribusiKurbans->count() > 0)
-            <div class="overflow-x-auto">
+             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead class="bg-gray-100 border-b">
                         <tr>
@@ -257,36 +288,21 @@
                                 <td class="px-4 py-3 text-sm">{{ number_format($distribusi->berat_daging, 2) }} kg</td>
                                 <td class="px-4 py-3 text-sm">Rp {{ number_format($distribusi->estimasi_harga, 0, ',', '.') }}</td>
                                 <td class="px-4 py-3 text-sm">
-                                    @php
-                                        $distribusiColors = [
-                                            'belum_didistribusi' => 'bg-red-100 text-red-800',
-                                            'sedang_disiapkan' => 'bg-yellow-100 text-yellow-800',
-                                            'sudah_didistribusi' => 'bg-green-100 text-green-800',
-                                        ];
-                                        $distribusiLabel = [
-                                            'belum_didistribusi' => 'Belum Didistribusi',
-                                            'sedang_disiapkan' => 'Sedang Disiapkan',
-                                            'sudah_didistribusi' => 'Sudah Didistribusi',
-                                        ];
-                                    @endphp
-                                    <span class="inline-block px-2 py-1 {{ $distribusiColors[$distribusi->status_distribusi] ?? 'bg-gray-100 text-gray-800' }} rounded text-xs font-medium">
-                                        {{ $distribusiLabel[$distribusi->status_distribusi] ?? $distribusi->status_distribusi }}
+                                     <span class="inline-block px-2 py-1 {{ $distribusi->sudahDidistribusi() ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }} rounded text-xs font-medium">
+                                        {{ str_replace('_', ' ', $distribusi->status_distribusi) }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
                                     <div class="flex items-center justify-center space-x-2">
                                         @if(!auth()->user()->isSuperAdmin() && auth()->user()->hasPermission('kurban.update'))
-                                            <a href="{{ route('kurban.distribusi.edit', [$kurban, $distribusi]) }}" class="text-yellow-600 hover:text-yellow-800" title="Edit">
+                                            <a href="{{ route('kurban.distribusi.edit', [$kurban, $distribusi]) }}" class="text-yellow-600 hover:text-yellow-800">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         @endif
                                         @if(!auth()->user()->isSuperAdmin() && auth()->user()->hasPermission('kurban.delete'))
-                                            <form method="POST" action="{{ route('kurban.distribusi.destroy', [$kurban, $distribusi]) }}" class="inline" onsubmit="return confirm('Yakin ingin menghapus?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="text-red-600 hover:text-red-800" title="Hapus">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                             <form method="POST" action="{{ route('kurban.distribusi.destroy', [$kurban, $distribusi]) }}" class="inline" onsubmit="return confirm('Yakin ingin menghapus?');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-800"><i class="fas fa-trash"></i></button>
                                             </form>
                                         @endif
                                     </div>
@@ -296,11 +312,7 @@
                     </tbody>
                 </table>
             </div>
-
-            <!-- Pagination for Distribusi -->
-            <div class="mt-4">
-                {{ $distribusiKurbans->render() }}
-            </div>
+            <div class="mt-4">{{ $distribusiKurbans->render() }}</div>
         @else
             <p class="text-center py-8 text-gray-500">Belum ada data distribusi</p>
         @endif

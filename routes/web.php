@@ -93,6 +93,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/{kurban}/distribusi/{distribusi}/edit', [KurbanController::class, 'editDistribusi'])->name('distribusi.edit');
         Route::put('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'updateDistribusi'])->name('distribusi.update');
         Route::delete('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'destroyDistribusi'])->name('distribusi.destroy');
+
+        // Print Laporan Kurban
+        Route::get('/{kurban}/cetak-laporan', [KurbanController::class, 'exportPdf'])->name('export-pdf');
     });
 
     // =========================================================================

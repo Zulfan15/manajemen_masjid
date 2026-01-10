@@ -3,204 +3,262 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Kurban;
 use App\Models\PesertaKurban;
 use App\Models\DistribusiKurban;
-use App\Models\User;
-use Carbon\Carbon;
 
 class KurbanSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        $adminKurban = User::where('username', 'admin_kurban')->first();
-        $jamaahs = User::role('jamaah')->get();
+        // 1. Setup Admin
+        $admin = User::first() ?? User::factory()->create([
+            'name' => 'Admin DKM',
+            'email' => 'admin@masjid.com',
+            'password' => bcrypt('password'),
+        ]);
+        $adminId = $admin->id;
 
-        // 1. Sapi Limosin - Sudah Terdistribusi
+        // ==========================================================
+        // SKENARIO 1: SAPI WARGA (SELESAI - KOMPLIT)
+        // Kasus: 7 Orang Eceran, Daging sudah dibagikan semua
+        // ==========================================================
         $sapi1 = Kurban::create([
-            'nomor_kurban' => 'KRB-' . date('Y') . '-001',
+            'nomor_kurban' => 'KB-2025-001',
             'jenis_hewan' => 'sapi',
-            'nama_hewan' => 'Sapi Limosin',
-            'berat_badan' => 450.5,
+            'nama_hewan' => 'Si Bagong (Limosin)',
+            'berat_badan' => 450.00,
             'kondisi_kesehatan' => 'sehat',
-            'harga_hewan' => 24000000,
-            'biaya_operasional' => 1000000,
-            'total_biaya' => 25000000,
-            'status' => 'didistribusi',
-            'tanggal_persiapan' => Carbon::now()->subDays(10),
-            'tanggal_penyembelihan' => Carbon::now()->subDays(3),
-            'catatan' => 'Sapi limosin kualitas premium, sudah disembelih dan didistribusikan. Dibagi menjadi 7 bagian untuk peserta.',
-            'created_by' => $adminKurban->id ?? 1,
+            'tanggal_persiapan' => Carbon::now()->subDays(30),
+            'tanggal_penyembelihan' => Carbon::now()->subDays(2), // Disembelih 2 hari lalu
+            'harga_hewan' => 24500000,
+            'biaya_operasional' => 700000,
+            'total_biaya' => 25200000,
+            'status' => 'selesai', // STATUS SELESAI
+            'catatan' => 'Alhamdulillah lancar.',
+            'created_by' => $adminId,
         ]);
 
-        // Peserta untuk Sapi 1 (7 orang)
-        $pesertaSapi1 = [
-            ['nama' => 'H. Ahmad Fauzi', 'jumlah_bagian' => 1, 'total_bayar' => 3500000],
-            ['nama' => 'Budi Santoso', 'jumlah_bagian' => 1, 'total_bayar' => 3500000],
-            ['nama' => 'Siti Aminah', 'jumlah_bagian' => 1, 'total_bayar' => 3500000],
-            ['nama' => 'Muhammad Rizki', 'jumlah_bagian' => 1, 'total_bayar' => 3500000],
-            ['nama' => 'Abdul Malik', 'jumlah_bagian' => 1, 'total_bayar' => 3500000],
-            ['nama' => 'Fatimah Zahra', 'jumlah_bagian' => 1, 'total_bayar' => 3500000],
-            ['nama' => 'Usman bin Affan', 'jumlah_bagian' => 1, 'total_bayar' => 3500000],
-        ];
+        $hargaSapi1 = 25200000 / 7;
+        $jamaahSapi1 = ['Pak H. Mamat', 'Ibu Hj. Romlah', 'Kang Asep', 'Teh Nining', 'Pak RT Dadang', 'Mas Joko', 'Ibu Susi'];
 
-        foreach ($pesertaSapi1 as $index => $peserta) {
-            PesertaKurban::create([
+        // Loop buat peserta
+        foreach ($jamaahSapi1 as $index => $nama) {
+            $peserta = PesertaKurban::create([
                 'kurban_id' => $sapi1->id,
-                'nama_peserta' => $peserta['nama'],
-                'nomor_telepon' => '08123456789' . $index,
-                'alamat' => 'Jl. Masjid Raya No. ' . ($index + 1) . ', Jakarta',
-                'tipe_peserta' => 'perorangan',
-                'jumlah_jiwa' => 1,
-                'jumlah_bagian' => $peserta['jumlah_bagian'],
-                'nominal_pembayaran' => $peserta['total_bayar'],
-                'status_pembayaran' => 'lunas',
-                'tanggal_pembayaran' => Carbon::now()->subDays(10),
-                'created_by' => $adminKurban->id ?? 1,
-            ]);
-        }
-
-        // Distribusi untuk Sapi 1
-        $penerima = [
-            ['nama' => 'Yayasan Anak Yatim Al-Ikhlas', 'jenis' => 'fakir_miskin', 'berat' => 20],
-            ['nama' => 'Masjid Al-Hidayah', 'jenis' => 'lainnya', 'berat' => 18],
-            ['nama' => 'Panti Asuhan Ar-Rahman', 'jenis' => 'fakir_miskin', 'berat' => 22],
-            ['nama' => 'Keluarga Dhuafa Kampung Melayu', 'jenis' => 'fakir_miskin', 'berat' => 15],
-            ['nama' => 'Lansia Dhuafa Kelurahan Pasar Rebo', 'jenis' => 'fakir_miskin', 'berat' => 17],
-        ];
-
-        foreach ($penerima as $data) {
-            DistribusiKurban::create([
-                'kurban_id' => $sapi1->id,
-                'penerima_nama' => $data['nama'],
-                'penerima_alamat' => 'Jakarta',
-                'berat_daging' => $data['berat'],
-                'estimasi_harga' => $data['berat'] * 120000,
-                'jenis_distribusi' => $data['jenis'],
-                'tanggal_distribusi' => Carbon::now()->subDays(2),
-                'status_distribusi' => 'sudah_didistribusi',
-                'catatan' => 'Distribusi daging kurban ' . Carbon::now()->year,
-                'created_by' => $adminKurban->id ?? 1,
-            ]);
-        }
-
-        // 2. Kambing Etawa - Tersedia
-        $kambing1 = Kurban::create([
-            'nomor_kurban' => 'KRB-' . date('Y') . '-002',
-            'jenis_hewan' => 'kambing',
-            'nama_hewan' => 'Kambing Etawa',
-            'berat_badan' => 45.0,
-            'kondisi_kesehatan' => 'sehat',
-            'harga_hewan' => 3200000,
-            'biaya_operasional' => 300000,
-            'total_biaya' => 3500000,
-            'status' => 'siap_sembelih',
-            'tanggal_persiapan' => Carbon::now()->subDays(5),
-            'tanggal_penyembelihan' => Carbon::create(2026, 6, 16),
-            'catatan' => 'Kambing etawa jantan, siap disembelih pada Idul Adha',
-            'created_by' => $adminKurban->id ?? 1,
-        ]);
-
-        // 3. Sapi Ongole - Sudah Disembelih
-        $sapi2 = Kurban::create([
-            'nomor_kurban' => 'KRB-' . date('Y') . '-003',
-            'jenis_hewan' => 'sapi',
-            'nama_hewan' => 'Sapi Ongole',
-            'berat_badan' => 420.0,
-            'kondisi_kesehatan' => 'sehat',
-            'harga_hewan' => 21000000,
-            'biaya_operasional' => 1000000,
-            'total_biaya' => 22000000,
-            'status' => 'disembelih',
-            'tanggal_persiapan' => Carbon::now()->subDays(8),
-            'tanggal_penyembelihan' => Carbon::now()->subDays(2),
-            'catatan' => 'Sapi ongole sudah disembelih, proses distribusi sedang berlangsung',
-            'created_by' => $adminKurban->id ?? 1,
-        ]);
-
-        // Peserta untuk Sapi 2 (5 orang)
-        $pesertaSapi2 = [
-            ['nama' => 'Ali bin Abi Thalib', 'jumlah_bagian' => 1],
-            ['nama' => 'Umar bin Khattab', 'jumlah_bagian' => 1],
-            ['nama' => 'Aisyah binti Abu Bakar', 'jumlah_bagian' => 1],
-            ['nama' => 'Khadijah binti Khuwailid', 'jumlah_bagian' => 1],
-            ['nama' => 'Bilal bin Rabah', 'jumlah_bagian' => 1],
-        ];
-
-        foreach ($pesertaSapi2 as $index => $peserta) {
-            PesertaKurban::create([
-                'kurban_id' => $sapi2->id,
-                'nama_peserta' => $peserta['nama'],
-                'nomor_telepon' => '08123456780' . $index,
-                'alamat' => 'Jakarta',
-                'tipe_peserta' => 'perorangan',
-                'jumlah_jiwa' => 1,
-                'jumlah_bagian' => $peserta['jumlah_bagian'],
-                'nominal_pembayaran' => 3150000,
-                'status_pembayaran' => $index < 3 ? 'lunas' : 'belum_lunas',
-                'tanggal_pembayaran' => $index < 3 ? Carbon::now()->subDays(5) : null,
-                'created_by' => $adminKurban->id ?? 1,
-            ]);
-        }
-
-        // 4. Kambing Gibas
-        $kambing2 = Kurban::create([
-            'nomor_kurban' => 'KRB-' . date('Y') . '-004',
-            'jenis_hewan' => 'kambing',
-            'nama_hewan' => 'Kambing Gibas',
-            'berat_badan' => 38.5,
-            'kondisi_kesehatan' => 'sehat',
-            'harga_hewan' => 2600000,
-            'biaya_operasional' => 200000,
-            'total_biaya' => 2800000,
-            'status' => 'disiapkan',
-            'tanggal_persiapan' => Carbon::now()->subDays(3),
-            'tanggal_penyembelihan' => Carbon::create(2026, 6, 16),
-            'catatan' => 'Kambing gibas berkualitas, masih dalam tahap persiapan',
-            'created_by' => $adminKurban->id ?? 1,
-        ]);
-
-        // 5. Sapi Bali - Selesai
-        $sapi3 = Kurban::create([
-            'nomor_kurban' => 'KRB-' . date('Y') . '-005',
-            'jenis_hewan' => 'sapi',
-            'nama_hewan' => 'Sapi Bali',
-            'berat_badan' => 380.0,
-            'kondisi_kesehatan' => 'sehat',
-            'harga_hewan' => 19000000,
-            'biaya_operasional' => 1000000,
-            'total_biaya' => 20000000,
-            'status' => 'selesai',
-            'tanggal_persiapan' => Carbon::now()->subDays(12),
-            'tanggal_penyembelihan' => Carbon::now()->subDays(4),
-            'catatan' => 'Semua proses kurban sudah selesai, daging sudah terdistribusi semua',
-            'created_by' => $adminKurban->id ?? 1,
-        ]);
-
-        // Peserta untuk Sapi 3 (7 orang)
-        for ($i = 0; $i < 7; $i++) {
-            PesertaKurban::create([
-                'kurban_id' => $sapi3->id,
-                'nama_peserta' => 'Peserta ' . ($i + 1),
-                'nomor_telepon' => '08123456785' . $i,
-                'alamat' => 'Jakarta',
+                'nama_peserta' => $nama,
                 'tipe_peserta' => 'perorangan',
                 'jumlah_jiwa' => 1,
                 'jumlah_bagian' => 1,
-                'nominal_pembayaran' => 2850000,
+                'nominal_pembayaran' => $hargaSapi1,
                 'status_pembayaran' => 'lunas',
-                'tanggal_pembayaran' => Carbon::now()->subDays(rand(3, 15)),
-                'created_by' => $adminKurban->id ?? 1,
+                'tanggal_pembayaran' => Carbon::now()->subDays(20),
+                'created_by' => $adminId,
+            ]);
+
+            // GENERATE DISTRIBUSI (Jatah Shohibul Qurban)
+            // Setiap peserta dapat 3kg daging
+            DistribusiKurban::create([
+                'kurban_id' => $sapi1->id,
+                'peserta_kurban_id' => $peserta->id,
+                'penerima_nama' => $nama . " (Shohibul)",
+                'berat_daging' => 3.0,
+                'estimasi_harga' => 360000,
+                'jenis_distribusi' => 'keluarga_peserta',
+                'status_distribusi' => 'sudah_didistribusi',
+                'tanggal_distribusi' => Carbon::now()->subDays(2),
+                'created_by' => $adminId,
             ]);
         }
 
-        echo "\n✅ Berhasil membuat 5 data kurban:\n";
-        echo "   - 3 Sapi (1 didistribusikan, 2 terjual)\n";
-        echo "   - 2 Kambing (tersedia)\n";
-        echo "   - Total " . PesertaKurban::count() . " peserta kurban\n";
-        echo "   - Total " . DistribusiKurban::count() . " distribusi\n";
+        // GENERATE DISTRIBUSI (Jatah Warga/Fakir Miskin)
+        DistribusiKurban::create([
+            'kurban_id' => $sapi1->id,
+            'penerima_nama' => "Warga RW 05 (Total 150 Kantong)",
+            'penerima_alamat' => "Wilayah RW 05",
+            'berat_daging' => 150.0, // 150 kg total
+            'estimasi_harga' => 18000000,
+            'jenis_distribusi' => 'fakir_miskin',
+            'status_distribusi' => 'sudah_didistribusi',
+            'catatan' => 'Dibagikan via Pak RT',
+            'created_by' => $adminId,
+        ]);
+
+
+        // ==========================================================
+        // SKENARIO 2: SAPI SULTAN BORONGAN (SELESAI - KOMPLIT)
+        // Kasus: 1 Orang Borong 7 Bagian, Minta daging dikirim ke Panti
+        // ==========================================================
+        $sapi2 = Kurban::create([
+            'nomor_kurban' => 'KB-2025-002',
+            'jenis_hewan' => 'sapi',
+            'nama_hewan' => 'Monster (Simental)',
+            'berat_badan' => 800.00,
+            'kondisi_kesehatan' => 'sehat',
+            'tanggal_persiapan' => Carbon::now()->subDays(25),
+            'tanggal_penyembelihan' => Carbon::now()->subDays(2),
+            'harga_hewan' => 45000000,
+            'biaya_operasional' => 1000000,
+            'total_biaya' => 46000000,
+            'status' => 'selesai', // STATUS SELESAI
+            'created_by' => $adminId,
+        ]);
+
+        $pesertaSultan = PesertaKurban::create([
+            'kurban_id' => $sapi2->id,
+            'nama_peserta' => "Bapak H. Rhoma Irama (Sultan)",
+            'tipe_peserta' => 'keluarga',
+            'jumlah_jiwa' => 7,
+            'jumlah_bagian' => 7.00, // BORONG 7 SLOT
+            'nominal_pembayaran' => 46000000,
+            'status_pembayaran' => 'lunas',
+            'created_by' => $adminId,
+        ]);
+
+        // Distribusi 1: Jatah Keluarga Sultan (Paha Belakang & Hati)
+        DistribusiKurban::create([
+            'kurban_id' => $sapi2->id,
+            'peserta_kurban_id' => $pesertaSultan->id,
+            'penerima_nama' => "Keluarga Pak H. Rhoma",
+            'penerima_alamat' => "Jl. Pondok Jaya",
+            'berat_daging' => 20.0, // Minta 20kg
+            'estimasi_harga' => 2400000,
+            'jenis_distribusi' => 'keluarga_peserta',
+            'status_distribusi' => 'sudah_didistribusi',
+            'catatan' => 'Request Paha Belakang Utuh',
+            'created_by' => $adminId,
+        ]);
+
+        // Distribusi 2: Sisanya ke Panti Asuhan (Request Sultan)
+        DistribusiKurban::create([
+            'kurban_id' => $sapi2->id,
+            'penerima_nama' => "Panti Asuhan Yatim Piatu",
+            'penerima_alamat' => "Jl. Raya Bogor",
+            'berat_daging' => 200.0, // 200kg daging murni
+            'estimasi_harga' => 24000000,
+            'jenis_distribusi' => 'fakir_miskin',
+            'status_distribusi' => 'sudah_didistribusi',
+            'catatan' => 'Amanah dari Pak Haji untuk diserahkan utuh',
+            'created_by' => $adminId,
+        ]);
+
+
+        // ==========================================================
+        // SKENARIO 3: SAPI PERUSAHAAN (SELESAI - KOMPLIT)
+        // Kasus: PT. Maju Mundur (7 Bagian), Daging buat staff
+        // ==========================================================
+        $sapi3 = Kurban::create([
+            'nomor_kurban' => 'KB-2025-003',
+            'jenis_hewan' => 'sapi',
+            'nama_hewan' => 'Sapi PO Super',
+            'berat_badan' => 500.00,
+            'kondisi_kesehatan' => 'sehat',
+            'tanggal_persiapan' => Carbon::now()->subDays(15),
+            'tanggal_penyembelihan' => Carbon::now()->subDays(1),
+            'harga_hewan' => 28000000,
+            'biaya_operasional' => 700000,
+            'total_biaya' => 28700000,
+            'status' => 'selesai', // STATUS SELESAI
+            'created_by' => $adminId,
+        ]);
+
+        PesertaKurban::create([
+            'kurban_id' => $sapi3->id,
+            'nama_peserta' => "CSR PT. Maju Mundur",
+            'tipe_peserta' => 'perorangan', // Dianggap entitas
+            'jumlah_jiwa' => 7,
+            'jumlah_bagian' => 7.00,
+            'nominal_pembayaran' => 28700000,
+            'status_pembayaran' => 'lunas',
+            'created_by' => $adminId,
+        ]);
+
+        DistribusiKurban::create([
+            'kurban_id' => $sapi3->id,
+            'penerima_nama' => "Staff Cleaning Service & Security",
+            'berat_daging' => 50.0,
+            'estimasi_harga' => 6000000,
+            'jenis_distribusi' => 'lainnya',
+            'status_distribusi' => 'sudah_didistribusi',
+            'created_by' => $adminId,
+        ]);
+        
+         DistribusiKurban::create([
+            'kurban_id' => $sapi3->id,
+            'penerima_nama' => "Warga Sekitar Kantor RW 02",
+            'berat_daging' => 100.0,
+            'estimasi_harga' => 12000000,
+            'jenis_distribusi' => 'fakir_miskin',
+            'status_distribusi' => 'sudah_didistribusi',
+            'created_by' => $adminId,
+        ]);
+
+
+        // ==========================================================
+        // SKENARIO 4: SAPI KELUARGA (SIAP SEMBELIH)
+        // Kasus: 3 KK (2+2+3), Status Siap Sembelih (Belum ada distribusi)
+        // ==========================================================
+        $sapi4 = Kurban::create([
+            'nomor_kurban' => 'KB-2025-004',
+            'jenis_hewan' => 'sapi',
+            'nama_hewan' => 'Si Putih',
+            'berat_badan' => 380.00,
+            'kondisi_kesehatan' => 'sehat',
+            'tanggal_persiapan' => Carbon::now()->subDays(10),
+            'harga_hewan' => 21000000,
+            'biaya_operasional' => 700000,
+            'total_biaya' => 21700000,
+            'status' => 'siap_sembelih', // STATUS SIAP SEMBELIH
+            'catatan' => 'Menunggu jadwal penyembelihan jam 10:00',
+            'created_by' => $adminId,
+        ]);
+
+        $hargaPerBagian4 = 21700000 / 7;
+        
+        // Input 3 Keluarga (Total 7 Bagian)
+        PesertaKurban::create(['kurban_id' => $sapi4->id, 'nama_peserta' => "Kel. Gunawan", 'tipe_peserta' => 'keluarga', 'jumlah_jiwa' => 2, 'jumlah_bagian' => 2, 'nominal_pembayaran' => $hargaPerBagian4 * 2, 'status_pembayaran' => 'lunas', 'created_by' => $adminId]);
+        PesertaKurban::create(['kurban_id' => $sapi4->id, 'nama_peserta' => "Kel. Rina", 'tipe_peserta' => 'keluarga', 'jumlah_jiwa' => 2, 'jumlah_bagian' => 2, 'nominal_pembayaran' => $hargaPerBagian4 * 2, 'status_pembayaran' => 'lunas', 'created_by' => $adminId]);
+        PesertaKurban::create(['kurban_id' => $sapi4->id, 'nama_peserta' => "Kel. Sanusi", 'tipe_peserta' => 'keluarga', 'jumlah_jiwa' => 5, 'jumlah_bagian' => 3, 'nominal_pembayaran' => $hargaPerBagian4 * 3, 'status_pembayaran' => 'lunas', 'created_by' => $adminId]);
+
+
+        // ==========================================================
+        // SKENARIO 5: SAPI CAMPUR (DISIAPKAN / BELUM PENUH)
+        // Kasus: Baru 3 orang, Sisa 4 Slot (Progress Bar Kuning)
+        // ==========================================================
+        $sapi5 = Kurban::create([
+            'nomor_kurban' => 'KB-2025-005',
+            'jenis_hewan' => 'sapi',
+            'nama_hewan' => 'Sapi Madura',
+            'berat_badan' => 320.00,
+            'kondisi_kesehatan' => 'sehat',
+            'tanggal_persiapan' => Carbon::now()->subDays(2),
+            'harga_hewan' => 19000000,
+            'biaya_operasional' => 700000,
+            'total_biaya' => 19700000,
+            'status' => 'disiapkan', // STATUS DISIAPKAN
+            'catatan' => 'Masih mencari 4 orang lagi.',
+            'created_by' => $adminId,
+        ]);
+
+        $hargaPerBagian5 = 19700000 / 7;
+
+        PesertaKurban::create(['kurban_id' => $sapi5->id, 'nama_peserta' => "Kang Dedi", 'tipe_peserta' => 'perorangan', 'jumlah_jiwa' => 1, 'jumlah_bagian' => 1, 'nominal_pembayaran' => 1000000, 'status_pembayaran' => 'cicilan', 'created_by' => $adminId]);
+        PesertaKurban::create(['kurban_id' => $sapi5->id, 'nama_peserta' => "Kel. Ibu Ani", 'tipe_peserta' => 'keluarga', 'jumlah_jiwa' => 2, 'jumlah_bagian' => 2, 'nominal_pembayaran' => $hargaPerBagian5 * 2, 'status_pembayaran' => 'lunas', 'created_by' => $adminId]);
+
+
+        // ==========================================================
+        // KAMBING / DOMBA
+        // ==========================================================
+        
+        // Kambing A (Selesai)
+        $kambing1 = Kurban::create(['nomor_kurban' => 'KB-2025-006', 'jenis_hewan' => 'kambing', 'berat_badan' => 30, 'harga_hewan' => 3000000, 'total_biaya' => 3100000, 'status' => 'selesai', 'tanggal_persiapan' => Carbon::now()->subDays(10), 'tanggal_penyembelihan' => Carbon::now()->subDays(2), 'created_by' => $adminId]);
+        $pk1 = PesertaKurban::create(['kurban_id' => $kambing1->id, 'nama_peserta' => 'Ustadz Solmed', 'jumlah_bagian' => 1, 'nominal_pembayaran' => 3100000, 'status_pembayaran' => 'lunas', 'created_by' => $adminId]);
+        DistribusiKurban::create(['kurban_id' => $kambing1->id, 'peserta_kurban_id' => $pk1->id, 'penerima_nama' => 'Ust Solmed', 'berat_daging' => 3, 'estimasi_harga' => 300000, 'jenis_distribusi' => 'keluarga_peserta', 'status_distribusi' => 'sudah_didistribusi', 'created_by' => $adminId]);
+
+        // Domba B (Siap Sembelih)
+        $domba1 = Kurban::create(['nomor_kurban' => 'KB-2025-007', 'jenis_hewan' => 'domba', 'berat_badan' => 45, 'harga_hewan' => 4500000, 'total_biaya' => 4600000, 'status' => 'siap_sembelih', 'tanggal_persiapan' => Carbon::now()->subDays(5), 'created_by' => $adminId]);
+        PesertaKurban::create(['kurban_id' => $domba1->id, 'nama_peserta' => 'Habib Jafar', 'jumlah_bagian' => 1, 'nominal_pembayaran' => 4600000, 'status_pembayaran' => 'lunas', 'created_by' => $adminId]);
     }
 }

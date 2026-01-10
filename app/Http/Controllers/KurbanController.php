@@ -9,6 +9,7 @@ use App\Services\AuthService;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class KurbanController extends Controller
 {
@@ -234,11 +235,12 @@ class KurbanController extends Controller
      */
     public function storePeserta(Request $request, Kurban $kurban)
     {
-        // Check permission
+        // 1. Check permission
         if (!$this->authService->hasPermission('kurban.create')) {
             abort(403, 'Anda tidak memiliki akses untuk menambah peserta.');
         }
 
+        // 2. Validasi Input Dasar
         $validated = $request->validate([
             'nama_peserta' => 'required|string|max:100',
             'nomor_identitas' => 'nullable|string|max:20',
@@ -246,11 +248,50 @@ class KurbanController extends Controller
             'alamat' => 'nullable|string',
             'tipe_peserta' => 'required|in:perorangan,keluarga',
             'jumlah_jiwa' => 'required|integer|min:1',
-            'jumlah_bagian' => 'required|numeric|min:0.25',
-            'nominal_pembayaran' => 'required|numeric|min:0',
+            'jumlah_bagian' => 'required|numeric|min:0.01',
+            // Nominal kita hitung sendiri, jadi validasinya cukup numeric saja (tidak wajib required dari form)
+            'nominal_pembayaran' => 'nullable|numeric', 
             'status_pembayaran' => 'required|in:belum_lunas,lunas,cicilan',
             'catatan' => 'nullable|string',
+            'user_id' => 'nullable|exists:users,id',
         ]);
+
+        // ==========================================
+        // 3. BUSINESS LOGIC: VALIDASI KUOTA & ATURAN
+        // ==========================================
+
+        // Aturan A: Kambing/Domba Wajib 1 Bagian
+        if (in_array($kurban->jenis_hewan, ['kambing', 'domba']) && (float) $request->jumlah_bagian !== 1.0) {
+            return back()
+                ->withInput()
+                ->withErrors(['jumlah_bagian' => 'Untuk Kambing/Domba, jumlah bagian harus 1 (satu ekor utuh).']);
+        }
+
+        // Aturan B: Cek Ketersediaan Slot (Kuota)
+        $maxBagian = ($kurban->jenis_hewan === 'sapi') ? 7.00 : 1.00;
+        $currentUsed = $kurban->pesertaKurbans()->sum('jumlah_bagian');
+        $newTotal = $currentUsed + $request->jumlah_bagian;
+
+        if ($newTotal > $maxBagian) {
+            $sisa = $maxBagian - $currentUsed;
+            return back()
+                ->withInput()
+                ->withErrors(['jumlah_bagian' => "Kuota hewan tidak cukup. Sisa slot hanya: " . (float)$sisa . " bagian."]);
+        }
+
+        // ==========================================
+        // 4. LOGIC HARGA OTOMATIS (SERVER SIDE)
+        // ==========================================
+        // Kita hitung ulang harga di sini agar aman dari manipulasi input
+        $hargaPerBagian = $kurban->total_biaya / $maxBagian;
+        $hargaPasti = round($validated['jumlah_bagian'] * $hargaPerBagian); // Bulatkan ke rupiah terdekat
+        
+        // Timpa nilai nominal_pembayaran dengan hasil hitungan server
+        $validated['nominal_pembayaran'] = $hargaPasti;
+
+        // ==========================================
+        // 5. PENYIAPAN DATA & SIMPAN
+        // ==========================================
 
         $validated['kurban_id'] = $kurban->id;
         $validated['created_by'] = auth()->id();
@@ -265,11 +306,11 @@ class KurbanController extends Controller
 
         $peserta = PesertaKurban::create($validated);
 
-        // Log activity
+        // 6. Log activity
         $this->activityLogService->log(
             'peserta_kurban_create',
             'kurban',
-            "Peserta '{$peserta->nama_peserta}' ditambahkan ke kurban '{$kurban->nomor_kurban}'",
+            "Peserta '{$peserta->nama_peserta}' ditambahkan (Tagihan: Rp " . number_format($hargaPasti, 0, ',', '.') . ")",
             ['peserta_kurban_id' => $peserta->id, 'kurban_id' => $kurban->id]
         );
 
@@ -295,11 +336,12 @@ class KurbanController extends Controller
      */
     public function updatePeserta(Request $request, Kurban $kurban, PesertaKurban $peserta)
     {
-        // Check permission
+        // 1. Check permission
         if (!$this->authService->hasPermission('kurban.update')) {
             abort(403, 'Anda tidak memiliki akses untuk mengubah peserta.');
         }
 
+        // 2. Validasi Input
         $validated = $request->validate([
             'nama_peserta' => 'required|string|max:100',
             'nomor_identitas' => 'nullable|string|max:20',
@@ -307,25 +349,62 @@ class KurbanController extends Controller
             'alamat' => 'nullable|string',
             'tipe_peserta' => 'required|in:perorangan,keluarga',
             'jumlah_jiwa' => 'required|integer|min:1',
-            'jumlah_bagian' => 'required|numeric|min:0.25',
-            'nominal_pembayaran' => 'required|numeric|min:0',
+            'jumlah_bagian' => 'required|numeric|min:0.01',
+            'nominal_pembayaran' => 'nullable|numeric', // Tidak wajib input user, akan dihitung ulang
             'status_pembayaran' => 'required|in:belum_lunas,lunas,cicilan',
             'catatan' => 'nullable|string',
         ]);
 
-        $validated['updated_by'] = auth()->id();
+        // ==========================================
+        // 3. BUSINESS LOGIC: VALIDASI KUOTA & ATURAN
+        // ==========================================
 
+        // Aturan A: Kambing/Domba Wajib 1 Bagian
+        if (in_array($kurban->jenis_hewan, ['kambing', 'domba']) && (float) $request->jumlah_bagian !== 1.0) {
+            return back()
+                ->withInput()
+                ->withErrors(['jumlah_bagian' => 'Untuk Kambing/Domba, jumlah bagian harus 1 (satu ekor utuh).']);
+        }
+
+        // Aturan B: Cek Ketersediaan Slot (Logic Update)
+        $maxBagian = ($kurban->jenis_hewan === 'sapi') ? 7.00 : 1.00;
+        $currentTotalInDB = $kurban->pesertaKurbans()->sum('jumlah_bagian');
+        
+        // (Total di DB) - (Punya Dia yang LAMA) + (Punya Dia yang BARU)
+        $simulasiTotal = $currentTotalInDB - $peserta->jumlah_bagian + $request->jumlah_bagian;
+
+        if ($simulasiTotal > $maxBagian) {
+            $sisaSebenarnya = $maxBagian - ($currentTotalInDB - $peserta->jumlah_bagian);
+            return back()
+                ->withInput()
+                ->withErrors(['jumlah_bagian' => "Update gagal. Kuota hewan akan berlebih. Maksimal update untuk peserta ini: " . (float)$sisaSebenarnya]);
+        }
+
+        // ==========================================
+        // 4. LOGIC HARGA OTOMATIS (SERVER SIDE)
+        // ==========================================
+        $hargaPerBagian = $kurban->total_biaya / $maxBagian;
+        $hargaPasti = round($validated['jumlah_bagian'] * $hargaPerBagian);
+        
+        $validated['nominal_pembayaran'] = $hargaPasti;
+
+        // Auto set tanggal pembayaran jika status berubah jadi lunas
         if ($validated['status_pembayaran'] === 'lunas' && is_null($peserta->tanggal_pembayaran)) {
             $validated['tanggal_pembayaran'] = now()->toDateString();
         }
 
+        // ==========================================
+        // 5. UPDATE DATA
+        // ==========================================
+
+        $validated['updated_by'] = auth()->id();
         $peserta->update($validated);
 
-        // Log activity
+        // 6. Log activity
         $this->activityLogService->log(
             'peserta_kurban_update',
             'kurban',
-            "Peserta '{$peserta->nama_peserta}' pada kurban '{$kurban->nomor_kurban}' diubah",
+            "Peserta '{$peserta->nama_peserta}' diubah (Tagihan Update: Rp " . number_format($hargaPasti, 0, ',', '.') . ")",
             ['peserta_kurban_id' => $peserta->id, 'kurban_id' => $kurban->id]
         );
 
@@ -493,5 +572,29 @@ class KurbanController extends Controller
 
         return redirect()->route('kurban.show', $kurban)
             ->with('success', 'Distribusi kurban berhasil dihapus.');
+    }
+
+    /**
+     * Export Laporan PDF
+     */
+    public function exportPdf(Kurban $kurban)
+    {
+        // Cek permission (Opsional, sesuaikan)
+        if (!$this->authService->hasPermission('kurban.view')) {
+            abort(403);
+        }
+
+        // Ambil data relasi
+        $pesertaKurbans = $kurban->pesertaKurbans;
+        $distribusiKurbans = $kurban->distribusiKurbans;
+
+        // Load View khusus PDF
+        $pdf = Pdf::loadView('modules.kurban.print-pdf', compact('kurban', 'pesertaKurbans', 'distribusiKurbans'));
+        
+        // Set ukuran kertas (A4 Portrait)
+        $pdf->setPaper('a4', 'portrait');
+
+        // Download file
+        return $pdf->stream('Laporan-Kurban-' . $kurban->nomor_kurban . '.pdf');
     }
 }
