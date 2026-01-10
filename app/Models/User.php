@@ -8,6 +8,7 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use App\Models\JamaahProfile;
 
 class User extends Authenticatable
 {
@@ -213,5 +214,10 @@ class User extends Authenticatable
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    public function jamaahProfile()
+    {
+        return $this->hasOne(JamaahProfile::class);
     }
 }

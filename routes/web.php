@@ -5,10 +5,14 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ActivityLogController;
+<<<<<<< Updated upstream
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\LaporanKegiatanController;
 use App\Http\Controllers\SertifikatController;
 use App\Http\Controllers\KurbanController;
+=======
+use App\Http\Controllers\JamaahController;
+>>>>>>> Stashed changes
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +66,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/{module}/logs', [ActivityLogController::class, 'moduleLog'])->name('module.logs');
 
     // =========================================================================
+<<<<<<< Updated upstream
     // MODULE 5: QURBAN MANAGEMENT (FULLY IMPLEMENTED)
     // =========================================================================
     Route::middleware(['permission:kurban.view'])->prefix('kurban')->name('kurban.')->group(function () {
@@ -98,7 +103,54 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return view('modules.jamaah.index');
         })->name('index');
+=======
+    // MODULE 1: JAMAAH MANAGEMENT
+    // =========================================================================
+
+    Route::middleware(['auth', 'module.access:jamaah'])->group(function () {
+
+        /**
+         * Jamaah melihat profil sendiri
+         */
+        Route::get('/jamaah-saya', [JamaahController::class, 'myProfile'])
+            ->name('jamaah.my-profile')
+            ->middleware('role:jamaah');
+
+        /**
+         * List Jamaah (Admin & Pengurus Jamaah)
+         */
+        Route::get('/jamaah', [JamaahController::class, 'index'])
+            ->name('jamaah.index')
+            ->middleware('permission:jamaah.view');
+
+        /**
+         * Detail Jamaah
+         */
+        Route::get('/jamaah/{jamaah}', [JamaahController::class, 'show'])
+            ->name('jamaah.show')
+            ->middleware('permission:jamaah.view');
+
+        /**
+         * ===============================
+         * ROLE / KATEGORI JAMAAH
+         * ===============================
+         * Umum / Pengurus (radio)
+         * Donatur (checkbox)
+         */
+        Route::middleware('role:admin_jamaah')->group(function () {
+
+            // Form ubah kategori jamaah
+            Route::get('/jamaah/{jamaah}/role', [JamaahController::class, 'editRole'])
+                ->name('jamaah.role.edit');
+
+            // Simpan perubahan kategori jamaah
+            Route::post('/jamaah/{jamaah}/role', [JamaahController::class, 'updateRole'])
+                ->name('jamaah.role.update');
+        });
+>>>>>>> Stashed changes
     });
+
+
 
     // Module 2: Finance
     Route::middleware(['module.access:keuangan'])->prefix('keuangan')->name('keuangan.')->group(function () {

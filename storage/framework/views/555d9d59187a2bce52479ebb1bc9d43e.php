@@ -1,45 +1,48 @@
-@extends('layouts.app')
 
-@section('content')
 
-{{-- ===== Ringkasan Statistik Jamaah ===== --}}
+<?php $__env->startSection('content'); ?>
+
+
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-    {{-- Total Jamaah --}}
+    
     <div class="bg-blue-50 p-4 rounded-xl shadow-sm">
         <p class="text-sm text-blue-600">👥 Total Jamaah Terdaftar</p>
         <p class="text-3xl font-bold text-blue-800">
-            {{ $totalJamaah }}
+            <?php echo e($totalJamaah); ?>
+
         </p>
     </div>
 
-    {{-- Jamaah Baru --}}
+    
     <div class="bg-green-50 p-4 rounded-xl shadow-sm">
         <p class="text-sm text-green-600">🆕 Jamaah Baru Bulan Ini</p>
         <p class="text-3xl font-bold text-green-800">
-            {{ $jamaahBaruBulanIni }}
+            <?php echo e($jamaahBaruBulanIni); ?>
+
         </p>
     </div>
 
-    {{-- Relawan / Pengurus --}}
+    
     <div class="bg-purple-50 p-4 rounded-xl shadow-sm">
         <p class="text-sm text-purple-600">🤲 Relawan / Pengurus Aktif</p>
         <p class="text-3xl font-bold text-purple-800">
-            {{ $totalRelawan }}
+            <?php echo e($totalRelawan); ?>
+
         </p>
     </div>
 
-    {{-- Tingkat Partisipasi --}}
+    
     <div class="bg-yellow-50 p-4 rounded-xl shadow-sm">
         <p class="text-sm text-yellow-600">📊 Tingkat Partisipasi Jamaah</p>
         <p class="text-3xl font-bold text-yellow-800">
-            {{ $tingkatPartisipasi }}%
+            <?php echo e($tingkatPartisipasi); ?>%
         </p>
 
         <div class="w-full bg-yellow-200 rounded-full h-2 mt-3">
             <div
                 class="bg-yellow-500 h-2 rounded-full transition-all duration-500"
-                style="width: {{ $tingkatPartisipasi }}%">
+                style="width: <?php echo e($tingkatPartisipasi); ?>%">
             </div>
         </div>
     </div>
@@ -56,30 +59,34 @@
         </tr>
     </thead>
     <tbody>
-        @foreach($jamaahs as $j)
+        <?php $__currentLoopData = $jamaahs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $j): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
         <tr class="border-b hover:bg-gray-50">
             <td class="py-2 font-medium">
-                <a href="{{ route('jamaah.show', $j->id) }}"
+                <a href="<?php echo e(route('jamaah.show', $j->id)); ?>"
                 class="text-blue-600 hover:underline">
-                    {{ $j->nama_lengkap }}
+                    <?php echo e($j->nama_lengkap); ?>
+
                 </a>
             </td>
             <td>
-                @foreach($j->categories as $c)
+                <?php $__currentLoopData = $j->categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-sm">
-                        {{ $c->nama }}
+                        <?php echo e($c->nama); ?>
+
                     </span>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </td>
             <td>
-                <a href="{{ route('jamaah.role.edit', $j->id) }}"
+                <a href="<?php echo e(route('jamaah.role.edit', $j->id)); ?>"
                     class="text-indigo-600 hover:underline">
                     Ubah Role
                 </a>
             </td>
         </tr>
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </tbody>
 </table>
 </div>
-@endsection
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\Users\fadhi\Documents\KULIah\SEMESTER 7\Manajemen Proyek\New folder\manajemen_masjid\resources\views/modules/jamaah/index.blade.php ENDPATH**/ ?>

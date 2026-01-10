@@ -105,6 +105,15 @@
                     </a>
                 @endif
             @endforeach
+
+            @role('jamaah')
+            <li>
+                <a href="{{ route('jamaah.my-profile') }}"
+                class="block px-4 py-2 hover:bg-gray-200">
+                    Profil Saya
+                </a>
+            </li>
+            @endrole
         </nav>
     </div>
 </aside>
