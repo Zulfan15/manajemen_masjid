@@ -444,6 +444,11 @@ Route::middleware('auth')->group(function () {
         Route::get('notifikasi', [NotificationController::class, 'index'])->name('notifikasi.index');
         Route::post('notifikasi/send', [NotificationController::class, 'send'])->name('notifikasi.send');
     });
+    Route::get('/info-masjid', [InformasiController::class, 'publicIndex'])
+    ->name('public.home');
+
+    Route::get('/info-masjid/{slug}', [InformasiController::class, 'publicShow'])
+    ->name('public.info.show');
 
     // Module 9: Reports & Statistics
     Route::middleware(['module.access:laporan'])->prefix('laporan')->name('laporan.')->group(function () {
