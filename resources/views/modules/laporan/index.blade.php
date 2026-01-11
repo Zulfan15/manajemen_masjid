@@ -3,361 +3,390 @@
 @section('title', 'Laporan & Statistik')
 
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">
-                    <i class="fas fa-chart-bar text-green-600 mr-2"></i>Laporan & Statistik
-                </h1>
-                <p class="text-gray-600 mt-2">Kelola laporan dan statistik masjid</p>
-            </div>
-            
-            @if(!auth()->user()->isSuperAdmin())
-            <button id="laporanActionBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition">
-                <i class="fas fa-download mr-2"></i>
-                <span id="laporanActionLabel">Download Laporan</span>
-            </button>
-            @endif
-        </div>
-    </div>
-
-    @if(auth()->user()->isSuperAdmin())
-    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded">
-        <p class="text-blue-700">
-            <i class="fas fa-info-circle mr-2"></i><strong>Mode View Only:</strong> Anda hanya dapat melihat data
-        </p>
-    </div>
-    @endif
-
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="border-b border-gray-200">
-            <nav class="flex">
-                <button data-target="keuangan" class="tab-btn active text-green-700 border-b-2 border-green-700 px-6 py-4 text-sm font-medium hover:text-green-600">
-                    Laporan Keuangan
-                </button>
-                <button data-target="kegiatan" class="tab-btn px-6 py-4 text-sm font-medium text-gray-700 hover:text-green-600 border-b-2 border-transparent">
-                    Laporan Kegiatan
-                </button>
-                <button data-target="kehadiran" class="tab-btn px-6 py-4 text-sm font-medium text-gray-700 hover:text-green-600 border-b-2 border-transparent">
-                    Kehadiran Jamaah
-                </button>
-                <button data-target="zakat" class="tab-btn px-6 py-4 text-sm font-medium text-gray-700 hover:text-green-600 border-b-2 border-transparent">
-                    Zakat Mal
-                </button>
-                <button data-target="grafik" class="tab-btn px-6 py-4 text-sm font-medium text-gray-700 hover:text-green-600 border-b-2 border-transparent">
-                    Perkembangan Masjid
-                </button>
-            </nav>
-        </div>
-
-        <div class="p-6">
-            <div id="content-keuangan" class="tab-content">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Laporan Keuangan</h2>
-                <p class="text-gray-600 mb-6">Laporan keuangan masjid mencakup pemasukan dan pengeluaran</p>
-                
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun:</label>
-                    <select id="tahun-keuangan" class="px-4 py-2 border border-gray-300 rounded-lg">
-                        @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                        <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
-                        @endfor
-                    </select>
-                    <button onclick="loadKeuangan()" class="ml-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
-                        Tampilkan
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="bg-green-50 rounded-lg p-6">
-                        <p class="text-sm text-green-600 mb-2">Total Pemasukan</p>
-                        <p id="stat-pemasukan" class="text-3xl font-bold text-green-700">Rp 0</p>
-                    </div>
-                    <div class="bg-red-50 rounded-lg p-6">
-                        <p class="text-sm text-red-600 mb-2">Total Pengeluaran</p>
-                        <p id="stat-pengeluaran" class="text-3xl font-bold text-red-700">Rp 0</p>
-                    </div>
-                    <div class="bg-blue-50 rounded-lg p-6">
-                        <p class="text-sm text-blue-600 mb-2">Saldo</p>
-                        <p id="stat-saldo" class="text-3xl font-bold text-blue-700">Rp 0</p>
-                    </div>
-                </div>
-
-                <div class="mb-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Grafik Pengeluaran Bulanan</h3>
-                    <div id="chart-keuangan"></div>
-                </div>
-
+    <div class="container mx-auto px-4 py-6">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Detail Anggaran Bulanan</h3>
+                    <h1 class="text-3xl font-bold text-gray-800">
+                        <i class="fas fa-chart-bar text-green-600 mr-2"></i>Laporan & Statistik
+                    </h1>
+                    <p class="text-gray-600 mt-2">Laporan keuangan dan kegiatan masjid</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="{{ route('laporan.export.pdf', ['tahun' => $tahun]) }}"
+                        class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                        <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                    </a>
+                    <a href="{{ route('laporan.export.excel', ['tahun' => $tahun]) }}"
+                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-file-excel mr-2"></i>Export Excel
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {{-- Filter Tahun --}}
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <form method="GET" action="{{ route('laporan.index') }}" class="flex flex-wrap items-center gap-4">
+                <label class="text-sm font-medium text-gray-700">Tahun:</label>
+                <select name="tahun" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    @foreach($tahunTersedia as $thn)
+                        <option value="{{ $thn }}" {{ $thn == $tahun ? 'selected' : '' }}>{{ $thn }}</option>
+                    @endforeach
+                </select>
+                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                    <i class="fas fa-filter mr-1"></i>Tampilkan
+                </button>
+            </form>
+        </div>
+
+        {{-- Summary Cards --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-green-100 text-sm font-medium">Total Pemasukan {{ $tahun }}</p>
+                        <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</h3>
+                    </div>
+                    <div class="bg-green-400 bg-opacity-30 rounded-full p-3">
+                        <i class="fas fa-arrow-up text-3xl text-green-100"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-red-100 text-sm font-medium">Total Pengeluaran {{ $tahun }}</p>
+                        <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
+                    </div>
+                    <div class="bg-red-400 bg-opacity-30 rounded-full p-3">
+                        <i class="fas fa-arrow-down text-3xl text-red-100"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="bg-gradient-to-r {{ $saldo >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-red-500' }} rounded-lg shadow-lg p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="{{ $saldo >= 0 ? 'text-blue-100' : 'text-orange-100' }} text-sm font-medium">Saldo
+                            {{ $tahun }}</p>
+                        <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($saldo, 0, ',', '.') }}</h3>
+                    </div>
+                    <div class="{{ $saldo >= 0 ? 'bg-blue-400' : 'bg-orange-400' }} bg-opacity-30 rounded-full p-3">
+                        <i class="fas fa-wallet text-3xl {{ $saldo >= 0 ? 'text-blue-100' : 'text-orange-100' }}"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Chart --}}
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                <i class="fas fa-chart-line text-green-600 mr-2"></i>Grafik Keuangan Bulanan - {{ $tahun }}
+            </h3>
+            <div class="h-80">
+                <canvas id="chartKeuangan"></canvas>
+            </div>
+        </div>
+
+        {{-- Tabs --}}
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="border-b border-gray-200">
+                <nav class="flex">
+                    <button data-target="keuangan"
+                        class="tab-btn active text-green-700 border-b-2 border-green-700 px-6 py-4 text-sm font-medium hover:text-green-600">
+                        Detail Anggaran
+                    </button>
+                    <button data-target="kegiatan"
+                        class="tab-btn px-6 py-4 text-sm font-medium text-gray-700 hover:text-green-600 border-b-2 border-transparent">
+                        Laporan Kegiatan
+                    </button>
+                </nav>
+            </div>
+
+            <div class="p-6">
+                {{-- Tab Keuangan --}}
+                <div id="content-keuangan" class="tab-content">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Detail Anggaran Bulanan {{ $tahun }}</h3>
+
                     <div class="overflow-x-auto">
                         <table class="w-full border">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border">Bulan</th>
-                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase border">Pemasukan</th>
-                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase border">Pengeluaran</th>
-                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase border">Sisa</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border">
+                                        Bulan</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase border">
+                                        Pemasukan</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase border">
+                                        Pengeluaran</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase border">
+                                        Saldo Bulan</th>
+                                    <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase border">
+                                        Saldo Kumulatif</th>
                                 </tr>
                             </thead>
-                            <tbody id="table-keuangan">
-                                <tr>
-                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500">Pilih tahun dan klik Tampilkan</td>
-                                </tr>
+                            <tbody>
+                                @foreach($anggaran as $data)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="px-4 py-3 border font-medium">{{ $data['bulan'] }}</td>
+                                        <td class="px-4 py-3 text-right border text-green-700">
+                                            Rp {{ number_format($data['pemasukan'], 0, ',', '.') }}
+                                        </td>
+                                        <td class="px-4 py-3 text-right border text-red-700">
+                                            Rp {{ number_format($data['pengeluaran'], 0, ',', '.') }}
+                                        </td>
+                                        <td
+                                            class="px-4 py-3 text-right border {{ $data['saldo'] >= 0 ? 'text-blue-700' : 'text-red-700' }}">
+                                            Rp {{ number_format($data['saldo'], 0, ',', '.') }}
+                                        </td>
+                                        <td
+                                            class="px-4 py-3 text-right border font-semibold {{ $data['saldo_kumulatif'] >= 0 ? 'text-blue-700' : 'text-red-700' }}">
+                                            Rp {{ number_format($data['saldo_kumulatif'], 0, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                @endforeach
                             </tbody>
+                            <tfoot class="bg-gray-100">
+                                <tr class="font-bold">
+                                    <td class="px-4 py-3 border">TOTAL</td>
+                                    <td class="px-4 py-3 text-right border text-green-700">
+                                        Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right border text-red-700">
+                                        Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
+                                    </td>
+                                    <td
+                                        class="px-4 py-3 text-right border {{ $saldo >= 0 ? 'text-blue-700' : 'text-red-700' }}">
+                                        Rp {{ number_format($saldo, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-4 py-3 text-right border"></td>
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
-                </div>
-            </div>
 
-            <div id="content-kegiatan" class="tab-content hidden">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Laporan Kegiatan</h2>
-                <p class="text-gray-600 mb-6">Rekap kegiatan dan acara yang telah dilaksanakan</p>
-                
-                <div class="mb-6">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Tahun:</label>
-                    <select id="tahun-kegiatan" class="px-4 py-2 border border-gray-300 rounded-lg">
-                        @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                        <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
-                        @endfor
-                    </select>
-                    <button id="btn-filter-kegiatan" class="ml-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
-                        Tampilkan
-                    </button>
-                </div>
-
-                <div class="mb-6">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Jumlah Kegiatan per Bulan</h3>
-                    <div id="chart-kegiatan"></div>
-                </div>
-
-                <div>
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Rekap Kegiatan Bulanan</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full border">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border">Bulan</th>
-                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase border">Jumlah Kegiatan</th>
-                                </tr>
-                            </thead>
-                            <tbody id="table-kegiatan">
-                                <tr>
-                                    <td colspan="2" class="px-4 py-8 text-center text-gray-500">Pilih tahun dan klik Tampilkan</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    {{-- Export per bulan --}}
+                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 class="font-medium text-gray-700 mb-3">Export Laporan Bulanan</h4>
+                        <form action="{{ route('laporan.export.pdf') }}" method="GET"
+                            class="flex flex-wrap gap-4 items-end">
+                            <input type="hidden" name="tahun" value="{{ $tahun }}">
+                            <div>
+                                <label class="block text-sm text-gray-600 mb-1">Pilih Bulan</label>
+                                <select name="bulan" class="px-4 py-2 border border-gray-300 rounded-lg">
+                                    @for($m = 1; $m <= 12; $m++)
+                                        <option value="{{ $m }}">{{ \Carbon\Carbon::create()->month($m)->format('F') }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <button type="submit"
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
+                                <i class="fas fa-file-pdf mr-1"></i>Download PDF
+                            </button>
+                            <a href="{{ route('laporan.export.excel', ['tahun' => $tahun]) }}"
+                                onclick="this.href = this.href.split('?')[0] + '?tahun={{ $tahun }}&bulan=' + document.querySelector('select[name=bulan]').value"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                                <i class="fas fa-file-excel mr-1"></i>Download Excel
+                            </a>
+                        </form>
                     </div>
                 </div>
-            </div>
 
-            <div id="content-kehadiran" class="tab-content hidden">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Kehadiran Jamaah</h2>
-                <p class="text-gray-600 mb-6">Statistik kehadiran jamaah di masjid</p>
-                
-                <div class="text-center text-gray-500 py-12">
-                    <i class="fas fa-users text-6xl text-gray-300 mb-4"></i>
-                    <p class="text-lg">Fitur kehadiran jamaah akan segera tersedia</p>
-                </div>
-            </div>
+                {{-- Tab Kegiatan --}}
+                <div id="content-kegiatan" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Laporan Kegiatan</h3>
 
-            <div id="content-zakat" class="tab-content hidden">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Zakat Mal</h2>
-                <p class="text-gray-600 mb-6">Laporan penerimaan dan penyaluran zakat mal</p>
-                
-                <div class="text-center text-gray-500 py-12">
-                    <i class="fas fa-hand-holding-heart text-6xl text-gray-300 mb-4"></i>
-                    <p class="text-lg">Data zakat mal akan ditampilkan di sini</p>
-                </div>
-            </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun Kegiatan:</label>
+                        <select id="tahun-kegiatan" class="px-4 py-2 border border-gray-300 rounded-lg">
+                            @foreach($tahunKegiatan as $thn)
+                                <option value="{{ $thn }}" {{ $thn == date('Y') ? 'selected' : '' }}>{{ $thn }}</option>
+                            @endforeach
+                            @if($tahunKegiatan->isEmpty())
+                                <option value="{{ date('Y') }}">{{ date('Y') }}</option>
+                            @endif
+                        </select>
+                        <button id="btn-filter-kegiatan"
+                            class="ml-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                            Tampilkan
+                        </button>
+                    </div>
 
-            <div id="content-grafik" class="tab-content hidden">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Perkembangan Masjid</h2>
-                <p class="text-gray-600 mb-6">Grafik perkembangan berbagai aspek masjid</p>
-                
-                <div class="text-center text-gray-500 py-12">
-                    <i class="fas fa-chart-area text-6xl text-gray-300 mb-4"></i>
-                    <p class="text-lg">Grafik perkembangan akan ditampilkan di sini</p>
+                    <div class="mb-6">
+                        <h4 class="text-md font-medium text-gray-700 mb-3">Jumlah Kegiatan per Bulan</h4>
+                        <div class="h-64">
+                            <canvas id="chartKegiatan"></canvas>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-md font-medium text-gray-700 mb-3">Rekap Kegiatan Bulanan</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full border">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th
+                                            class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border">
+                                            Bulan</th>
+                                        <th
+                                            class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase border">
+                                            Jumlah Kegiatan</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="table-kegiatan">
+                                    <tr>
+                                        <td colspan="2" class="px-4 py-8 text-center text-gray-500">Klik "Tampilkan" untuk
+                                            melihat data</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<script>
-// Tab Handler
-const tabs = document.querySelectorAll(".tab-btn");
-tabs.forEach(btn => {
-    btn.addEventListener("click", () => {
-        const target = btn.getAttribute("data-target");
-        
-        // Hide all content
-        document.querySelectorAll(".tab-content").forEach(content => {
-            content.classList.add("hidden");
-        });
-        
-        // Remove active from all tabs
-        tabs.forEach(b => {
-            b.classList.remove("active", "text-green-700", "border-green-700");
-            b.classList.add("text-gray-700", "border-transparent");
-        });
-        
-        // Show selected content
-        document.getElementById("content-" + target).classList.remove("hidden");
-        
-        // Add active to clicked tab
-        btn.classList.add("active", "text-green-700", "border-green-700");
-        btn.classList.remove("text-gray-700", "border-transparent");
-    });
-});
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Chart Data from Controller
+        const pemasukanChart = {!! json_encode($pemasukanChart) !!};
+        const pengeluaranChart = {!! json_encode($pengeluaranChart) !!};
 
-// Charts
-let chartKeuangan = null;
-let chartKegiatan = null;
-
-function loadKeuangan() {
-    const tahun = document.getElementById('tahun-keuangan').value;
-    
-    // Dummy data - replace with actual API call
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
-    const pemasukan = Array(12).fill(0).map(() => Math.floor(Math.random() * 10000000));
-    const pengeluaran = Array(12).fill(0).map(() => Math.floor(Math.random() * 8000000));
-    
-    const totalPemasukan = pemasukan.reduce((a, b) => a + b, 0);
-    const totalPengeluaran = pengeluaran.reduce((a, b) => a + b, 0);
-    const saldo = totalPemasukan - totalPengeluaran;
-    
-    // Update stats
-    document.getElementById('stat-pemasukan').textContent = 'Rp ' + totalPemasukan.toLocaleString('id-ID');
-    document.getElementById('stat-pengeluaran').textContent = 'Rp ' + totalPengeluaran.toLocaleString('id-ID');
-    document.getElementById('stat-saldo').textContent = 'Rp ' + saldo.toLocaleString('id-ID');
-    
-    // Update chart
-    if (chartKeuangan) {
-        chartKeuangan.destroy();
-    }
-    
-    const options = {
-        series: [{
-            name: 'Pemasukan',
-            data: pemasukan
-        }, {
-            name: 'Pengeluaran',
-            data: pengeluaran
-        }],
-        chart: {
-            type: 'bar',
-            height: 350
-        },
-        plotOptions: {
-            bar: {
-                horizontal: false,
-                columnWidth: '55%',
-            },
-        },
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            show: true,
-            width: 2,
-            colors: ['transparent']
-        },
-        xaxis: {
-            categories: months,
-        },
-        yaxis: {
-            labels: {
-                formatter: function (val) {
-                    return 'Rp ' + val.toLocaleString('id-ID');
+        // Main Chart
+        document.addEventListener('DOMContentLoaded', () => {
+            const ctx = document.getElementById('chartKeuangan').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
+                    datasets: [
+                        {
+                            label: 'Pemasukan',
+                            data: pemasukanChart,
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            borderColor: '#10B981',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Pengeluaran',
+                            data: pengeluaranChart,
+                            backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                            borderColor: '#EF4444',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (value) {
+                                    return 'Rp ' + value.toLocaleString('id-ID');
+                                }
+                            }
+                        }
+                    }
                 }
-            }
-        },
-        fill: {
-            opacity: 1
-        },
-        tooltip: {
-            y: {
-                formatter: function (val) {
-                    return 'Rp ' + val.toLocaleString('id-ID');
+            });
+        });
+
+        // Tab Handler
+        const tabs = document.querySelectorAll(".tab-btn");
+        tabs.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const target = btn.getAttribute("data-target");
+
+                document.querySelectorAll(".tab-content").forEach(content => {
+                    content.classList.add("hidden");
+                });
+
+                tabs.forEach(b => {
+                    b.classList.remove("active", "text-green-700", "border-green-700");
+                    b.classList.add("text-gray-700", "border-transparent");
+                });
+
+                document.getElementById("content-" + target).classList.remove("hidden");
+
+                btn.classList.add("active", "text-green-700", "border-green-700");
+                btn.classList.remove("text-gray-700", "border-transparent");
+            });
+        });
+
+        // Kegiatan Chart
+        let chartKegiatan = null;
+
+        document.getElementById('btn-filter-kegiatan').addEventListener('click', async () => {
+            const tahun = document.getElementById('tahun-kegiatan').value;
+
+            try {
+                const response = await fetch(`{{ route('laporan.data-kegiatan') }}?tahun=${tahun}`);
+                const data = await response.json();
+
+                // Update chart
+                if (chartKegiatan) {
+                    chartKegiatan.destroy();
                 }
+
+                const ctx = document.getElementById('chartKegiatan').getContext('2d');
+                chartKegiatan = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
+                        datasets: [{
+                            label: 'Jumlah Kegiatan',
+                            data: data.chart,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Update table
+                let tableHTML = '';
+                data.tabel.forEach(item => {
+                    tableHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3 border">${item.bulan}</td>
+                        <td class="px-4 py-3 text-center border font-medium">${item.jumlah}</td>
+                    </tr>
+                `;
+                });
+                document.getElementById('table-kegiatan').innerHTML = tableHTML;
+
+            } catch (error) {
+                console.error('Error loading kegiatan data:', error);
             }
-        },
-        colors: ['#10b981', '#ef4444']
-    };
-    
-    chartKeuangan = new ApexCharts(document.querySelector("#chart-keuangan"), options);
-    chartKeuangan.render();
-    
-    // Update table
-    let tableHTML = '';
-    months.forEach((month, i) => {
-        const sisa = pemasukan[i] - pengeluaran[i];
-        tableHTML += `
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 border">${month}</td>
-                <td class="px-4 py-3 text-right border text-green-700">Rp ${pemasukan[i].toLocaleString('id-ID')}</td>
-                <td class="px-4 py-3 text-right border text-red-700">Rp ${pengeluaran[i].toLocaleString('id-ID')}</td>
-                <td class="px-4 py-3 text-right border ${sisa >= 0 ? 'text-blue-700' : 'text-red-700'}">Rp ${sisa.toLocaleString('id-ID')}</td>
-            </tr>
-        `;
-    });
-    document.getElementById('table-keuangan').innerHTML = tableHTML;
-}
-
-function loadKegiatan(tahun) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
-    const jumlahKegiatan = Array(12).fill(0).map(() => Math.floor(Math.random() * 15));
-    
-    // Update chart
-    if (chartKegiatan) {
-        chartKegiatan.destroy();
-    }
-    
-    const options = {
-        series: [{
-            name: 'Jumlah Kegiatan',
-            data: jumlahKegiatan
-        }],
-        chart: {
-            type: 'area',
-            height: 350
-        },
-        dataLabels: {
-            enabled: false
-        },
-        stroke: {
-            curve: 'smooth'
-        },
-        xaxis: {
-            categories: months
-        },
-        colors: ['#10b981']
-    };
-    
-    chartKegiatan = new ApexCharts(document.querySelector("#chart-kegiatan"), options);
-    chartKegiatan.render();
-    
-    // Update table
-    let tableHTML = '';
-    months.forEach((month, i) => {
-        tableHTML += `
-            <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 border">${month}</td>
-                <td class="px-4 py-3 text-center border">${jumlahKegiatan[i]}</td>
-            </tr>
-        `;
-    });
-    document.getElementById('table-kegiatan').innerHTML = tableHTML;
-}
-
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btn-filter-kegiatan').addEventListener('click', () => {
-        const tahun = document.getElementById('tahun-kegiatan').value;
-        loadKegiatan(tahun);
-    });
-});
-</script>
+        });
+    </script>
 @endsection

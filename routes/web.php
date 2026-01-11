@@ -227,6 +227,15 @@ Route::middleware('auth')->group(function () {
             ->except(['create', 'edit', 'show']);
     });
 
+    // Laporan Keuangan
+    Route::prefix('laporan')->name('laporan.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
+        Route::get('/export/pdf', [\App\Http\Controllers\LaporanController::class, 'exportPdf'])->name('export.pdf');
+        Route::get('/export/excel', [\App\Http\Controllers\LaporanController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/data-keuangan', [\App\Http\Controllers\LaporanController::class, 'getDataKeuangan'])->name('data-keuangan');
+        Route::get('/data-kegiatan', [\App\Http\Controllers\LaporanController::class, 'getDataKegiatanBulanan'])->name('data-kegiatan');
+    });
+
     // Module 3: Activities & Events
     Route::middleware(['module.access:kegiatan'])->prefix('kegiatan')->name('kegiatan.')->group(function () {
         // Pengumuman (MUST BE BEFORE /{id} routes)
