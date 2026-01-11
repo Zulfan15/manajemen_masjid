@@ -194,6 +194,10 @@ Route::middleware('auth')->group(function () {
         // Transaksi Pengeluaran
         Route::resource('pengeluaran', \App\Http\Controllers\PengeluaranController::class)
             ->except(['create', 'edit', 'show']);
+        
+        // Transaksi Pemasukan
+        Route::resource('pemasukan', \App\Http\Controllers\PemasukanController::class)
+            ->except(['create', 'edit', 'show']);
     });
 
     // Module 3: Activities & Events
