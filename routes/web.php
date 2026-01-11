@@ -171,9 +171,9 @@ Route::middleware('auth')->group(function () {
 
     // Module 1: Jamaah Management
     Route::middleware(['module.access:jamaah'])->prefix('jamaah')->name('jamaah.')->group(function () {
-        Route::get('/', function () {
-            return view('modules.jamaah.index');
-        })->name('index');
+        Route::get('/', [\App\Http\Controllers\JamaahController::class, 'index'])->name('index');
+        Route::get('/{jamaah}', [\App\Http\Controllers\JamaahController::class, 'show'])->name('show');
+        Route::get('/{jamaah}/role/edit', [\App\Http\Controllers\JamaahController::class, 'editRole'])->name('role.edit');
     });
 
     // Module 2: Finance
