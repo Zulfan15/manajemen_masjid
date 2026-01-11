@@ -45,11 +45,6 @@
                                 <i class="fas fa-chevron-down transition-transform" :class="{ 'rotate-180': open }"></i>
                             </button>
                             <div x-show="open" x-collapse class="ml-4 mt-1 space-y-1">
-                                <a href="{{ route('keuangan.index') }}" 
-                                   class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('keuangan.index') ? 'bg-green-50 text-green-700' : '' }}">
-                                    <i class="fas fa-tachometer-alt w-6 text-xs"></i>
-                                    <span>Dashboard</span>
-                                </a>
                                 <a href="{{ route('keuangan.pemasukan.index') }}" 
                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('keuangan.pemasukan.*') ? 'bg-green-50 text-green-700' : '' }}">
                                     <i class="fas fa-arrow-up w-6 text-xs"></i>
@@ -59,11 +54,6 @@
                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('keuangan.pengeluaran.*') ? 'bg-green-50 text-green-700' : '' }}">
                                     <i class="fas fa-arrow-down w-6 text-xs"></i>
                                     <span>Pengeluaran</span>
-                                </a>
-                                <a href="{{ route('keuangan.kategori-pengeluaran.index') }}" 
-                                   class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('keuangan.kategori-pengeluaran.*') ? 'bg-green-50 text-green-700' : '' }}">
-                                    <i class="fas fa-tags w-6 text-xs"></i>
-                                    <span>Kategori Pengeluaran</span>
                                 </a>
                             </div>
                         </div>
