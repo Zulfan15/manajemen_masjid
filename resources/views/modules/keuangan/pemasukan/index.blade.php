@@ -401,7 +401,7 @@
                 </h5>
                 <button type="button" class="btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form id="createForm" action="{{ route('pemasukan.store') }}" method="POST">
+            <form id="createForm" action="{{ route('keuangan.pemasukan.store') }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="row g-4">
