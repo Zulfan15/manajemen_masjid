@@ -27,7 +27,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-green-100 text-sm">Total Pemasukan</p>
-                    <h3 class="text-2xl font-bold mt-2">Rp 0</h3>
+                    <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($totalPemasukan ?? 0, 0, ',', '.') }}</h3>
                 </div>
                 <i class="fas fa-wallet text-4xl text-green-200"></i>
             </div>
@@ -37,7 +37,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-blue-100 text-sm">Bulan Ini</p>
-                    <h3 class="text-2xl font-bold mt-2">Rp 0</h3>
+                    <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($bulanIni ?? 0, 0, ',', '.') }}</h3>
                 </div>
                 <i class="fas fa-calendar-alt text-4xl text-blue-200"></i>
             </div>
@@ -47,7 +47,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-purple-100 text-sm">Total Transaksi</p>
-                    <h3 class="text-2xl font-bold mt-2">0</h3>
+                    <h3 class="text-2xl font-bold mt-2">{{ $data->count() ?? 0 }}</h3>
                 </div>
                 <i class="fas fa-receipt text-4xl text-purple-200"></i>
             </div>
@@ -81,12 +81,39 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="tableBody">
+                    @forelse($data as $index => $item)
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4 text-sm text-gray-900">{{ $index + 1 }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-900">{{ \Carbon\Carbon::parse($item->tanggal)->format('d/m/Y') }}</td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                {{ $item->jenis }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-900">{{ $item->sumber }}</td>
+                        <td class="px-6 py-4 text-sm font-semibold text-right text-green-600">
+                            Rp {{ number_format($item->jumlah, 0, ',', '.') }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-600">{{ $item->keterangan ?? '-' }}</td>
+                        @if(auth()->user()->canManageKeuangan())
+                        <td class="px-6 py-4 text-center">
+                            <button onclick="editData({{ $item->id }})" class="text-blue-600 hover:text-blue-800 mr-3" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button onclick="deleteData({{ $item->id }})" class="text-red-600 hover:text-red-800" title="Hapus">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                        @endif
+                    </tr>
+                    @empty
                     <tr>
                         <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                             <i class="fas fa-inbox text-5xl mb-3 text-gray-300"></i>
                             <p class="text-lg">Belum ada data pemasukan</p>
                         </td>
                     </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

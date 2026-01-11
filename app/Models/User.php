@@ -259,8 +259,7 @@ class User extends Authenticatable
     public function canViewKeuangan(): bool
     {
         return $this->isSuperAdmin() || 
-               $this->hasRole(['admin_keuangan', 'pengurus_keuangan']) ||
-               $this->hasPermissionTo('keuangan.view');
+               $this->hasRole(['admin_keuangan', 'pengurus_keuangan']);
     }
 
     /**
@@ -268,7 +267,7 @@ class User extends Authenticatable
      */
     public function canManageKeuangan(): bool
     {
-        return $this->hasRole(['admin_keuangan', 'pengurus_keuangan']) ||
-               $this->hasPermissionTo(['keuangan.create', 'keuangan.update', 'keuangan.delete']);
+        return $this->isSuperAdmin() ||
+               $this->hasRole(['admin_keuangan', 'pengurus_keuangan']);
     }
 }
