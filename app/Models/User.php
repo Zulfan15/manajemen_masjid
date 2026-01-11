@@ -252,4 +252,23 @@ class User extends Authenticatable
     {
         return $this->hasPermissionTo($permission);
     }
+
+    /**
+     * Check if user can view keuangan module
+     */
+    public function canViewKeuangan(): bool
+    {
+        return $this->isSuperAdmin() || 
+               $this->hasRole(['admin_keuangan', 'pengurus_keuangan']) ||
+               $this->hasPermissionTo('keuangan.view');
+    }
+
+    /**
+     * Check if user can manage keuangan module (create, update, delete)
+     */
+    public function canManageKeuangan(): bool
+    {
+        return $this->hasRole(['admin_keuangan', 'pengurus_keuangan']) ||
+               $this->hasPermissionTo(['keuangan.create', 'keuangan.update', 'keuangan.delete']);
+    }
 }
