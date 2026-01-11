@@ -11,9 +11,7 @@
     </p>
 
     <form method="POST" action="{{ route('jamaah.role.update', $jamaah->id) }}">
-        @csrf
-
-        <!-- ROLE UTAMA -->
+        @csrf        <!-- ROLE UTAMA -->
         <div class="mb-4">
             <label class="font-semibold block mb-2">Peran Utama</label>
             <div class="flex gap-4">

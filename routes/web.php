@@ -46,7 +46,7 @@ Route::middleware('auth')->group(function () {
     // =========================================================================
     // MODULE 10: USER MANAGEMENT & ACTIVITY LOGS
     // =========================================================================
-    
+
     // User Management (Only Super Admin and Module Admins)
     Route::prefix('users')->name('users.')->group(function () {
         // Super Admin & Module Admins can view users
@@ -92,27 +92,27 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [KurbanController::class, 'index'])
             ->name('index')
             ->middleware('permission:kurban.view');
-        
+
         Route::get('/create', [KurbanController::class, 'create'])
             ->name('create')
             ->middleware('permission:kurban.create');
-        
+
         Route::post('/', [KurbanController::class, 'store'])
             ->name('store')
             ->middleware('permission:kurban.create');
-        
+
         Route::get('/{kurban}', [KurbanController::class, 'show'])
             ->name('show')
             ->middleware('permission:kurban.view');
-        
+
         Route::get('/{kurban}/edit', [KurbanController::class, 'edit'])
             ->name('edit')
             ->middleware('permission:kurban.update');
-        
+
         Route::put('/{kurban}', [KurbanController::class, 'update'])
             ->name('update')
             ->middleware('permission:kurban.update');
-        
+
         Route::delete('/{kurban}', [KurbanController::class, 'destroy'])
             ->name('destroy')
             ->middleware('permission:kurban.delete');
@@ -121,19 +121,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/{kurban}/peserta/create', [KurbanController::class, 'createPeserta'])
             ->name('peserta.create')
             ->middleware('permission:kurban.peserta.create');
-        
+
         Route::post('/{kurban}/peserta', [KurbanController::class, 'storePeserta'])
             ->name('peserta.store')
             ->middleware('permission:kurban.peserta.create');
-        
+
         Route::get('/{kurban}/peserta/{peserta}/edit', [KurbanController::class, 'editPeserta'])
             ->name('peserta.edit')
             ->middleware('permission:kurban.peserta.update');
-        
+
         Route::put('/{kurban}/peserta/{peserta}', [KurbanController::class, 'updatePeserta'])
             ->name('peserta.update')
             ->middleware('permission:kurban.peserta.update');
-        
+
         Route::delete('/{kurban}/peserta/{peserta}', [KurbanController::class, 'destroyPeserta'])
             ->name('peserta.destroy')
             ->middleware('permission:kurban.peserta.delete');
@@ -142,23 +142,23 @@ Route::middleware('auth')->group(function () {
         Route::get('/{kurban}/distribusi/create', [KurbanController::class, 'createDistribusi'])
             ->name('distribusi.create')
             ->middleware('permission:kurban.distribusi.create');
-        
+
         Route::post('/{kurban}/distribusi', [KurbanController::class, 'storeDistribusi'])
             ->name('distribusi.store')
             ->middleware('permission:kurban.distribusi.create');
-        
+
         Route::get('/{kurban}/distribusi/{distribusi}/edit', [KurbanController::class, 'editDistribusi'])
             ->name('distribusi.edit')
             ->middleware('permission:kurban.distribusi.update');
-        
+
         Route::put('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'updateDistribusi'])
             ->name('distribusi.update')
             ->middleware('permission:kurban.distribusi.update');
-        
+
         Route::delete('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'destroyDistribusi'])
             ->name('distribusi.destroy')
             ->middleware('permission:kurban.distribusi.delete');
-        
+
         // Export
         Route::get('/export', [KurbanController::class, 'export'])
             ->name('export')
@@ -171,9 +171,36 @@ Route::middleware('auth')->group(function () {
 
     // Module 1: Jamaah Management
     Route::middleware(['module.access:jamaah'])->prefix('jamaah')->name('jamaah.')->group(function () {
+        // Dashboard & List
         Route::get('/', [\App\Http\Controllers\JamaahController::class, 'index'])->name('index');
+
+        // Export
+        Route::get('/export', [\App\Http\Controllers\JamaahController::class, 'export'])->name('export');
+
+        // Create Jamaah
+        Route::get('/create', [\App\Http\Controllers\JamaahController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\JamaahController::class, 'store'])->name('store');
+
+        // Donasi Management
+        Route::prefix('donasi')->name('donasi.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\JamaahController::class, 'donations'])->name('index');
+            Route::patch('/{donation}/status', [\App\Http\Controllers\JamaahController::class, 'updateDonationStatus'])->name('update-status');
+            Route::delete('/{donation}', [\App\Http\Controllers\JamaahController::class, 'destroyDonation'])->name('destroy');
+        });
+
+        // Detail & Edit Jamaah (harus setelah route statis)
         Route::get('/{jamaah}', [\App\Http\Controllers\JamaahController::class, 'show'])->name('show');
+        Route::get('/{jamaah}/edit', [\App\Http\Controllers\JamaahController::class, 'edit'])->name('edit');
+        Route::put('/{jamaah}', [\App\Http\Controllers\JamaahController::class, 'update'])->name('update');
+        Route::delete('/{jamaah}', [\App\Http\Controllers\JamaahController::class, 'destroy'])->name('destroy');
+
+        // Role/Kategori
         Route::get('/{jamaah}/role/edit', [\App\Http\Controllers\JamaahController::class, 'editRole'])->name('role.edit');
+        Route::post('/{jamaah}/role', [\App\Http\Controllers\JamaahController::class, 'updateRole'])->name('role.update');
+
+        // Donasi per Jamaah
+        Route::get('/{jamaah}/donasi/create', [\App\Http\Controllers\JamaahController::class, 'createDonation'])->name('donasi.create');
+        Route::post('/{jamaah}/donasi', [\App\Http\Controllers\JamaahController::class, 'storeDonation'])->name('donasi.store');
     });
 
     // Module 2: Finance
@@ -181,20 +208,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/', function () {
             return view('modules.keuangan.index');
         })->name('index');
-        
+
         // Kategori Pengeluaran
         Route::resource('kategori-pengeluaran', \App\Http\Controllers\KategoriPengeluaranController::class)
             ->except(['create', 'edit', 'show']);
-        
+
         // Cetak Laporan (before resource route)
         Route::get('pengeluaran/cetak-laporan', [\App\Http\Controllers\PengeluaranController::class, 'cetakLaporan'])
             ->name('pengeluaran.cetak');
         Route::get('pengeluaran/cetak-semua', [\App\Http\Controllers\PengeluaranController::class, 'cetakSemua'])->name('pengeluaran.cetakAll');
-        
+
         // Transaksi Pengeluaran
         Route::resource('pengeluaran', \App\Http\Controllers\PengeluaranController::class)
             ->except(['create', 'edit', 'show']);
-        
+
         // Transaksi Pemasukan
         Route::resource('pemasukan', \App\Http\Controllers\PemasukanController::class)
             ->except(['create', 'edit', 'show']);
@@ -212,7 +239,7 @@ Route::middleware('auth')->group(function () {
             Route::put('/{pengumuman}', [PengumumanController::class, 'update'])->name('update')->middleware('permission:kegiatan.update');
             Route::delete('/{pengumuman}', [PengumumanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
         });
-        
+
         // Laporan Kegiatan
         Route::prefix('laporan')->name('laporan.')->group(function () {
             Route::get('/', [LaporanKegiatanController::class, 'index'])->name('index');
@@ -224,7 +251,7 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{laporan}', [LaporanKegiatanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
             Route::get('/{laporan}/download', [LaporanKegiatanController::class, 'download'])->name('download');
         });
-        
+
         // Generate Sertifikat
         Route::prefix('sertifikat')->name('sertifikat.')->group(function () {
             Route::get('/', [SertifikatController::class, 'index'])->name('index');
@@ -234,22 +261,22 @@ Route::middleware('auth')->group(function () {
             Route::delete('/{sertifikat}', [App\Http\Controllers\SertifikatController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
             Route::get('/peserta', [App\Http\Controllers\SertifikatController::class, 'getPeserta'])->name('peserta');
         });
-        
+
         // CRUD Kegiatan (MUST BE AFTER all prefixed routes)
         Route::get('/', [App\Http\Controllers\KegiatanController::class, 'index'])->name('index');
         Route::get('/create', [App\Http\Controllers\KegiatanController::class, 'create'])->name('create')->middleware('permission:kegiatan.create');
         Route::post('/', [App\Http\Controllers\KegiatanController::class, 'store'])->name('store')->middleware('permission:kegiatan.create');
-        
+
         // Pendaftaran Peserta
         Route::post('/{id}/register', [App\Http\Controllers\KegiatanController::class, 'registerPeserta'])->name('register');
-        
+
         // Absensi
         Route::get('/{id}/absensi', [App\Http\Controllers\KegiatanController::class, 'absensi'])->name('absensi')->middleware('permission:kegiatan.update');
         Route::post('/{id}/absensi', [App\Http\Controllers\KegiatanController::class, 'storeAbsensi'])->name('absensi.store')->middleware('permission:kegiatan.update');
-        
+
         // Notifikasi
         Route::post('/{id}/broadcast', [App\Http\Controllers\KegiatanController::class, 'broadcastNotification'])->name('broadcast')->middleware('permission:kegiatan.create');
-        
+
         // Dynamic routes with {id} parameter (MUST BE LAST)
         Route::get('/{id}', [App\Http\Controllers\KegiatanController::class, 'show'])->name('show');
         Route::get('/{id}/edit', [App\Http\Controllers\KegiatanController::class, 'edit'])->name('edit')->middleware('permission:kegiatan.update');
@@ -306,11 +333,11 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [\App\Http\Controllers\JamaahVerificationController::class, 'index'])
                 ->name('index')
                 ->middleware('permission:takmir.verifikasi_jamaah.view');
-            
+
             Route::post('/{user}/verify', [\App\Http\Controllers\JamaahVerificationController::class, 'verify'])
                 ->name('verify')
                 ->middleware('permission:takmir.verifikasi_jamaah.approve');
-            
+
             Route::delete('/{user}/unverify', [\App\Http\Controllers\JamaahVerificationController::class, 'unverify'])
                 ->name('unverify')
                 ->middleware('permission:takmir.verifikasi_jamaah.approve');
@@ -321,31 +348,31 @@ Route::middleware('auth')->group(function () {
             Route::get('/export', [\App\Http\Controllers\AktivitasHarianController::class, 'export'])
                 ->name('export')
                 ->middleware('permission:takmir.export');
-            
+
             Route::get('/', [\App\Http\Controllers\AktivitasHarianController::class, 'index'])
                 ->name('index')
                 ->middleware('permission:takmir.aktivitas.view');
-            
+
             Route::get('/create', [\App\Http\Controllers\AktivitasHarianController::class, 'create'])
                 ->name('create')
                 ->middleware('permission:takmir.aktivitas.create');
-            
+
             Route::post('/', [\App\Http\Controllers\AktivitasHarianController::class, 'store'])
                 ->name('store')
                 ->middleware('permission:takmir.aktivitas.create');
-            
+
             Route::get('/{aktivita}', [\App\Http\Controllers\AktivitasHarianController::class, 'show'])
                 ->name('show')
                 ->middleware('permission:takmir.aktivitas.view');
-            
+
             Route::get('/{aktivita}/edit', [\App\Http\Controllers\AktivitasHarianController::class, 'edit'])
                 ->name('edit')
                 ->middleware('permission:takmir.aktivitas.update');
-            
+
             Route::put('/{aktivita}', [\App\Http\Controllers\AktivitasHarianController::class, 'update'])
                 ->name('update')
                 ->middleware('permission:takmir.aktivitas.update');
-            
+
             Route::delete('/{aktivita}', [\App\Http\Controllers\AktivitasHarianController::class, 'destroy'])
                 ->name('destroy')
                 ->middleware('permission:takmir.aktivitas.delete');
@@ -356,15 +383,15 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [\App\Http\Controllers\PemilihanController::class, 'index'])
                 ->name('index')
                 ->middleware('permission:takmir.pemilihan.view');
-            
+
             Route::get('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'vote'])
                 ->name('vote')
                 ->middleware('permission:takmir.pemilihan.vote');
-            
+
             Route::post('/{id}/vote', [\App\Http\Controllers\PemilihanController::class, 'submitVote'])
                 ->name('submitVote')
                 ->middleware('permission:takmir.pemilihan.vote');
-            
+
             Route::get('/{id}/hasil', [\App\Http\Controllers\PemilihanController::class, 'hasil'])
                 ->name('hasil')
                 ->middleware('permission:takmir.pemilihan.view');
@@ -373,23 +400,23 @@ Route::middleware('auth')->group(function () {
             Route::get('/create', [\App\Http\Controllers\PemilihanController::class, 'create'])
                 ->name('create')
                 ->middleware('permission:takmir.pemilihan.create');
-            
+
             Route::post('/', [\App\Http\Controllers\PemilihanController::class, 'store'])
                 ->name('store')
                 ->middleware('permission:takmir.pemilihan.create');
-            
+
             Route::get('/{id}', [\App\Http\Controllers\PemilihanController::class, 'show'])
                 ->name('show')
                 ->middleware('permission:takmir.pemilihan.view');
-            
+
             Route::get('/{id}/edit', [\App\Http\Controllers\PemilihanController::class, 'edit'])
                 ->name('edit')
                 ->middleware('permission:takmir.pemilihan.update');
-            
+
             Route::put('/{id}', [\App\Http\Controllers\PemilihanController::class, 'update'])
                 ->name('update')
                 ->middleware('permission:takmir.pemilihan.update');
-            
+
             Route::delete('/{id}', [\App\Http\Controllers\PemilihanController::class, 'destroy'])
                 ->name('destroy')
                 ->middleware('permission:takmir.pemilihan.delete');
@@ -398,7 +425,7 @@ Route::middleware('auth')->group(function () {
             Route::post('/{id}/kandidat', [\App\Http\Controllers\PemilihanController::class, 'storeKandidat'])
                 ->name('kandidat.store')
                 ->middleware('permission:takmir.pemilihan.create');
-            
+
             Route::delete('/{pemilihanId}/kandidat/{kandidatId}', [\App\Http\Controllers\PemilihanController::class, 'destroyKandidat'])
                 ->name('kandidat.destroy')
                 ->middleware('permission:takmir.pemilihan.delete');
@@ -408,27 +435,27 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [\App\Http\Controllers\TakmirController::class, 'index'])
             ->name('index')
             ->middleware('permission:takmir.view');
-        
+
         Route::get('/create', [\App\Http\Controllers\TakmirController::class, 'create'])
             ->name('create')
             ->middleware('permission:takmir.create');
-        
+
         Route::post('/', [\App\Http\Controllers\TakmirController::class, 'store'])
             ->name('store')
             ->middleware('permission:takmir.create');
-        
+
         Route::get('/{takmir}/show', [\App\Http\Controllers\TakmirController::class, 'show'])
             ->name('show')
             ->middleware('permission:takmir.view');
-        
+
         Route::get('/{takmir}/edit', [\App\Http\Controllers\TakmirController::class, 'edit'])
             ->name('edit')
             ->middleware('permission:takmir.update');
-        
+
         Route::put('/{takmir}', [\App\Http\Controllers\TakmirController::class, 'update'])
             ->name('update')
             ->middleware('permission:takmir.update');
-        
+
         Route::delete('/{takmir}', [\App\Http\Controllers\TakmirController::class, 'destroy'])
             ->name('destroy')
             ->middleware('permission:takmir.delete');
@@ -449,18 +476,19 @@ Route::middleware('auth')->group(function () {
         Route::post('notifikasi/send', [NotificationController::class, 'send'])->name('notifikasi.send');
     });
     Route::get('/info-masjid', [InformasiController::class, 'publicIndex'])
-    ->name('public.home');
+        ->name('public.home');
 
     Route::get('/info-masjid/{slug}', [InformasiController::class, 'publicShow'])
-    ->name('public.info.show');
+        ->name('public.info.show');
 
     // Module 9: Reports & Statistics
     Route::middleware(['module.access:laporan'])->prefix('laporan')->name('laporan.')->group(function () {
         Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
         Route::get('/data-keuangan', [\App\Http\Controllers\LaporanController::class, 'getDataKeuangan'])->name('data-keuangan');
-Route::get('/data-kegiatan-bulanan',
-    [\App\Http\Controllers\LaporanController::class, 'getDataKegiatanBulanan']
-)->name('data-kegiatan-bulanan');
+        Route::get(
+            '/data-kegiatan-bulanan',
+            [\App\Http\Controllers\LaporanController::class, 'getDataKegiatanBulanan']
+        )->name('data-kegiatan-bulanan');
     });
 });
 
