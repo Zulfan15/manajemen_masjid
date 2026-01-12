@@ -99,4 +99,57 @@ class ActivityLogController extends Controller
 
         return view('activity-logs.recent', compact('logs'));
     }
+
+    /**
+     * Export activity logs to CSV (Super Admin only)
+     */
+    public function export(Request $request)
+    {
+        if (!$this->authService->isSuperAdmin()) {
+            abort(403, 'Hanya super admin yang dapat mengekspor log aktivitas.');
+        }
+
+        $filters = [
+            'module' => $request->input('module'),
+            'action' => $request->input('action'),
+            'user_id' => $request->input('user_id'),
+            'start_date' => $request->input('start_date'),
+            'end_date' => $request->input('end_date'),
+            'per_page' => 10000, // Get all for export
+        ];
+
+        $logs = $this->activityLogService->getAllActivities($filters);
+
+        $filename = 'activity_logs_' . date('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function () use ($logs) {
+            $file = fopen('php://output', 'w');
+
+            // Header CSV
+            fputcsv($file, ['ID', 'User', 'Action', 'Module', 'Description', 'IP Address', 'User Agent', 'Timestamp']);
+
+            // Data
+            foreach ($logs as $log) {
+                fputcsv($file, [
+                    $log->id,
+                    $log->user ? $log->user->name : 'System',
+                    $log->action,
+                    $log->module,
+                    $log->description,
+                    $log->ip_address,
+                    $log->user_agent,
+                    $log->created_at->format('Y-m-d H:i:s'),
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
