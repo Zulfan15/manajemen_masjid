@@ -146,6 +146,33 @@ class User extends Authenticatable
             return true;
         }
 
+        // All module admins can access laporan module (for viewing reports)
+        if ($module === 'laporan') {
+            // Check if user is any module admin or pengurus
+            $moduleRoles = [
+                'admin_jamaah',
+                'pengurus_jamaah',
+                'admin_keuangan',
+                'pengurus_keuangan',
+                'admin_kegiatan',
+                'pengurus_kegiatan',
+                'admin_zis',
+                'pengurus_zis',
+                'admin_kurban',
+                'pengurus_kurban',
+                'admin_inventaris',
+                'pengurus_inventaris',
+                'admin_takmir',
+                'pengurus_takmir',
+                'admin_informasi',
+                'pengurus_informasi',
+                'admin_laporan',
+                'pengurus_laporan',
+            ];
+
+            return $this->hasAnyRole($moduleRoles);
+        }
+
         // Check if user has any role related to the module
         return $this->hasAnyRole([
             "admin_{$module}",
@@ -184,6 +211,11 @@ class User extends Authenticatable
         // Jamaah can access kegiatan module
         if ($this->hasRole('jamaah') && !in_array('kegiatan', $modules)) {
             $modules[] = 'kegiatan';
+        }
+
+        // All module admins/pengurus can access laporan module
+        if (count($modules) > 0 && !in_array('laporan', $modules)) {
+            $modules[] = 'laporan';
         }
 
         return array_unique($modules);
