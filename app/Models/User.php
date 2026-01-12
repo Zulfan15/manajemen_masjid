@@ -306,10 +306,32 @@ class User extends Authenticatable
 
     /**
      * Check if user can manage keuangan module (create, update, delete)
+     * NOTE: Super Admin is EXCLUDED - they are monitoring only!
      */
     public function canManageKeuangan(): bool
     {
-        return $this->isSuperAdmin() ||
-            $this->hasRole(['admin_keuangan', 'pengurus_keuangan']);
+        // Super Admin is monitoring only, cannot manage
+        if ($this->isSuperAdmin()) {
+            return false;
+        }
+
+        return $this->hasRole(['admin_keuangan', 'pengurus_keuangan']);
+    }
+
+    /**
+     * Check if user can manage any module (create, update, delete)
+     * Super Admin is EXCLUDED - monitoring only!
+     */
+    public function canManageModule(string $module): bool
+    {
+        // Super Admin is monitoring only, cannot manage
+        if ($this->isSuperAdmin()) {
+            return false;
+        }
+
+        return $this->hasAnyRole([
+            "admin_{$module}",
+            "pengurus_{$module}",
+        ]);
     }
 }

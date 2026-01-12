@@ -18,10 +18,12 @@
                         class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition">
                         <i class="fas fa-download mr-2"></i>Export
                     </a>
-                    <a href="{{ route('jamaah.create') }}"
-                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                        <i class="fas fa-user-plus mr-2"></i>Tambah Jamaah
-                    </a>
+                    @if(!auth()->user()->isSuperAdmin())
+                        <a href="{{ route('jamaah.create') }}"
+                            class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                            <i class="fas fa-user-plus mr-2"></i>Tambah Jamaah
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -209,22 +211,24 @@
                                             title="Lihat">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('jamaah.edit', $j->id) }}"
-                                            class="text-yellow-600 hover:text-yellow-800" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a href="{{ route('jamaah.role.edit', $j->id) }}"
-                                            class="text-purple-600 hover:text-purple-800" title="Ubah Kategori">
-                                            <i class="fas fa-user-tag"></i>
-                                        </a>
-                                        <form action="{{ route('jamaah.destroy', $j->id) }}" method="POST" class="inline"
-                                            onsubmit="return confirm('Yakin ingin menghapus data jamaah ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-800" title="Hapus">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        @if(!auth()->user()->isSuperAdmin())
+                                            <a href="{{ route('jamaah.edit', $j->id) }}"
+                                                class="text-yellow-600 hover:text-yellow-800" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ route('jamaah.role.edit', $j->id) }}"
+                                                class="text-purple-600 hover:text-purple-800" title="Ubah Kategori">
+                                                <i class="fas fa-user-tag"></i>
+                                            </a>
+                                            <form action="{{ route('jamaah.destroy', $j->id) }}" method="POST" class="inline"
+                                                onsubmit="return confirm('Yakin ingin menghapus data jamaah ini?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-600 hover:text-red-800" title="Hapus">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
