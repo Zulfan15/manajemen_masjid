@@ -329,10 +329,8 @@
     </div>
 
     {{-- Modal Tambah/Edit --}}
-    <div id="modalForm" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
-        x-data="{ open: false }" x-show="open" x-cloak>
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all"
-            @click.away="document.getElementById('modalForm').classList.add('hidden')">
+    <div id="modalForm" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all">
             <div class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-t-2xl">
                 <div class="flex items-center justify-between">
                     <h3 class="text-xl font-bold" id="modalTitle">
