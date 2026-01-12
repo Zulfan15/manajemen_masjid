@@ -25,6 +25,7 @@ class Pemasukan extends Model
         'rejected_at',
         'rejected_by',
         'alasan_tolak',
+        'bukti_transfer',
     ];
 
     protected $casts = [
@@ -86,7 +87,7 @@ class Pemasukan extends Model
         if ($user->hasRole('jamaah')) {
             return $query->where('user_id', $user->id);
         }
-        
+
         return $query;
     }
 

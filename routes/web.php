@@ -372,8 +372,29 @@ Route::middleware('auth')->group(function () {
             ->except(['create', 'edit', 'show']);
 
         // Transaksi Pemasukan
-        Route::resource('pemasukan', \App\Http\Controllers\PemasukanController::class)
-            ->except(['create', 'edit', 'show']);
+        Route::prefix('pemasukan')->name('pemasukan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\PemasukanController::class, 'index'])->name('index');
+            Route::get('/create', [\App\Http\Controllers\PemasukanController::class, 'create'])->name('create');
+            Route::post('/', [\App\Http\Controllers\PemasukanController::class, 'store'])->name('store');
+            Route::get('/{id}', [\App\Http\Controllers\PemasukanController::class, 'show'])->name('show');
+            Route::get('/{id}/edit', [\App\Http\Controllers\PemasukanController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [\App\Http\Controllers\PemasukanController::class, 'update'])->name('update');
+            Route::delete('/{id}', [\App\Http\Controllers\PemasukanController::class, 'destroy'])->name('destroy');
+            Route::get('/{id}/data', [\App\Http\Controllers\PemasukanController::class, 'getData'])->name('data');
+
+            // Verifikasi & Tolak (Admin Only)
+            Route::post('/{id}/verifikasi', [\App\Http\Controllers\PemasukanController::class, 'verifikasi'])->name('verifikasi');
+            Route::post('/{id}/tolak', [\App\Http\Controllers\PemasukanController::class, 'tolak'])->name('tolak');
+        });
+    });
+
+    // =========================================================================
+    // JAMAAH PEMASUKAN - Donasi untuk jamaah (semua user login bisa akses)
+    // =========================================================================
+    Route::prefix('jamaah-keuangan')->name('jamaah.')->group(function () {
+        Route::get('/pemasukan', [\App\Http\Controllers\PemasukanController::class, 'jamaahPemasukan'])->name('pemasukan');
+        Route::post('/pemasukan', [\App\Http\Controllers\PemasukanController::class, 'jamaahStore'])->name('pemasukan.store');
+        Route::get('/pemasukan/{id}', [\App\Http\Controllers\PemasukanController::class, 'jamaahDetail'])->name('pemasukan.detail');
     });
 
     // Laporan Keuangan

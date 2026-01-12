@@ -29,6 +29,20 @@
             @endphp
 
             <hr class="my-4">
+
+            {{-- Quick Menu untuk Jamaah --}}
+            @if(auth()->user()->hasRole('jamaah'))
+                <p class="text-xs text-gray-500 uppercase font-semibold px-4 mb-2">Menu Jamaah</p>
+
+                <a href="{{ route('jamaah.pemasukan') }}"
+                    class="flex items-center px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('jamaah.pemasukan*') ? 'bg-green-100 text-green-700' : '' }}">
+                    <i class="fas fa-hand-holding-heart w-6 text-green-600"></i>
+                    <span>Donasi Saya</span>
+                </a>
+
+                <hr class="my-4">
+            @endif
+
             <p class="text-xs text-gray-500 uppercase font-semibold px-4 mb-2">Modul</p>
 
             @foreach($modules as $key => $module)
