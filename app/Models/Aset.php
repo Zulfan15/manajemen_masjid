@@ -25,6 +25,7 @@ class Aset extends Model
         'lokasi',
         'tanggal_perolehan',
         'status',
+        'harga_perolehan',
         'keterangan',
         'qr_payload',
     ];

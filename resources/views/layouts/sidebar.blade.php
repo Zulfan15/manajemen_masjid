@@ -187,6 +187,64 @@
                                 </a>
                             </div>
                         </div>
+                    @elseif($key === 'inventaris')
+                        <!-- Inventaris Module with Submenu -->
+                        <div x-data="{ open: {{ request()->routeIs('inventaris.*') ? 'true' : 'false' }} }">
+                            <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('inventaris.*') ? 'bg-green-100 text-green-700' : '' }}">
+                                <div class="flex items-center">
+                                    <i class="fas {{ $module['icon'] }} w-6"></i>
+                                    <span>{{ $module['label'] }}</span>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            <div x-show="open" x-collapse class="ml-4 mt-1 space-y-1">
+                                <a href="{{ route('inventaris.index') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('inventaris.index') || request()->routeIs('inventaris.dashboard') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-tachometer-alt w-6 text-xs"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                                <a href="{{ route('inventaris.aset.index') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('inventaris.aset.*') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-boxes w-6 text-xs text-blue-600"></i>
+                                    <span>Data Aset</span>
+                                </a>
+                                <a href="{{ route('inventaris.perawatan.index') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('inventaris.perawatan.*') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-calendar-check w-6 text-xs text-teal-600"></i>
+                                    <span>Jadwal Perawatan</span>
+                                </a>
+                                <a href="{{ route('inventaris.kondisi.index') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('inventaris.kondisi.*') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-clipboard-check w-6 text-xs text-orange-600"></i>
+                                    <span>Kondisi Barang</span>
+                                </a>
+                            </div>
+                        </div>
+                    @elseif($key === 'kurban')
+                        <!-- Kurban Module with Submenu -->
+                        <div x-data="{ open: {{ request()->routeIs('kurban.*') ? 'true' : 'false' }} }">
+                            <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('kurban.*') ? 'bg-green-100 text-green-700' : '' }}">
+                                <div class="flex items-center">
+                                    <i class="fas {{ $module['icon'] }} w-6"></i>
+                                    <span>{{ $module['label'] }}</span>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            <div x-show="open" x-collapse class="ml-4 mt-1 space-y-1">
+                                <a href="{{ route('kurban.dashboard') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('kurban.dashboard') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-tachometer-alt w-6 text-xs"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                                <a href="{{ route('kurban.index') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('kurban.index') || request()->routeIs('kurban.create') || request()->routeIs('kurban.edit') || request()->routeIs('kurban.show') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-sheep w-6 text-xs text-green-600"></i>
+                                    <span>Data Hewan</span>
+                                </a>
+                            </div>
+                        </div>
                     @elseif($key === 'takmir')
                         <!-- Takmir Module with Submenu -->
                         <div x-data="{ open: {{ request()->routeIs('takmir.*') ? 'true' : 'false' }} }">
@@ -228,6 +286,84 @@
                                     class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('takmir.pemilihan.*') ? 'bg-green-50 text-green-700' : '' }}">
                                     <i class="fas fa-vote-yea w-6 text-xs"></i>
                                     <span>Pemilihan</span>
+                                </a>
+                            </div>
+                        </div>
+                    @elseif($key === 'informasi')
+                        <!-- Informasi Module with Submenu -->
+                        <div x-data="{ open: {{ request()->routeIs('informasi.*') ? 'true' : 'false' }} }">
+                            <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('informasi.*') ? 'bg-green-100 text-green-700' : '' }}">
+                                <div class="flex items-center">
+                                    <i class="fas {{ $module['icon'] }} w-6"></i>
+                                    <span>{{ $module['label'] }}</span>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            <div x-show="open" x-collapse class="ml-4 mt-1 space-y-1">
+                                <a href="{{ route('informasi.index') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('informasi.index') || request()->routeIs('informasi.dashboard') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-tachometer-alt w-6 text-xs"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                                <a href="{{ route('informasi.pengumuman.create') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('informasi.pengumuman.*') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-bullhorn w-6 text-xs text-orange-600"></i>
+                                    <span>Pengumuman</span>
+                                </a>
+                                <a href="{{ route('informasi.berita.create') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('informasi.berita.*') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-newspaper w-6 text-xs text-blue-600"></i>
+                                    <span>Berita</span>
+                                </a>
+                                <a href="{{ route('informasi.artikel.create') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('informasi.artikel.*') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-book-open w-6 text-xs text-purple-600"></i>
+                                    <span>Artikel Dakwah</span>
+                                </a>
+                                <a href="{{ route('public.info.index') }}" target="_blank"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition">
+                                    <i class="fas fa-external-link-alt w-6 text-xs text-gray-400"></i>
+                                    <span>Lihat Halaman Publik</span>
+                                </a>
+                            </div>
+                        </div>
+                    @elseif($key === 'laporan')
+                        <!-- Laporan Module with Submenu -->
+                        <div x-data="{ open: {{ request()->routeIs('laporan.*') ? 'true' : 'false' }} }">
+                            <button @click="open = !open"
+                                class="w-full flex items-center justify-between px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('laporan.*') ? 'bg-green-100 text-green-700' : '' }}">
+                                <div class="flex items-center">
+                                    <i class="fas {{ $module['icon'] }} w-6"></i>
+                                    <span>{{ $module['label'] }}</span>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            <div x-show="open" x-collapse class="ml-4 mt-1 space-y-1">
+                                <a href="{{ route('laporan.index') }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition {{ request()->routeIs('laporan.index') || request()->routeIs('laporan.dashboard') ? 'bg-green-50 text-green-700' : '' }}">
+                                    <i class="fas fa-tachometer-alt w-6 text-xs"></i>
+                                    <span>Dashboard</span>
+                                </a>
+                                <a href="{{ route('laporan.index', ['tab' => 'keuangan']) }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition">
+                                    <i class="fas fa-money-bill-wave w-6 text-xs text-green-600"></i>
+                                    <span>Laporan Keuangan</span>
+                                </a>
+                                <a href="{{ route('laporan.index', ['tab' => 'kegiatan']) }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition">
+                                    <i class="fas fa-calendar-alt w-6 text-xs text-blue-600"></i>
+                                    <span>Laporan Kegiatan</span>
+                                </a>
+                                <a href="{{ route('laporan.index', ['tab' => 'zis']) }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition">
+                                    <i class="fas fa-hand-holding-heart w-6 text-xs text-yellow-600"></i>
+                                    <span>Statistik Donasi & ZIS</span>
+                                </a>
+                                <a href="{{ route('laporan.index', ['tab' => 'jamaah']) }}"
+                                    class="flex items-center px-4 py-2 text-sm text-gray-600 hover:bg-green-50 hover:text-green-700 rounded transition">
+                                    <i class="fas fa-users w-6 text-xs text-purple-600"></i>
+                                    <span>Statistik Jamaah</span>
                                 </a>
                             </div>
                         </div>

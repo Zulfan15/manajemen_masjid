@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Kurban;
 use App\Models\PesertaKurban;
 use App\Models\DistribusiKurban;
+use App\Exports\KurbanReportExport;
 use App\Services\AuthService;
 use App\Services\ActivityLogService;
 use Illuminate\Http\Request;
@@ -93,6 +94,7 @@ class KurbanController extends Controller
         $validated = $request->validate([
             'nomor_kurban' => 'required|string|unique:kurbans',
             'jenis_hewan' => 'required|in:sapi,kambing,domba',
+            'jenis_kelamin' => 'nullable|in:jantan,betina',
             'nama_hewan' => 'nullable|string|max:100',
             'berat_badan' => 'required|numeric|min:0.01',
             'kondisi_kesehatan' => 'required|in:sehat,cacat_ringan,cacat_berat',
@@ -104,6 +106,17 @@ class KurbanController extends Controller
 
         $validated['biaya_operasional'] = $validated['biaya_operasional'] ?? 0;
         $validated['total_biaya'] = $validated['harga_hewan'] + $validated['biaya_operasional'];
+
+        // Set max_kuota based on jenis_hewan
+        $validated['max_kuota'] = match ($validated['jenis_hewan']) {
+            'sapi' => 7,
+            'kambing', 'domba' => 1,
+            default => 1,
+        };
+
+        // Calculate and lock price per bagian
+        $validated['harga_per_bagian'] = round($validated['total_biaya'] / $validated['max_kuota'], 2);
+
         $validated['created_by'] = auth()->id();
 
         $kurban = Kurban::create($validated);
@@ -160,6 +173,7 @@ class KurbanController extends Controller
         }
 
         $validated = $request->validate([
+            'jenis_kelamin' => 'nullable|in:jantan,betina',
             'nama_hewan' => 'nullable|string|max:100',
             'berat_badan' => 'required|numeric|min:0.01',
             'kondisi_kesehatan' => 'required|in:sehat,cacat_ringan,cacat_berat',
@@ -167,12 +181,22 @@ class KurbanController extends Controller
             'tanggal_penyembelihan' => 'nullable|date|after_or_equal:tanggal_persiapan',
             'harga_hewan' => 'required|numeric|min:0',
             'biaya_operasional' => 'nullable|numeric|min:0',
+            'total_berat_daging' => 'nullable|numeric|min:0',
             'status' => 'required|in:disiapkan,siap_sembelih,disembelih,didistribusi,selesai',
             'catatan' => 'nullable|string',
         ]);
 
         $validated['biaya_operasional'] = $validated['biaya_operasional'] ?? 0;
         $validated['total_biaya'] = $validated['harga_hewan'] + $validated['biaya_operasional'];
+
+        // Recalculate locked price if costs changed
+        if (
+            $kurban->harga_hewan != $validated['harga_hewan'] ||
+            $kurban->biaya_operasional != $validated['biaya_operasional']
+        ) {
+            $validated['harga_per_bagian'] = round($validated['total_biaya'] / $kurban->max_kuota, 2);
+        }
+
         $validated['updated_by'] = auth()->id();
 
         $kurban->update($validated);
@@ -241,16 +265,44 @@ class KurbanController extends Controller
 
         $validated = $request->validate([
             'nama_peserta' => 'required|string|max:100',
+            'bin_binti' => 'nullable|string|max:100',
             'nomor_identitas' => 'nullable|string|max:20',
-            'nomor_telepon' => 'nullable|string|max:20',
-            'alamat' => 'nullable|string',
+            'nomor_telepon' => 'required|string|max:20',
+            'alamat' => 'required|string',
             'tipe_peserta' => 'required|in:perorangan,keluarga',
             'jumlah_jiwa' => 'required|integer|min:1',
             'jumlah_bagian' => 'required|numeric|min:0.25',
-            'nominal_pembayaran' => 'required|numeric|min:0',
             'status_pembayaran' => 'required|in:belum_lunas,lunas,cicilan',
             'catatan' => 'nullable|string',
         ]);
+
+        // SMART VALIDATION: Check quota availability
+        if ($kurban->isKuotaFull()) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['quota' => "Kuota untuk {$kurban->jenis_hewan} '{$kurban->nomor_kurban}' sudah penuh. Maksimal {$kurban->max_kuota} peserta."]);
+        }
+
+        // SMART VALIDATION: For Kambing/Domba, must be exactly 1 person = 1 unit
+        if (in_array($kurban->jenis_hewan, ['kambing', 'domba'])) {
+            if ($validated['jumlah_bagian'] != 1) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['jumlah_bagian' => 'Kambing/Domba harus 1 orang = 1 ekor. Tidak bisa patungan.']);
+            }
+        }
+
+        // SMART VALIDATION: For Sapi, check if still accepting participants
+        if ($kurban->jenis_hewan === 'sapi') {
+            if (!$kurban->canAddParticipant()) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['quota' => "Sistem menolak! Kuota sapi maksimal 7 orang sudah terpenuhi."]);
+            }
+        }
+
+        // AUTOMATIC CALCULATOR: Calculate payment based on locked price
+        $validated['nominal_pembayaran'] = $kurban->calculatePembayaran((int) $validated['jumlah_bagian']);
 
         $validated['kurban_id'] = $kurban->id;
         $validated['created_by'] = auth()->id();
@@ -264,6 +316,21 @@ class KurbanController extends Controller
         }
 
         $peserta = PesertaKurban::create($validated);
+
+        // SYNC TO FINANCE: If user pays immediately (Lunas)
+        if ($validated['status_pembayaran'] === 'lunas') {
+            \App\Models\Pemasukan::create([
+                'jenis' => 'qurban',
+                'sumber' => "Qurban - {$peserta->nama_peserta}",
+                'jumlah' => $validated['nominal_pembayaran'],
+                'tanggal' => now(),
+                'keterangan' => "[Auto Sync Kurban] Pembayaran Qurban {$kurban->jenis_hewan} (Kelompok {$kurban->nomor_kurban})",
+                'user_id' => auth()->id(),
+                'status' => 'verified', // Auto verified
+                'verified_at' => now(),
+                'verified_by' => auth()->id(),
+            ]);
+        }
 
         // Log activity
         $this->activityLogService->log(
@@ -297,26 +364,37 @@ class KurbanController extends Controller
     {
         // Check permission
         if (!$this->authService->hasPermission('kurban.update')) {
-            abort(403, 'Anda tidak memiliki akses untuk mengubah peserta.');
+            abort(403, 'Anda tidak memiliki akses untuk mengedit peserta.');
         }
 
         $validated = $request->validate([
             'nama_peserta' => 'required|string|max:100',
+            'bin_binti' => 'nullable|string|max:100',
             'nomor_identitas' => 'nullable|string|max:20',
-            'nomor_telepon' => 'nullable|string|max:20',
-            'alamat' => 'nullable|string',
-            'tipe_peserta' => 'required|in:perorangan,keluarga',
-            'jumlah_jiwa' => 'required|integer|min:1',
-            'jumlah_bagian' => 'required|numeric|min:0.25',
-            'nominal_pembayaran' => 'required|numeric|min:0',
+            'nomor_telepon' => 'required|string|max:20',
+            'alamat' => 'required|string',
             'status_pembayaran' => 'required|in:belum_lunas,lunas,cicilan',
             'catatan' => 'nullable|string',
         ]);
 
-        $validated['updated_by'] = auth()->id();
+        $oldStatus = $peserta->status_pembayaran;
 
-        if ($validated['status_pembayaran'] === 'lunas' && is_null($peserta->tanggal_pembayaran)) {
+        // Update tanggal pelunasan jika baru lunas sekarang
+        if ($validated['status_pembayaran'] === 'lunas' && $oldStatus !== 'lunas') {
             $validated['tanggal_pembayaran'] = now()->toDateString();
+
+            // SYNC TO FINANCE: Record payment when status changes to 'lunas'
+            \App\Models\Pemasukan::create([
+                'jenis' => 'qurban',
+                'sumber' => "Qurban - {$validated['nama_peserta']}",
+                'jumlah' => $peserta->nominal_pembayaran, // Use stored nominal
+                'tanggal' => now(),
+                'keterangan' => "[Auto Sync Kurban] Pelunasan Qurban {$kurban->jenis_hewan} (Kelompok {$kurban->nomor_kurban})",
+                'user_id' => auth()->id(),
+                'status' => 'verified',
+                'verified_at' => now(),
+                'verified_by' => auth()->id(),
+            ]);
         }
 
         $peserta->update($validated);
@@ -330,7 +408,7 @@ class KurbanController extends Controller
         );
 
         return redirect()->route('kurban.show', $kurban)
-            ->with('success', 'Peserta kurban berhasil diubah.');
+            ->with('success', 'Data peserta berhasil diperbarui.');
     }
 
     /**
@@ -392,9 +470,20 @@ class KurbanController extends Controller
             'penerima_alamat' => 'nullable|string',
             'berat_daging' => 'required|numeric|min:0.01',
             'estimasi_harga' => 'required|numeric|min:0',
-            'jenis_distribusi' => 'required|in:keluarga_peserta,fakir_miskin,saudara,kerabat,lainnya',
+            'jenis_distribusi' => 'required|in:shohibul_qurban,fakir_miskin,yayasan',
+            'persentase_alokasi' => 'nullable|numeric|min:0|max:100',
             'catatan' => 'nullable|string',
         ]);
+
+        // Set default persentase_alokasi based on jenis_distribusi
+        if (!isset($validated['persentase_alokasi'])) {
+            $validated['persentase_alokasi'] = match ($validated['jenis_distribusi']) {
+                'shohibul_qurban' => 33.33, // 1/3 bagian
+                'fakir_miskin' => 33.33,     // 1/3 bagian
+                'yayasan' => 33.34,          // 1/3 bagian (rounding)
+                default => 33.33,
+            };
+        }
 
         $validated['kurban_id'] = $kurban->id;
         $validated['created_by'] = auth()->id();
@@ -445,7 +534,8 @@ class KurbanController extends Controller
             'penerima_alamat' => 'nullable|string',
             'berat_daging' => 'required|numeric|min:0.01',
             'estimasi_harga' => 'required|numeric|min:0',
-            'jenis_distribusi' => 'required|in:keluarga_peserta,fakir_miskin,saudara,kerabat,lainnya',
+            'jenis_distribusi' => 'required|in:shohibul_qurban,fakir_miskin,yayasan',
+            'persentase_alokasi' => 'nullable|numeric|min:0|max:100',
             'status_distribusi' => 'required|in:belum_didistribusi,sedang_disiapkan,sudah_didistribusi',
             'catatan' => 'nullable|string',
         ]);
@@ -494,4 +584,87 @@ class KurbanController extends Controller
         return redirect()->route('kurban.show', $kurban)
             ->with('success', 'Distribusi kurban berhasil dihapus.');
     }
+
+    // ===== LAPORAN & DASHBOARD =====
+
+    /**
+     * Generate and download PDF report for specific Kurban
+     * Report includes: Financial data, Participant data, Distribution details
+     */
+    public function downloadReport(Kurban $kurban)
+    {
+        // Check permission
+        if (!$this->authService->hasPermission('kurban.view')) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat laporan kurban.');
+        }
+
+        $exporter = new KurbanReportExport($kurban);
+
+        // Log activity
+        $this->activityLogService->log(
+            'kurban_report_download',
+            'kurban',
+            "Laporan kurban '{$kurban->nomor_kurban}' diunduh",
+            ['kurban_id' => $kurban->id]
+        );
+
+        return $exporter->download();
+    }
+
+    /**
+     * Show PDF report in browser for specific Kurban
+     */
+    public function viewReport(Kurban $kurban)
+    {
+        // Check permission
+        if (!$this->authService->hasPermission('kurban.view')) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat laporan kurban.');
+        }
+
+        $exporter = new KurbanReportExport($kurban);
+
+        return $exporter->stream();
+    }
+
+    /**
+     * Display Kurban dashboard with visual progress
+     */
+    public function dashboard(Request $request)
+    {
+        // Check permission
+        if (!$this->authService->hasPermission('kurban.view')) {
+            abort(403, 'Anda tidak memiliki akses ke dashboard kurban.');
+        }
+
+        $query = Kurban::query();
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by year
+        $tahun = $request->input('tahun', now()->year);
+        $query->whereYear('tanggal_persiapan', $tahun);
+
+        $kurbans = $query->with(['pesertaKurbans', 'distribusiKurbans'])
+            ->orderBy('tanggal_persiapan', 'desc')
+            ->get();
+
+        // Calculate dashboard statistics
+        $statistics = [
+            'total_kurban' => $kurbans->count(),
+            'total_peserta' => $kurbans->sum(fn($k) => $k->pesertaKurbans->count()),
+            'total_pembayaran' => $kurbans->sum(fn($k) => $k->totalPembayaran()),
+            'total_daging_distribusi' => $kurbans->sum(fn($k) => $k->totalDagingDidistribusi()),
+
+            'kurban_disiapkan' => $kurbans->where('status', 'disiapkan')->count(),
+            'kurban_siap_sembelih' => $kurbans->where('status', 'siap_sembelih')->count(),
+            'kurban_disembelih' => $kurbans->where('status', 'disembelih')->count(),
+            'kurban_selesai' => $kurbans->where('status', 'selesai')->count(),
+        ];
+
+        return view('modules.kurban.dashboard', compact('kurbans', 'statistics', 'tahun'));
+    }
 }
+

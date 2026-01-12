@@ -18,6 +18,7 @@ class PesertaKurban extends Model
         'kurban_id',
         'user_id',
         'nama_peserta',
+        'bin_binti',
         'nomor_identitas',
         'nomor_telepon',
         'alamat',

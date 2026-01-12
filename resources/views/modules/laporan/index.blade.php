@@ -4,13 +4,14 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-800">
                         <i class="fas fa-chart-bar text-green-600 mr-2"></i>Laporan & Statistik
                     </h1>
-                    <p class="text-gray-600 mt-2">Laporan keuangan dan kegiatan masjid</p>
+                    <p class="text-gray-600 mt-2">Laporan keuangan, kegiatan, ZIS, dan statistik jamaah masjid</p>
                 </div>
 
                 <div class="flex gap-2">
@@ -42,47 +43,60 @@
         </div>
 
         {{-- Summary Cards --}}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg shadow-lg p-5 text-white">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-green-100 text-sm font-medium">Total Pemasukan {{ $tahun }}</p>
-                        <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</h3>
+                        <p class="text-green-100 text-sm font-medium">Total Pemasukan</p>
+                        <h3 class="text-xl font-bold mt-1">Rp {{ number_format($totalPemasukan, 0, ',', '.') }}</h3>
                     </div>
                     <div class="bg-green-400 bg-opacity-30 rounded-full p-3">
-                        <i class="fas fa-arrow-up text-3xl text-green-100"></i>
+                        <i class="fas fa-arrow-up text-2xl text-green-100"></i>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-lg p-6 text-white">
+            <div class="bg-gradient-to-r from-red-500 to-red-600 rounded-lg shadow-lg p-5 text-white">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-red-100 text-sm font-medium">Total Pengeluaran {{ $tahun }}</p>
-                        <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
+                        <p class="text-red-100 text-sm font-medium">Total Pengeluaran</p>
+                        <h3 class="text-xl font-bold mt-1">Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}</h3>
                     </div>
                     <div class="bg-red-400 bg-opacity-30 rounded-full p-3">
-                        <i class="fas fa-arrow-down text-3xl text-red-100"></i>
+                        <i class="fas fa-arrow-down text-2xl text-red-100"></i>
                     </div>
                 </div>
             </div>
 
             <div
-                class="bg-gradient-to-r {{ $saldo >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-red-500' }} rounded-lg shadow-lg p-6 text-white">
+                class="bg-gradient-to-r {{ $saldo >= 0 ? 'from-blue-500 to-blue-600' : 'from-orange-500 to-red-500' }} rounded-lg shadow-lg p-5 text-white">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="{{ $saldo >= 0 ? 'text-blue-100' : 'text-orange-100' }} text-sm font-medium">Saldo
                             {{ $tahun }}</p>
-                        <h3 class="text-2xl font-bold mt-2">Rp {{ number_format($saldo, 0, ',', '.') }}</h3>
+                        <h3 class="text-xl font-bold mt-1">Rp {{ number_format($saldo, 0, ',', '.') }}</h3>
                     </div>
                     <div class="{{ $saldo >= 0 ? 'bg-blue-400' : 'bg-orange-400' }} bg-opacity-30 rounded-full p-3">
-                        <i class="fas fa-wallet text-3xl {{ $saldo >= 0 ? 'text-blue-100' : 'text-orange-100' }}"></i>
+                        <i class="fas fa-wallet text-2xl {{ $saldo >= 0 ? 'text-blue-100' : 'text-orange-100' }}"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-5 text-white"
+                id="card-jamaah">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-purple-100 text-sm font-medium">Total Jamaah</p>
+                        <h3 class="text-xl font-bold mt-1" id="total-jamaah-display">Loading...</h3>
+                    </div>
+                    <div class="bg-purple-400 bg-opacity-30 rounded-full p-3">
+                        <i class="fas fa-users text-2xl text-purple-100"></i>
                     </div>
                 </div>
             </div>
         </div>
 
-        {{-- Chart --}}
+        {{-- Chart Keuangan --}}
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">
                 <i class="fas fa-chart-line text-green-600 mr-2"></i>Grafik Keuangan Bulanan - {{ $tahun }}
@@ -95,14 +109,22 @@
         {{-- Tabs --}}
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <div class="border-b border-gray-200">
-                <nav class="flex">
+                <nav class="flex overflow-x-auto">
                     <button data-target="keuangan"
-                        class="tab-btn active text-green-700 border-b-2 border-green-700 px-6 py-4 text-sm font-medium hover:text-green-600">
-                        Detail Anggaran
+                        class="tab-btn active text-green-700 border-b-2 border-green-700 px-6 py-4 text-sm font-medium hover:text-green-600 whitespace-nowrap">
+                        <i class="fas fa-money-bill-wave mr-2"></i>Keuangan
                     </button>
                     <button data-target="kegiatan"
-                        class="tab-btn px-6 py-4 text-sm font-medium text-gray-700 hover:text-green-600 border-b-2 border-transparent">
-                        Laporan Kegiatan
+                        class="tab-btn px-6 py-4 text-sm font-medium text-gray-700 hover:text-green-600 border-b-2 border-transparent whitespace-nowrap">
+                        <i class="fas fa-calendar-alt mr-2"></i>Kegiatan
+                    </button>
+                    <button data-target="zis"
+                        class="tab-btn px-6 py-4 text-sm font-medium text-gray-700 hover:text-green-600 border-b-2 border-transparent whitespace-nowrap">
+                        <i class="fas fa-hand-holding-heart mr-2"></i>Donasi & ZIS
+                    </button>
+                    <button data-target="jamaah"
+                        class="tab-btn px-6 py-4 text-sm font-medium text-gray-700 hover:text-green-600 border-b-2 border-transparent whitespace-nowrap">
+                        <i class="fas fa-users mr-2"></i>Statistik Jamaah
                     </button>
                 </nav>
             </div>
@@ -132,36 +154,29 @@
                                 @foreach($anggaran as $data)
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-4 py-3 border font-medium">{{ $data['bulan'] }}</td>
-                                        <td class="px-4 py-3 text-right border text-green-700">
-                                            Rp {{ number_format($data['pemasukan'], 0, ',', '.') }}
-                                        </td>
-                                        <td class="px-4 py-3 text-right border text-red-700">
-                                            Rp {{ number_format($data['pengeluaran'], 0, ',', '.') }}
-                                        </td>
+                                        <td class="px-4 py-3 text-right border text-green-700">Rp
+                                            {{ number_format($data['pemasukan'], 0, ',', '.') }}</td>
+                                        <td class="px-4 py-3 text-right border text-red-700">Rp
+                                            {{ number_format($data['pengeluaran'], 0, ',', '.') }}</td>
                                         <td
                                             class="px-4 py-3 text-right border {{ $data['saldo'] >= 0 ? 'text-blue-700' : 'text-red-700' }}">
-                                            Rp {{ number_format($data['saldo'], 0, ',', '.') }}
-                                        </td>
+                                            Rp {{ number_format($data['saldo'], 0, ',', '.') }}</td>
                                         <td
                                             class="px-4 py-3 text-right border font-semibold {{ $data['saldo_kumulatif'] >= 0 ? 'text-blue-700' : 'text-red-700' }}">
-                                            Rp {{ number_format($data['saldo_kumulatif'], 0, ',', '.') }}
-                                        </td>
+                                            Rp {{ number_format($data['saldo_kumulatif'], 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
                             <tfoot class="bg-gray-100">
                                 <tr class="font-bold">
                                     <td class="px-4 py-3 border">TOTAL</td>
-                                    <td class="px-4 py-3 text-right border text-green-700">
-                                        Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
-                                    </td>
-                                    <td class="px-4 py-3 text-right border text-red-700">
-                                        Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
-                                    </td>
+                                    <td class="px-4 py-3 text-right border text-green-700">Rp
+                                        {{ number_format($totalPemasukan, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-right border text-red-700">Rp
+                                        {{ number_format($totalPengeluaran, 0, ',', '.') }}</td>
                                     <td
                                         class="px-4 py-3 text-right border {{ $saldo >= 0 ? 'text-blue-700' : 'text-red-700' }}">
-                                        Rp {{ number_format($saldo, 0, ',', '.') }}
-                                    </td>
+                                        Rp {{ number_format($saldo, 0, ',', '.') }}</td>
                                     <td class="px-4 py-3 text-right border"></td>
                                 </tr>
                             </tfoot>
@@ -186,11 +201,6 @@
                                 class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">
                                 <i class="fas fa-file-pdf mr-1"></i>Download PDF
                             </button>
-                            <a href="{{ route('laporan.export.excel', ['tahun' => $tahun]) }}"
-                                onclick="this.href = this.href.split('?')[0] + '?tahun={{ $tahun }}&bulan=' + document.querySelector('select[name=bulan]').value"
-                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
-                                <i class="fas fa-file-excel mr-1"></i>Download Excel
-                            </a>
                         </form>
                     </div>
                 </div>
@@ -246,6 +256,92 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Tab ZIS --}}
+                <div id="content-zis" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Statistik Donasi & ZIS</h3>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun:</label>
+                        <select id="tahun-zis" class="px-4 py-2 border border-gray-300 rounded-lg">
+                            @foreach($tahunTersedia as $thn)
+                                <option value="{{ $thn }}" {{ $thn == $tahun ? 'selected' : '' }}>{{ $thn }}</option>
+                            @endforeach
+                        </select>
+                        <button id="btn-filter-zis"
+                            class="ml-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                            Tampilkan
+                        </button>
+                    </div>
+
+                    {{-- ZIS Stats Cards --}}
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <p class="text-yellow-700 text-sm font-medium">Total Zakat</p>
+                            <h3 class="text-xl font-bold text-yellow-800 mt-1" id="total-zakat">Rp 0</h3>
+                        </div>
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p class="text-green-700 text-sm font-medium">Total Infak</p>
+                            <h3 class="text-xl font-bold text-green-800 mt-1" id="total-infak">Rp 0</h3>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p class="text-blue-700 text-sm font-medium">Total Sedekah</p>
+                            <h3 class="text-xl font-bold text-blue-800 mt-1" id="total-sedekah">Rp 0</h3>
+                        </div>
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <p class="text-purple-700 text-sm font-medium">Grand Total ZIS</p>
+                            <h3 class="text-xl font-bold text-purple-800 mt-1" id="grand-total-zis">Rp 0</h3>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h4 class="text-md font-medium text-gray-700 mb-3">Grafik ZIS Bulanan</h4>
+                        <div class="h-64">
+                            <canvas id="chartZIS"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Tab Jamaah --}}
+                <div id="content-jamaah" class="tab-content hidden">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Statistik Jamaah</h3>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tahun:</label>
+                        <select id="tahun-jamaah" class="px-4 py-2 border border-gray-300 rounded-lg">
+                            @foreach($tahunTersedia as $thn)
+                                <option value="{{ $thn }}" {{ $thn == $tahun ? 'selected' : '' }}>{{ $thn }}</option>
+                            @endforeach
+                        </select>
+                        <button id="btn-filter-jamaah"
+                            class="ml-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                            Tampilkan
+                        </button>
+                    </div>
+
+                    {{-- Jamaah Stats Cards --}}
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+                            <p class="text-indigo-700 text-sm font-medium">Total Jamaah</p>
+                            <h3 class="text-2xl font-bold text-indigo-800 mt-1" id="stat-total-jamaah">0</h3>
+                        </div>
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p class="text-green-700 text-sm font-medium">Jamaah Terverifikasi</p>
+                            <h3 class="text-2xl font-bold text-green-800 mt-1" id="stat-jamaah-verified">0</h3>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p class="text-blue-700 text-sm font-medium">Registrasi Bulan Ini</p>
+                            <h3 class="text-2xl font-bold text-blue-800 mt-1" id="stat-jamaah-bulan-ini">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h4 class="text-md font-medium text-gray-700 mb-3">Grafik Registrasi Jamaah per Bulan</h4>
+                        <div class="h-64">
+                            <canvas id="chartJamaah"></canvas>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -255,6 +351,11 @@
         // Chart Data from Controller
         const pemasukanChart = {!! json_encode($pemasukanChart) !!};
         const pengeluaranChart = {!! json_encode($pengeluaranChart) !!};
+
+        // Helper function to format currency
+        function formatRupiah(value) {
+            return 'Rp ' + value.toLocaleString('id-ID');
+        }
 
         // Main Chart
         document.addEventListener('DOMContentLoaded', () => {
@@ -284,22 +385,23 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
+                        legend: { position: 'bottom' }
                     },
                     scales: {
                         y: {
                             beginAtZero: true,
                             ticks: {
                                 callback: function (value) {
-                                    return 'Rp ' + value.toLocaleString('id-ID');
+                                    return formatRupiah(value);
                                 }
                             }
                         }
                     }
                 }
             });
+
+            // Load Jamaah stats on page load
+            loadJamaahStats();
         });
 
         // Tab Handler
@@ -326,7 +428,6 @@
 
         // Kegiatan Chart
         let chartKegiatan = null;
-
         document.getElementById('btn-filter-kegiatan').addEventListener('click', async () => {
             const tahun = document.getElementById('tahun-kegiatan').value;
 
@@ -334,10 +435,7 @@
                 const response = await fetch(`{{ route('laporan.data-kegiatan') }}?tahun=${tahun}`);
                 const data = await response.json();
 
-                // Update chart
-                if (chartKegiatan) {
-                    chartKegiatan.destroy();
-                }
+                if (chartKegiatan) chartKegiatan.destroy();
 
                 const ctx = document.getElementById('chartKegiatan').getContext('2d');
                 chartKegiatan = new Chart(ctx, {
@@ -356,36 +454,145 @@
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    stepSize: 1
-                                }
-                            }
-                        }
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
                     }
                 });
 
-                // Update table
                 let tableHTML = '';
                 data.tabel.forEach(item => {
-                    tableHTML += `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3 border">${item.bulan}</td>
-                        <td class="px-4 py-3 text-center border font-medium">${item.jumlah}</td>
-                    </tr>
-                `;
+                    tableHTML += `<tr class="hover:bg-gray-50"><td class="px-4 py-3 border">${item.bulan}</td><td class="px-4 py-3 text-center border font-medium">${item.jumlah}</td></tr>`;
                 });
                 document.getElementById('table-kegiatan').innerHTML = tableHTML;
 
             } catch (error) {
                 console.error('Error loading kegiatan data:', error);
+            }
+        });
+
+        // ZIS Chart
+        let chartZIS = null;
+        document.getElementById('btn-filter-zis').addEventListener('click', async () => {
+            const tahun = document.getElementById('tahun-zis').value;
+
+            try {
+                const response = await fetch(`{{ route('laporan.data-zis') }}?tahun=${tahun}`);
+                const data = await response.json();
+
+                // Update stats
+                document.getElementById('total-zakat').textContent = formatRupiah(data.totalZakat);
+                document.getElementById('total-infak').textContent = formatRupiah(data.totalInfak);
+                document.getElementById('total-sedekah').textContent = formatRupiah(data.totalSedekah);
+                document.getElementById('grand-total-zis').textContent = formatRupiah(data.grandTotal);
+
+                if (chartZIS) chartZIS.destroy();
+
+                const ctx = document.getElementById('chartZIS').getContext('2d');
+                chartZIS = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
+                        datasets: [
+                            {
+                                label: 'Zakat',
+                                data: data.zakat,
+                                backgroundColor: 'rgba(234, 179, 8, 0.8)',
+                                borderColor: '#EAB308',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Infak',
+                                data: data.infak,
+                                backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                                borderColor: '#22C55E',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Sedekah',
+                                data: data.sedekah,
+                                backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                                borderColor: '#3B82F6',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { callback: function (value) { return formatRupiah(value); } }
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading ZIS data:', error);
+            }
+        });
+
+        // Jamaah Chart
+        let chartJamaah = null;
+
+        async function loadJamaahStats() {
+            try {
+                const tahun = document.getElementById('tahun-jamaah')?.value || {{ $tahun }};
+                const response = await fetch(`{{ route('laporan.data-jamaah') }}?tahun=${tahun}`);
+                const data = await response.json();
+
+                // Update header card
+                document.getElementById('total-jamaah-display').textContent = data.totalJamaah + ' Orang';
+
+                // Update stats
+                document.getElementById('stat-total-jamaah').textContent = data.totalJamaah;
+                document.getElementById('stat-jamaah-verified').textContent = data.jamaahVerified;
+                document.getElementById('stat-jamaah-bulan-ini').textContent = data.jamaahBulanIni;
+
+            } catch (error) {
+                console.error('Error loading jamaah stats:', error);
+            }
+        }
+
+        document.getElementById('btn-filter-jamaah').addEventListener('click', async () => {
+            const tahun = document.getElementById('tahun-jamaah').value;
+
+            try {
+                const response = await fetch(`{{ route('laporan.data-jamaah') }}?tahun=${tahun}`);
+                const data = await response.json();
+
+                // Update stats
+                document.getElementById('stat-total-jamaah').textContent = data.totalJamaah;
+                document.getElementById('stat-jamaah-verified').textContent = data.jamaahVerified;
+                document.getElementById('stat-jamaah-bulan-ini').textContent = data.jamaahBulanIni;
+
+                if (chartJamaah) chartJamaah.destroy();
+
+                const ctx = document.getElementById('chartJamaah').getContext('2d');
+                chartJamaah = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'],
+                        datasets: [{
+                            label: 'Registrasi Jamaah',
+                            data: data.registrasiBulanan,
+                            backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                            borderColor: '#6366F1',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error loading jamaah data:', error);
             }
         });
     </script>

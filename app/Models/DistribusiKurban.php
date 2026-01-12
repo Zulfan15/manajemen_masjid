@@ -23,6 +23,7 @@ class DistribusiKurban extends Model
         'berat_daging',
         'estimasi_harga',
         'jenis_distribusi',
+        'persentase_alokasi',
         'tanggal_distribusi',
         'status_distribusi',
         'catatan',
@@ -34,6 +35,7 @@ class DistribusiKurban extends Model
         'tanggal_distribusi' => 'date',
         'berat_daging' => 'decimal:2',
         'estimasi_harga' => 'decimal:2',
+        'persentase_alokasi' => 'decimal:2',
     ];
 
     // ===== RELATIONSHIPS =====
@@ -129,8 +131,11 @@ class DistribusiKurban extends Model
     public function getJenisDistribusiLabel(): string
     {
         $labels = [
+            'shohibul_qurban' => 'Hak Shohibul Qurban (1/3)',
+            'fakir_miskin' => 'Fakir Miskin / Warga Sekitar (1/3)',
+            'yayasan' => 'Yayasan / Pihak Luar (1/3)',
+            // Legacy support
             'keluarga_peserta' => 'Keluarga Peserta',
-            'fakir_miskin' => 'Fakir Miskin',
             'saudara' => 'Saudara',
             'kerabat' => 'Kerabat',
             'lainnya' => 'Lainnya',

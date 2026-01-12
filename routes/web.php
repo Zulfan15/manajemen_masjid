@@ -88,6 +88,19 @@ Route::middleware('auth')->group(function () {
     // MODULE 5: QURBAN MANAGEMENT (FULLY IMPLEMENTED WITH GRANULAR PERMISSIONS)
     // =========================================================================
     Route::middleware(['module.access:kurban'])->prefix('kurban')->name('kurban.')->group(function () {
+        // Dashboard & Reports
+        Route::get('/dashboard', [KurbanController::class, 'dashboard'])
+            ->name('dashboard')
+            ->middleware('permission:kurban.view');
+
+        Route::get('/{kurban}/report/download', [KurbanController::class, 'downloadReport'])
+            ->name('report.download')
+            ->middleware('permission:kurban.view');
+
+        Route::get('/{kurban}/report/view', [KurbanController::class, 'viewReport'])
+            ->name('report.view')
+            ->middleware('permission:kurban.view');
+
         // Data Kurban (Main CRUD)
         Route::get('/', [KurbanController::class, 'index'])
             ->name('index')
@@ -163,6 +176,117 @@ Route::middleware('auth')->group(function () {
         Route::get('/export', [KurbanController::class, 'export'])
             ->name('export')
             ->middleware('permission:kurban.export');
+    });
+
+    // =========================================================================
+    // MODULE 6: INVENTARIS MASJID (FULLY IMPLEMENTED)
+    // Data aset masjid, kondisi barang, jadwal perawatan
+    // =========================================================================
+    Route::middleware(['module.access:inventaris'])->prefix('inventaris')->name('inventaris.')->group(function () {
+        // Dashboard Inventaris
+        Route::get('/', [InventarisController::class, 'index'])->name('index');
+        Route::get('/dashboard', [InventarisController::class, 'index'])->name('dashboard');
+
+        // ===== ASET MANAGEMENT =====
+        Route::prefix('aset')->name('aset.')->group(function () {
+            Route::get('/', [InventarisController::class, 'asetIndex'])->name('index');
+            Route::get('/create', [InventarisController::class, 'asetCreate'])->name('create');
+            Route::post('/', [InventarisController::class, 'asetStore'])->name('store');
+            Route::get('/{id}', [InventarisController::class, 'asetShow'])->name('show');
+            Route::get('/{id}/edit', [InventarisController::class, 'asetEdit'])->name('edit');
+            Route::put('/{id}', [InventarisController::class, 'asetUpdate'])->name('update');
+            Route::delete('/{id}', [InventarisController::class, 'asetDestroy'])->name('destroy');
+        });
+
+        // ===== JADWAL PERAWATAN =====
+        Route::prefix('perawatan')->name('perawatan.')->group(function () {
+            Route::get('/', [InventarisController::class, 'perawatanIndex'])->name('index');
+            Route::get('/create', [InventarisController::class, 'perawatanCreate'])->name('create');
+            Route::post('/', [InventarisController::class, 'perawatanStore'])->name('store');
+            Route::get('/{id}', [InventarisController::class, 'perawatanShow'])->name('show');
+            Route::get('/{id}/edit', [InventarisController::class, 'perawatanEdit'])->name('edit');
+            Route::put('/{id}', [InventarisController::class, 'perawatanUpdate'])->name('update');
+            Route::delete('/{id}', [InventarisController::class, 'perawatanDestroy'])->name('destroy');
+            Route::patch('/{id}/status', [InventarisController::class, 'perawatanUpdateStatus'])->name('update-status');
+        });
+
+        // ===== KONDISI BARANG =====
+        Route::prefix('kondisi')->name('kondisi.')->group(function () {
+            Route::get('/', [InventarisController::class, 'kondisiIndex'])->name('index');
+            Route::get('/create', [InventarisController::class, 'kondisiCreate'])->name('create');
+            Route::post('/', [InventarisController::class, 'kondisiStore'])->name('store');
+            Route::get('/{id}', [InventarisController::class, 'kondisiShow'])->name('show');
+            Route::get('/{id}/edit', [InventarisController::class, 'kondisiEdit'])->name('edit');
+            Route::put('/{id}', [InventarisController::class, 'kondisiUpdate'])->name('update');
+            Route::delete('/{id}', [InventarisController::class, 'kondisiDestroy'])->name('destroy');
+        });
+    });
+
+    // =========================================================================
+    // MODULE 7: INFORMASI & PENGUMUMAN (FULLY IMPLEMENTED)
+    // Berita, Pengumuman, Artikel Islam, Jadwal Sholat, Notifikasi Email
+    // =========================================================================
+    Route::middleware(['module.access:informasi'])->prefix('informasi')->name('informasi.')->group(function () {
+        // Dashboard Informasi
+        Route::get('/', [InformasiController::class, 'index'])->name('index');
+        Route::get('/dashboard', [InformasiController::class, 'index'])->name('dashboard');
+
+        // ===== PENGUMUMAN MANAGEMENT =====
+        Route::prefix('pengumuman')->name('pengumuman.')->group(function () {
+            Route::get('/create', [AnnouncementController::class, 'create'])->name('create');
+            Route::post('/', [AnnouncementController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [AnnouncementController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [AnnouncementController::class, 'update'])->name('update');
+            Route::delete('/{id}', [AnnouncementController::class, 'destroy'])->name('destroy');
+        });
+
+        // ===== BERITA MANAGEMENT =====
+        Route::prefix('berita')->name('berita.')->group(function () {
+            Route::get('/create', [NewsController::class, 'create'])->name('create');
+            Route::post('/', [NewsController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [NewsController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [NewsController::class, 'update'])->name('update');
+            Route::delete('/{id}', [NewsController::class, 'destroy'])->name('destroy');
+        });
+
+        // ===== ARTIKEL/DAKWAH MANAGEMENT =====
+        Route::prefix('artikel')->name('artikel.')->group(function () {
+            Route::get('/create', [ArticleController::class, 'create'])->name('create');
+            Route::post('/', [ArticleController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [ArticleController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [ArticleController::class, 'update'])->name('update');
+            Route::delete('/{id}', [ArticleController::class, 'destroy'])->name('destroy');
+        });
+    });
+
+    // Public Information Routes (accessible without login)
+    Route::get('/info', [InformasiController::class, 'publicIndex'])->name('public.info.index')->withoutMiddleware(['auth']);
+    Route::get('/info/{slug}', [InformasiController::class, 'publicShow'])->name('public.info.show')->withoutMiddleware(['auth']);
+
+    // =========================================================================
+    // MODULE 8: LAPORAN & STATISTIK (FULLY IMPLEMENTED)
+    // Laporan keuangan, kegiatan, statistik jamaah, ZIS, grafik perkembangan
+    // =========================================================================
+    Route::middleware(['module.access:laporan'])->prefix('laporan')->name('laporan.')->group(function () {
+        // Dashboard Laporan
+        Route::get('/', [\App\Http\Controllers\LaporanController::class, 'index'])->name('index');
+        Route::get('/dashboard', [\App\Http\Controllers\LaporanController::class, 'index'])->name('dashboard');
+
+        // Export
+        Route::get('/export/pdf', [\App\Http\Controllers\LaporanController::class, 'exportPdf'])->name('export.pdf');
+        Route::get('/export/excel', [\App\Http\Controllers\LaporanController::class, 'exportExcel'])->name('export.excel');
+
+        // AJAX Data Endpoints
+        Route::get('/data-keuangan', [\App\Http\Controllers\LaporanController::class, 'getDataKeuangan'])->name('data-keuangan');
+        Route::get('/data-kegiatan', [\App\Http\Controllers\LaporanController::class, 'getDataKegiatanBulanan'])->name('data-kegiatan');
+        Route::get('/data-zis', [\App\Http\Controllers\LaporanController::class, 'getDataZIS'])->name('data-zis');
+        Route::get('/data-jamaah', [\App\Http\Controllers\LaporanController::class, 'getDataJamaah'])->name('data-jamaah');
+
+        // Sub-laporan
+        Route::get('/keuangan', [\App\Http\Controllers\LaporanController::class, 'laporanKeuangan'])->name('keuangan');
+        Route::get('/kegiatan', [\App\Http\Controllers\LaporanController::class, 'laporanKegiatan'])->name('kegiatan');
+        Route::get('/zis', [\App\Http\Controllers\LaporanController::class, 'laporanZIS'])->name('zis');
+        Route::get('/jamaah', [\App\Http\Controllers\LaporanController::class, 'laporanJamaah'])->name('jamaah');
     });
 
     // =========================================================================

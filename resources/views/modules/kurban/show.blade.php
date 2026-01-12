@@ -14,6 +14,12 @@
                 <p class="text-gray-600 mt-2">Nomor: <strong>{{ $kurban->nomor_kurban }}</strong></p>
             </div>
             <div class="flex space-x-2">
+                @if(auth()->user()->hasPermission('kurban.view'))
+                    <a href="{{ route('kurban.report.download', $kurban) }}" target="_blank" class="bg-green-700 text-white px-4 py-3 rounded-lg hover:bg-green-800 transition flex items-center space-x-2">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Laporan PDF</span>
+                    </a>
+                @endif
                 @if(!auth()->user()->isSuperAdmin() && auth()->user()->hasPermission('kurban.update'))
                     <a href="{{ route('kurban.edit', $kurban) }}" class="bg-yellow-600 text-white px-4 py-3 rounded-lg hover:bg-yellow-700 transition flex items-center space-x-2">
                         <i class="fas fa-edit"></i>
@@ -126,6 +132,73 @@
                     <p class="text-sm text-gray-600">Total Biaya</p>
                     <p class="font-bold text-lg text-green-700">Rp {{ number_format($kurban->total_biaya, 0, ',', '.') }}</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kuota & Pembayaran Info -->
+    @php
+        $sisaKuota = $kurban->getSisaKuota();
+        $kuotaTerisi = $kurban->getCurrentKuotaUsage();
+        $persentase = $kurban->getKuotaPercentage();
+        $progressClass = 'bg-green-500';
+        if ($persentase >= 100) {
+            $progressClass = 'bg-red-500';
+        } elseif ($persentase >= 75) {
+            $progressClass = 'bg-yellow-500';
+        }
+    @endphp
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <div class="mb-4 pb-4 border-b">
+            <h3 class="text-lg font-semibold text-gray-800">
+                <i class="fas fa-chart-pie text-green-700 mr-2"></i>Progress Kuota & Pembayaran
+            </h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Kuota Section -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-700">Kuota Peserta</span>
+                    <span class="text-sm font-bold {{ $sisaKuota == 0 ? 'text-red-600' : 'text-green-600' }}">
+                        {{ $kuotaTerisi }} / {{ $kurban->max_kuota }} Terisi
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-6 mb-2">
+                    <div class="{{ $progressClass }} h-6 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all" style="width: {{ min($persentase, 100) }}%">
+                        {{ number_format($persentase, 1) }}%
+                    </div>
+                </div>
+                <div class="flex justify-between text-xs text-gray-500">
+                    <span>
+                        @if($sisaKuota == 0)
+                            <span class="text-red-600 font-bold"><i class="fas fa-check-circle"></i> KUOTA PENUH</span>
+                        @else
+                            <span class="text-green-600"><i class="fas fa-user-plus"></i> Sisa {{ $sisaKuota }} Slot</span>
+                        @endif
+                    </span>
+                    <span>Max {{ $kurban->max_kuota }} {{ $kurban->jenis_hewan == 'sapi' ? 'Orang' : 'Ekor' }}</span>
+                </div>
+            </div>
+            
+            <!-- Pembayaran Section -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-600">Harga per Bagian (Terkunci)</span>
+                    <span class="font-bold text-lg text-green-700">
+                        <i class="fas fa-lock text-xs text-gray-400 mr-1"></i>
+                        Rp {{ number_format($kurban->harga_per_bagian, 0, ',', '.') }}
+                    </span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-600">Total Pembayaran Masuk</span>
+                    <span class="font-bold text-blue-600">Rp {{ number_format($kurban->totalPembayaran(), 0, ',', '.') }}</span>
+                </div>
+                @if($kurban->total_berat_daging)
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-600">Total Berat Daging</span>
+                    <span class="font-bold text-purple-600">{{ number_format($kurban->total_berat_daging, 2) }} kg</span>
+                </div>
+                @endif
             </div>
         </div>
     </div>

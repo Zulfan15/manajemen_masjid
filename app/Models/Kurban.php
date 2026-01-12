@@ -18,7 +18,9 @@ class Kurban extends Model
     protected $fillable = [
         'nomor_kurban',
         'jenis_hewan',
+        'jenis_kelamin',
         'nama_hewan',
+        'max_kuota',
         'berat_badan',
         'kondisi_kesehatan',
         'tanggal_persiapan',
@@ -26,6 +28,8 @@ class Kurban extends Model
         'harga_hewan',
         'biaya_operasional',
         'total_biaya',
+        'total_berat_daging',
+        'harga_per_bagian',
         'status',
         'catatan',
         'created_by',
@@ -39,6 +43,9 @@ class Kurban extends Model
         'harga_hewan' => 'decimal:2',
         'biaya_operasional' => 'decimal:2',
         'total_biaya' => 'decimal:2',
+        'total_berat_daging' => 'decimal:2',
+        'harga_per_bagian' => 'decimal:2',
+        'max_kuota' => 'integer',
     ];
 
     // ===== RELATIONSHIPS =====
@@ -139,6 +146,102 @@ class Kurban extends Model
     public function sudahDisembelih(): bool
     {
         return in_array($this->status, ['disembelih', 'didistribusi', 'selesai']);
+    }
+
+    /**
+     * Get maximum quota based on animal type
+     * Sapi: max 7 people, Kambing/Domba: max 1 person
+     */
+    public function getMaxKuotaByJenisHewan(): int
+    {
+        return match($this->jenis_hewan) {
+            'sapi' => 7,
+            'kambing', 'domba' => 1,
+            default => 1,
+        };
+    }
+
+    /**
+     * Calculate current quota usage (total participants)
+     */
+    public function getCurrentKuotaUsage(): int
+    {
+        return $this->pesertaKurbans()->count();
+    }
+
+    /**
+     * Get remaining quota slots
+     */
+    public function getSisaKuota(): int
+    {
+        $maxKuota = $this->max_kuota ?: $this->getMaxKuotaByJenisHewan();
+        $currentUsage = $this->getCurrentKuotaUsage();
+        return max(0, $maxKuota - $currentUsage);
+    }
+
+    /**
+     * Check if quota is full
+     */
+    public function isKuotaFull(): bool
+    {
+        return $this->getSisaKuota() <= 0;
+    }
+
+    /**
+     * Get quota fill percentage
+     */
+    public function getKuotaPercentage(): float
+    {
+        $maxKuota = $this->max_kuota ?: $this->getMaxKuotaByJenisHewan();
+        if ($maxKuota == 0) return 0;
+        
+        $currentUsage = $this->getCurrentKuotaUsage();
+        return round(($currentUsage / $maxKuota) * 100, 2);
+    }
+
+    /**
+     * Validate if new participant can be added
+     * Returns true if can add, false if quota full
+     */
+    public function canAddParticipant(int $jumlahBagian = 1): bool
+    {
+        // For Kambing/Domba: must be 1 person = 1 unit
+        if (in_array($this->jenis_hewan, ['kambing', 'domba'])) {
+            if ($jumlahBagian != 1) {
+                return false; // Kambing/Domba must be exactly 1 portion
+            }
+            return !$this->isKuotaFull();
+        }
+
+        // For Sapi: can have multiple portions (max 7 people)
+        if ($this->jenis_hewan === 'sapi') {
+            return !$this->isKuotaFull();
+        }
+
+        return !$this->isKuotaFull();
+    }
+
+    /**
+     * Calculate price per portion (locked price)
+     */
+    public function calculateHargaPerBagian(): float
+    {
+        $maxKuota = $this->max_kuota ?: $this->getMaxKuotaByJenisHewan();
+        
+        if ($maxKuota == 0) return 0;
+        
+        return round($this->total_biaya / $maxKuota, 2);
+    }
+
+    /**
+     * Calculate automatic payment for participant
+     */
+    public function calculatePembayaran(int $jumlahBagian = 1): float
+    {
+        // Use locked price if available, otherwise calculate
+        $hargaPerBagian = $this->harga_per_bagian ?: $this->calculateHargaPerBagian();
+        
+        return round($hargaPerBagian * $jumlahBagian, 2);
     }
 
     /**

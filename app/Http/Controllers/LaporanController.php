@@ -6,8 +6,11 @@ use Illuminate\Http\Request;
 use App\Models\Pemasukan;
 use App\Models\Pengeluaran;
 use App\Models\Kegiatan;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
 
 class LaporanController extends Controller
 {
@@ -346,5 +349,185 @@ class LaporanController extends Controller
             'chart' => $chart,
             'tabel' => $tabel
         ]);
+    }
+
+    /**
+     * ===============================
+     * DATA ZIS (AJAX)
+     * Sinkronisasi dengan modul ZIS (Transaksi)
+     * ===============================
+     */
+    public function getDataZIS(Request $request)
+    {
+        $tahun = $request->get('tahun', date('Y'));
+
+        // Get ZIS data from Transaksi table (ZIS module) - PRIMARY SOURCE
+        $dataZakat = DB::table('transaksi')
+            ->selectRaw('MONTH(tanggal_transaksi) as bulan, SUM(nominal) as total')
+            ->whereYear('tanggal_transaksi', $tahun)
+            ->where('jenis_transaksi', 'like', '%zakat%')
+            ->groupByRaw('MONTH(tanggal_transaksi)')
+            ->pluck('total', 'bulan');
+
+        $dataInfak = DB::table('transaksi')
+            ->selectRaw('MONTH(tanggal_transaksi) as bulan, SUM(nominal) as total')
+            ->whereYear('tanggal_transaksi', $tahun)
+            ->where('jenis_transaksi', 'like', '%infak%')
+            ->groupByRaw('MONTH(tanggal_transaksi)')
+            ->pluck('total', 'bulan');
+
+        $dataSedekah = DB::table('transaksi')
+            ->selectRaw('MONTH(tanggal_transaksi) as bulan, SUM(nominal) as total')
+            ->whereYear('tanggal_transaksi', $tahun)
+            ->where('jenis_transaksi', 'like', '%sedekah%')
+            ->groupByRaw('MONTH(tanggal_transaksi)')
+            ->pluck('total', 'bulan');
+
+        // Also check Pemasukan table for any ZIS entries there (SECONDARY SOURCE)
+        $pemasukanZakat = Pemasukan::verified()
+            ->selectRaw('MONTH(tanggal) as bulan, SUM(jumlah) as total')
+            ->whereYear('tanggal', $tahun)
+            ->where('jenis', 'like', '%zakat%')
+            ->groupByRaw('MONTH(tanggal)')
+            ->pluck('total', 'bulan');
+
+        $pemasukanInfak = Pemasukan::verified()
+            ->selectRaw('MONTH(tanggal) as bulan, SUM(jumlah) as total')
+            ->whereYear('tanggal', $tahun)
+            ->where('jenis', 'like', '%infak%')
+            ->groupByRaw('MONTH(tanggal)')
+            ->pluck('total', 'bulan');
+
+        $pemasukanSedekah = Pemasukan::verified()
+            ->selectRaw('MONTH(tanggal) as bulan, SUM(jumlah) as total')
+            ->whereYear('tanggal', $tahun)
+            ->where('jenis', 'like', '%sedekah%')
+            ->groupByRaw('MONTH(tanggal)')
+            ->pluck('total', 'bulan');
+
+        // Chart arrays - Merge both sources
+        $chartZakat = array_fill(0, 12, 0);
+        $chartInfak = array_fill(0, 12, 0);
+        $chartSedekah = array_fill(0, 12, 0);
+
+        // From Transaksi (ZIS Module)
+        foreach ($dataZakat as $bulan => $total) {
+            $chartZakat[$bulan - 1] += (int) $total;
+        }
+        foreach ($dataInfak as $bulan => $total) {
+            $chartInfak[$bulan - 1] += (int) $total;
+        }
+        foreach ($dataSedekah as $bulan => $total) {
+            $chartSedekah[$bulan - 1] += (int) $total;
+        }
+
+        // From Pemasukan (Keuangan Module) - add if any
+        foreach ($pemasukanZakat as $bulan => $total) {
+            $chartZakat[$bulan - 1] += (int) $total;
+        }
+        foreach ($pemasukanInfak as $bulan => $total) {
+            $chartInfak[$bulan - 1] += (int) $total;
+        }
+        foreach ($pemasukanSedekah as $bulan => $total) {
+            $chartSedekah[$bulan - 1] += (int) $total;
+        }
+
+        return response()->json([
+            'tahun' => $tahun,
+            'zakat' => $chartZakat,
+            'infak' => $chartInfak,
+            'sedekah' => $chartSedekah,
+            'totalZakat' => array_sum($chartZakat),
+            'totalInfak' => array_sum($chartInfak),
+            'totalSedekah' => array_sum($chartSedekah),
+            'grandTotal' => array_sum($chartZakat) + array_sum($chartInfak) + array_sum($chartSedekah),
+        ]);
+    }
+
+    /**
+     * ===============================
+     * DATA JAMAAH (AJAX)
+     * ===============================
+     */
+    public function getDataJamaah(Request $request)
+    {
+        $tahun = $request->get('tahun', date('Y'));
+
+        // Jamaah registration per month
+        $registrasiPerBulan = User::selectRaw('MONTH(created_at) as bulan, COUNT(id) as total')
+            ->whereYear('created_at', $tahun)
+            ->whereHas('roles', function ($q) {
+                $q->where('name', 'jamaah');
+            })
+            ->groupByRaw('MONTH(created_at)')
+            ->pluck('total', 'bulan');
+
+        $chartRegistrasi = array_fill(0, 12, 0);
+        foreach ($registrasiPerBulan as $bulan => $total) {
+            $chartRegistrasi[$bulan - 1] = (int) $total;
+        }
+
+        // Total jamaah stats
+        $totalJamaah = User::whereHas('roles', function ($q) {
+            $q->where('name', 'jamaah');
+        })->count();
+
+        $jamaahVerified = User::whereHas('roles', function ($q) {
+            $q->where('name', 'jamaah');
+        })->where('is_verified', true)->count();
+
+        $jamaahBulanIni = User::whereHas('roles', function ($q) {
+            $q->where('name', 'jamaah');
+        })->whereMonth('created_at', date('m'))
+            ->whereYear('created_at', date('Y'))
+            ->count();
+
+        return response()->json([
+            'tahun' => $tahun,
+            'registrasiBulanan' => $chartRegistrasi,
+            'totalJamaah' => $totalJamaah,
+            'jamaahVerified' => $jamaahVerified,
+            'jamaahBulanIni' => $jamaahBulanIni,
+        ]);
+    }
+
+    /**
+     * ===============================
+     * LAPORAN KEUANGAN (Halaman Khusus)
+     * ===============================
+     */
+    public function laporanKeuangan(Request $request)
+    {
+        return redirect()->route('laporan.index', ['tab' => 'keuangan']);
+    }
+
+    /**
+     * ===============================
+     * LAPORAN KEGIATAN (Halaman Khusus)
+     * ===============================
+     */
+    public function laporanKegiatan(Request $request)
+    {
+        return redirect()->route('laporan.index', ['tab' => 'kegiatan']);
+    }
+
+    /**
+     * ===============================
+     * LAPORAN ZIS (Halaman Khusus)
+     * ===============================
+     */
+    public function laporanZIS(Request $request)
+    {
+        return redirect()->route('laporan.index', ['tab' => 'zis']);
+    }
+
+    /**
+     * ===============================
+     * LAPORAN JAMAAH (Halaman Khusus)
+     * ===============================
+     */
+    public function laporanJamaah(Request $request)
+    {
+        return redirect()->route('laporan.index', ['tab' => 'jamaah']);
     }
 }
