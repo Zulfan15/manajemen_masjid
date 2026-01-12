@@ -68,7 +68,7 @@
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $mustahiq->firstItem() + $index }}</td>
                                     <td class="px-6 py-4">
                                         <p class="font-medium text-gray-800">{{ $item->nama_lengkap }}</p>
-                                        <p class="text-sm text-gray-500">{{ Str::limit($item->alamat, 30) }}</p>
+                                        <p class="text-sm text-gray-500">{{ \Illuminate\Support\Str::limit($item->alamat, 30) }}</p>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $item->nik ?? '-' }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $item->no_hp }}</td>

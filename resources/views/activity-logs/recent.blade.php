@@ -16,7 +16,7 @@
                     <div class="flex-1 min-w-0">
                         <p class="text-sm text-gray-800 truncate">
                             <span class="font-medium">{{ $log->user ? $log->user->name : 'System' }}</span>
-                            <span class="text-gray-500">{{ Str::limit($log->description, 50) }}</span>
+                            <span class="text-gray-500">{{ \Illuminate\Support\Str::limit($log->description, 50) }}</span>
                         </p>
                         <div class="flex items-center gap-2 mt-1">
                             <span

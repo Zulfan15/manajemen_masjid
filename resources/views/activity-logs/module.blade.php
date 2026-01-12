@@ -102,7 +102,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-700">
-                                    {{ Str::limit($log->description, 80) }}
+                                    {{ \Illuminate\Support\Str::limit($log->description, 80) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $log->ip_address ?? '-' }}

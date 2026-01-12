@@ -112,7 +112,7 @@
                                 <span class="text-gray-700">{{ $kondisi->petugas->name ?? $kondisi->petugas_pemeriksa ?? '-' }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-gray-600 text-sm">{{ Str::limit($kondisi->catatan, 50) ?? '-' }}</span>
+                                <span class="text-gray-600 text-sm">{{ \Illuminate\Support\Str::limit($kondisi->catatan, 50) ?? '-' }}</span>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center space-x-2">

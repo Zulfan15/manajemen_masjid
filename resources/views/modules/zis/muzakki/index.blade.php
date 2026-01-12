@@ -43,7 +43,8 @@
                 <div class="bg-amber-50 p-4 rounded-lg">
                     <p class="text-sm text-amber-600 mb-1">Total ZIS Diterima</p>
                     <p class="text-2xl font-bold text-amber-700">Rp
-                        {{ number_format(\App\Models\Transaksi::sum('nominal'), 0, ',', '.') }}</p>
+                        {{ number_format(\App\Models\Transaksi::sum('nominal'), 0, ',', '.') }}
+                    </p>
                 </div>
             </div>
 
@@ -68,7 +69,7 @@
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $muzakki->firstItem() + $index }}</td>
                                     <td class="px-6 py-4">
                                         <p class="font-medium text-gray-800">{{ $item->nama_lengkap }}</p>
-                                        <p class="text-sm text-gray-500">{{ Str::limit($item->alamat, 30) }}</p>
+                                        <p class="text-sm text-gray-500">{{ \Illuminate\Support\Str::limit($item->alamat, 30) }}</p>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $item->nik ?? '-' }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-600">{{ $item->no_hp }}</td>
