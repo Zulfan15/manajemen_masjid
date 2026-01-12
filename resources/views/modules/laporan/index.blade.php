@@ -404,12 +404,12 @@
             loadJamaahStats();
         });
 
-        // Tab Handler
-        const tabs = document.querySelectorAll(".tab-btn");
-        tabs.forEach(btn => {
-            btn.addEventListener("click", () => {
-                const target = btn.getAttribute("data-target");
-
+        // Tab Handler and URL Parameter Logic
+        document.addEventListener("DOMContentLoaded", () => {
+            const tabs = document.querySelectorAll(".tab-btn");
+            
+            // Function to activate tab
+            function activateTab(target) {
                 document.querySelectorAll(".tab-content").forEach(content => {
                     content.classList.add("hidden");
                 });
@@ -419,11 +419,40 @@
                     b.classList.add("text-gray-700", "border-transparent");
                 });
 
-                document.getElementById("content-" + target).classList.remove("hidden");
+                const contentEl = document.getElementById("content-" + target);
+                const btnEl = document.querySelector(`.tab-btn[data-target="${target}"]`);
 
-                btn.classList.add("active", "text-green-700", "border-green-700");
-                btn.classList.remove("text-gray-700", "border-transparent");
+                if (contentEl && btnEl) {
+                    contentEl.classList.remove("hidden");
+                    btnEl.classList.add("active", "text-green-700", "border-green-700");
+                    btnEl.classList.remove("text-gray-700", "border-transparent");
+
+                    // Auto fetch data if needed
+                    if (target === 'kegiatan') document.getElementById('btn-filter-kegiatan').click();
+                    if (target === 'zis') document.getElementById('btn-filter-zis').click();
+                    if (target === 'jamaah') document.getElementById('btn-filter-jamaah').click();
+                }
+            }
+
+            // Click Handler
+            tabs.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const target = btn.getAttribute("data-target");
+                    // Update URL without reload
+                    const url = new URL(window.location);
+                    url.searchParams.set('tab', target);
+                    window.history.pushState({}, '', url);
+                    
+                    activateTab(target);
+                });
             });
+
+            // Check URL Param on Load
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab');
+            if (activeTab) {
+                activateTab(activeTab);
+            }
         });
 
         // Kegiatan Chart
