@@ -390,6 +390,83 @@
         </div>
     </div>
 
+    {{-- Modal Edit --}}
+    <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold">
+                        <i class="fas fa-edit mr-2"></i>Edit Pemasukan
+                    </h3>
+                    <button onclick="closeEditModal()" class="text-white hover:text-blue-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            <form id="editForm" class="p-6">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="edit_id" id="edit_id">
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tanggal <span
+                                    class="text-red-500">*</span></label>
+                            <input type="date" name="tanggal" id="edit_tanggal" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Jenis <span
+                                    class="text-red-500">*</span></label>
+                            <select name="jenis" id="edit_jenis" required
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Pilih Jenis</option>
+                                <option value="Infaq">Infaq</option>
+                                <option value="Sedekah">Sedekah</option>
+                                <option value="Zakat">Zakat</option>
+                                <option value="Donasi">Donasi</option>
+                                <option value="Sewa">Sewa</option>
+                                <option value="Usaha">Usaha</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sumber <span
+                                class="text-red-500">*</span></label>
+                        <input type="text" name="sumber" id="edit_sumber" required placeholder="Nama donatur/sumber dana"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah (Rp) <span
+                                class="text-red-500">*</span></label>
+                        <input type="number" name="jumlah" id="edit_jumlah" required min="1" placeholder="0"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Keterangan</label>
+                        <textarea name="keterangan" id="edit_keterangan" rows="3" placeholder="Keterangan tambahan..."
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <button type="button" onclick="closeEditModal()"
+                        class="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition">
+                        <i class="fas fa-save mr-1"></i>Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     @php
         // Data untuk chart
         $chartLabels = [];
@@ -519,6 +596,77 @@
                     }
                 });
             }
+
+            // Edit Functions
+            async function editData(id) {
+                try {
+                    // Fetch data from server
+                    const response = await fetch(`{{ url('keuangan/pemasukan') }}/${id}/data`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Gagal mengambil data');
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Populate form fields
+                    document.getElementById('edit_id').value = data.id;
+                    document.getElementById('edit_tanggal').value = data.tanggal ? data.tanggal.split('T')[0] : '';
+                    document.getElementById('edit_jenis').value = data.jenis;
+                    document.getElementById('edit_sumber').value = data.sumber || '';
+                    document.getElementById('edit_jumlah').value = data.jumlah;
+                    document.getElementById('edit_keterangan').value = data.keterangan || '';
+                    
+                    // Open modal
+                    openEditModal();
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: 'Gagal!', text: error.message });
+                }
+            }
+
+            function openEditModal() {
+                document.getElementById('editModal').classList.remove('hidden');
+            }
+
+            function closeEditModal() {
+                document.getElementById('editModal').classList.add('hidden');
+                document.getElementById('editForm').reset();
+            }
+
+            // Edit form submission
+            document.getElementById('editForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const id = document.getElementById('edit_id').value;
+                const formData = new FormData(this);
+                
+                try {
+                    const response = await fetch(`{{ url('keuangan/pemasukan') }}/${id}`, {
+                        method: 'POST',
+                        headers: { 
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-HTTP-Method-Override': 'PUT'
+                        },
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        Swal.fire({ 
+                            icon: 'success', 
+                            title: 'Berhasil!', 
+                            text: 'Data pemasukan berhasil diperbarui', 
+                            timer: 2000 
+                        }).then(() => window.location.reload());
+                    } else {
+                        const errorData = await response.json();
+                        throw new Error(errorData.message || 'Gagal memperbarui data');
+                    }
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: 'Gagal!', text: error.message });
+                }
+            });
 
             // Filters
             document.getElementById('searchInput').addEventListener('keyup', filterTable);

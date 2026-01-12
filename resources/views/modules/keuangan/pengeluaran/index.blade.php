@@ -180,7 +180,8 @@
                         <select name="bulan" class="px-3 py-2 text-sm border border-gray-300 rounded-lg">
                             @for($i = 1; $i <= 12; $i++)
                                 <option value="{{ $i }}" {{ date('n') == $i ? 'selected' : '' }}>
-                                    {{ date('F', mktime(0, 0, 0, $i, 10)) }}</option>
+                                    {{ date('F', mktime(0, 0, 0, $i, 10)) }}
+                                </option>
                             @endfor
                         </select>
                         <select name="tahun" class="px-3 py-2 text-sm border border-gray-300 rounded-lg">
@@ -256,9 +257,11 @@
                                         </div>
                                         <div>
                                             <p class="text-sm font-medium text-gray-800">
-                                                {{ Carbon::parse($item->tanggal)->format('M Y') }}</p>
+                                                {{ Carbon::parse($item->tanggal)->format('M Y') }}
+                                            </p>
                                             <p class="text-xs text-gray-500">
-                                                {{ Carbon::parse($item->tanggal)->diffForHumans() }}</p>
+                                                {{ Carbon::parse($item->tanggal)->diffForHumans() }}
+                                            </p>
                                         </div>
                                     </div>
                                 </td>
@@ -289,8 +292,8 @@
                                 <td class="px-6 py-4">
                                     <div class="flex items-center justify-center gap-2">
                                         @if(auth()->user()->hasPermission('keuangan.update'))
-                                            <button
-                                                onclick="editData({{ $item->id }}, '{{ addslashes($item->judul_pengeluaran) }}', '{{ $item->kategori_id }}', '{{ $item->jumlah }}', '{{ $item->tanggal }}', '{{ addslashes($item->deskripsi) }}')"
+                                            <button type="button"
+                                                onclick="editData({{ $item->id }}, '{{ str_replace("'", "\\'", $item->judul_pengeluaran) }}', '{{ $item->kategori_id }}', '{{ $item->jumlah }}', '{{ \Carbon\Carbon::parse($item->tanggal)->format('Y-m-d') }}', '{{ str_replace("'", "\\'", $item->deskripsi ?? '') }}')"
                                                 class="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </button>
