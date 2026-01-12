@@ -46,10 +46,10 @@ class KegiatanController extends Controller
 
         // Search
         if ($request->filled('search')) {
-            $query->where(function($q) use ($request) {
+            $query->where(function ($q) use ($request) {
                 $q->where('nama_kegiatan', 'like', '%' . $request->search . '%')
-                  ->orWhere('deskripsi', 'like', '%' . $request->search . '%')
-                  ->orWhere('lokasi', 'like', '%' . $request->search . '%');
+                    ->orWhere('deskripsi', 'like', '%' . $request->search . '%')
+                    ->orWhere('lokasi', 'like', '%' . $request->search . '%');
             });
         }
 
@@ -149,7 +149,7 @@ class KegiatanController extends Controller
     public function show($id)
     {
         $kegiatan = Kegiatan::with(['peserta.user', 'peserta.absensi', 'creator'])->findOrFail($id);
-        
+
         $pesertaStats = [
             'total' => $kegiatan->peserta->count(),
             'terdaftar' => $kegiatan->peserta->where('status_pendaftaran', 'terdaftar')->count(),
@@ -310,11 +310,15 @@ class KegiatanController extends Controller
             $this->sendNotification($kegiatan, $peserta->user_id, 'konfirmasi');
 
             // Log activity
-            $this->activityLogService->log('register_peserta', 'kegiatan', 
-                "Mendaftar ke kegiatan: {$kegiatan->nama_kegiatan}", [
+            $this->activityLogService->log(
+                'register_peserta',
+                'kegiatan',
+                "Mendaftar ke kegiatan: {$kegiatan->nama_kegiatan}",
+                [
                     'kegiatan_id' => $kegiatanId,
                     'peserta_id' => $peserta->id,
-                ]);
+                ]
+            );
 
             DB::commit();
 
@@ -332,7 +336,7 @@ class KegiatanController extends Controller
     public function absensi($kegiatanId)
     {
         $kegiatan = Kegiatan::with(['peserta.user', 'peserta.absensi'])->findOrFail($kegiatanId);
-        
+
         return view('modules.kegiatan.absensi', compact('kegiatan'));
     }
 
@@ -368,12 +372,16 @@ class KegiatanController extends Controller
             }
 
             // Log activity
-            $this->activityLogService->log('catat_absensi', 'kegiatan', 
-                "Mencatat absensi kegiatan", [
+            $this->activityLogService->log(
+                'catat_absensi',
+                'kegiatan',
+                "Mencatat absensi kegiatan",
+                [
                     'kegiatan_id' => $kegiatanId,
                     'peserta_id' => $validated['peserta_id'],
                     'status' => $validated['status_kehadiran'],
-                ]);
+                ]
+            );
 
             DB::commit();
 
@@ -444,5 +452,65 @@ class KegiatanController extends Controller
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Export absensi data as CSV
+     */
+    public function exportAbsensi($kegiatanId)
+    {
+        $kegiatan = Kegiatan::with(['peserta.absensi', 'peserta.user'])->findOrFail($kegiatanId);
+
+        $filename = 'Absensi_' . str_replace(' ', '_', $kegiatan->nama_kegiatan) . '_' . date('Ymd') . '.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function () use ($kegiatan) {
+            $file = fopen('php://output', 'w');
+
+            // UTF-8 BOM for Excel compatibility
+            fprintf($file, chr(0xEF) . chr(0xBB) . chr(0xBF));
+
+            // Header row
+            fputcsv($file, [
+                'No',
+                'Nama Peserta',
+                'Email',
+                'No HP',
+                'Status Kehadiran',
+                'Waktu Absen',
+                'Keterangan'
+            ]);
+
+            $no = 1;
+            foreach ($kegiatan->peserta as $peserta) {
+                fputcsv($file, [
+                    $no++,
+                    $peserta->nama_peserta,
+                    $peserta->email ?? '-',
+                    $peserta->no_hp ?? '-',
+                    $peserta->absensi ? ucfirst(str_replace('_', ' ', $peserta->absensi->status_kehadiran)) : 'Belum Absen',
+                    $peserta->absensi ? $peserta->absensi->waktu_absen->format('d/m/Y H:i') : '-',
+                    $peserta->absensi->keterangan ?? '-'
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        // Log activity
+        $this->activityLogService->log(
+            'export_absensi',
+            'kegiatan',
+            "Export data absensi kegiatan: {$kegiatan->nama_kegiatan}",
+            [
+                'kegiatan_id' => $kegiatanId,
+            ]
+        );
+
+        return response()->stream($callback, 200, $headers);
     }
 }

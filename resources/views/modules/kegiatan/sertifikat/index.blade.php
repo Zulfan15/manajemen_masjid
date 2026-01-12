@@ -58,15 +58,15 @@
             <!-- Tabs -->
             <div class="border-b border-gray-200 mb-6">
                 <nav class="-mb-px flex gap-4">
-                    <button class="border-b-2 border-green-700 text-green-700 py-2 px-4 font-medium"
+                    <button id="btn-generate" class="border-b-2 border-green-700 text-green-700 py-2 px-4 font-medium"
                         onclick="showTab('generate')">
                         <i class="fas fa-plus-circle mr-2"></i>Generate Baru
                     </button>
-                    <button class="border-b-2 border-transparent text-gray-600 py-2 px-4 hover:text-gray-800"
+                    <button id="btn-history" class="border-b-2 border-transparent text-gray-600 py-2 px-4 hover:text-gray-800"
                         onclick="showTab('history')">
                         <i class="fas fa-history mr-2"></i>Riwayat Sertifikat
                     </button>
-                    <button class="border-b-2 border-transparent text-gray-600 py-2 px-4 hover:text-gray-800"
+                    <button id="btn-template" class="border-b-2 border-transparent text-gray-600 py-2 px-4 hover:text-gray-800"
                         onclick="showTab('template')">
                         <i class="fas fa-file-image mr-2"></i>Template
                     </button>
@@ -91,18 +91,22 @@
                         </div>
 
                         <form action="{{ route('kegiatan.sertifikat.generate') }}" method="POST"
-                            enctype="multipart/form-data" class="space-y-4">
+                            enctype="multipart/form-data" class="space-y-4" id="form-generate">
                             @csrf
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Pilih Kegiatan <span class="text-red-500">*</span>
                                 </label>
-                                <select name="kegiatan_id" required
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <select name="kegiatan_id" id="kegiatan_id" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    onchange="loadPeserta(); updatePreview();">
                                     <option value="">-- Pilih Kegiatan --</option>
                                     @foreach ($kegiatans as $kegiatan)
-                                        <option value="{{ $kegiatan->id }}">
+                                        <option value="{{ $kegiatan->id }}" 
+                                            data-nama="{{ $kegiatan->nama_kegiatan }}"
+                                            data-tanggal="{{ $kegiatan->tanggal_mulai->format('d M Y') }}"
+                                            data-jenis="{{ $kegiatan->jenis_kegiatan }}">
                                             {{ $kegiatan->nama_kegiatan }} - {{ $kegiatan->tanggal_mulai->format('d M Y') }}
                                         </option>
                                     @endforeach
@@ -113,8 +117,9 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Template Sertifikat <span class="text-red-500">*</span>
                                 </label>
-                                <select name="template" required
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <select name="template" id="template" required
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    onchange="updatePreview()">
                                     <option value="">-- Pilih Template --</option>
                                     <option value="kajian">Template Kajian (Hijau)</option>
                                     <option value="workshop">Template Workshop (Biru)</option>
@@ -129,7 +134,7 @@
                                 </label>
                                 <div class="flex gap-4">
                                     <label class="flex items-center">
-                                        <input type="radio" name="input_method" value="manual" checked class="mr-2"
+                                        <input type="radio" name="input_method" value="manual" class="mr-2"
                                             onchange="toggleInputMethod()">
                                         <span class="text-gray-700">Manual</span>
                                     </label>
@@ -139,14 +144,14 @@
                                         <span class="text-gray-700">Upload Excel</span>
                                     </label>
                                     <label class="flex items-center">
-                                        <input type="radio" name="input_method" value="from_peserta" class="mr-2"
+                                        <input type="radio" name="input_method" value="from_peserta" class="mr-2" checked
                                             onchange="toggleInputMethod()">
                                         <span class="text-gray-700">Dari Peserta</span>
                                     </label>
                                 </div>
                             </div>
 
-                            <div id="manual-input">
+                            <div id="manual-input" class="hidden">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">
                                     Daftar Nama Peserta <span class="text-red-500">*</span>
                                 </label>
@@ -166,13 +171,41 @@
                                 </p>
                             </div>
 
-                            <div id="from-peserta-input" class="hidden">
-                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div id="from-peserta-input">
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                                     <p class="text-sm text-blue-800">
                                         <i class="fas fa-info-circle mr-2"></i>
-                                        Sertifikat akan digenerate otomatis untuk semua peserta yang hadir pada kegiatan
-                                        yang dipilih.
+                                        Sertifikat akan digenerate otomatis untuk semua peserta yang hadir pada kegiatan yang dipilih.
                                     </p>
+                                </div>
+                                
+                                <!-- Daftar Peserta -->
+                                <div id="peserta-list" class="border border-gray-200 rounded-lg p-4">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <h4 class="font-medium text-gray-700">
+                                            <i class="fas fa-users text-green-600 mr-2"></i>
+                                            Pilih Peserta (<span id="peserta-count">0</span> terdaftar)
+                                        </h4>
+                                        <div class="flex gap-2">
+                                            <button type="button" onclick="selectAllPeserta()" class="text-xs px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">
+                                                <i class="fas fa-check-double mr-1"></i>Pilih Semua
+                                            </button>
+                                            <button type="button" onclick="deselectAllPeserta()" class="text-xs px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">
+                                                <i class="fas fa-times mr-1"></i>Batal Pilih
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="peserta-container" class="space-y-2 max-h-60 overflow-y-auto">
+                                        <p class="text-gray-500 text-sm text-center py-4">
+                                            <i class="fas fa-arrow-up mr-2"></i>Pilih kegiatan terlebih dahulu
+                                        </p>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-t border-gray-200">
+                                        <p class="text-sm text-green-700">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            <span id="selected-count">0</span> peserta dipilih
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
@@ -181,17 +214,19 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Nama Penandatangan
                                     </label>
-                                    <input type="text" name="ttd_pejabat"
+                                    <input type="text" name="ttd_pejabat" id="ttd_pejabat"
                                         placeholder="Contoh: Ustadz Ahmad Fauzi, Lc."
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                        onchange="updatePreview()">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">
                                         Jabatan
                                     </label>
-                                    <input type="text" name="jabatan_pejabat"
+                                    <input type="text" name="jabatan_pejabat" id="jabatan_pejabat"
                                         placeholder="Contoh: Ketua Takmir Masjid"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                        onchange="updatePreview()">
                                 </div>
                             </div>
 
@@ -209,10 +244,22 @@
                     <!-- Preview -->
                     <div>
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Preview Sertifikat</h3>
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
-                            <i class="fas fa-certificate text-6xl text-gray-300 mb-4"></i>
-                            <p class="text-gray-500">Preview akan muncul di sini</p>
-                            <p class="text-sm text-gray-400 mt-2">Pilih template dan isi data untuk melihat preview</p>
+                        <div id="preview-container">
+                            <div id="preview-empty" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+                                <i class="fas fa-certificate text-6xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500">Preview akan muncul di sini</p>
+                                <p class="text-sm text-gray-400 mt-2">Pilih template dan isi data untuk melihat preview</p>
+                            </div>
+                            
+                            <!-- Preview Sertifikat Aktif -->
+                            <div id="preview-active" class="hidden">
+                                <div id="sertifikat-preview" class="rounded-lg shadow-lg overflow-hidden" style="aspect-ratio: 1.414;">
+                                    <!-- Template akan di-render di sini -->
+                                </div>
+                                <p class="text-xs text-gray-500 text-center mt-3">
+                                    *Preview ini hanya simulasi, hasil akhir akan berbeda
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -255,19 +302,17 @@
                             @forelse($sertifikats as $sertifikat)
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 text-sm">
-                                        <code
-                                            class="bg-gray-100 px-2 py-1 rounded text-xs">{{ $sertifikat->nomor_sertifikat }}</code>
+                                        <code class="bg-gray-100 px-2 py-1 rounded text-xs">{{ $sertifikat->nomor_sertifikat }}</code>
                                     </td>
                                     <td class="px-6 py-4">
                                         <p class="font-semibold text-gray-800">{{ $sertifikat->nama_peserta }}</p>
-                                        <p class="text-xs text-gray-500">{{ $sertifikat->created_at->format('d M Y') }}
-                                        </p>
+                                        <p class="text-xs text-gray-500">{{ $sertifikat->created_at->format('d M Y') }}</p>
                                     </td>
                                     <td class="px-6 py-4 text-sm text-gray-600">
-                                        {{ \Illuminate\Support\Str::limit($sertifikat->nama_kegiatan, 30) }}</td>
+                                        {{ \Illuminate\Support\Str::limit($sertifikat->nama_kegiatan, 30) }}
+                                    </td>
                                     <td class="px-6 py-4">
-                                        <span
-                                            class="{{ $sertifikat->getTemplateBadgeClass() }} text-xs px-2 py-1 rounded">
+                                        <span class="{{ $sertifikat->getTemplateBadgeClass() }} text-xs px-2 py-1 rounded">
                                             {!! $sertifikat->getTemplateIcon() !!} {{ ucfirst($sertifikat->template) }}
                                         </span>
                                     </td>
@@ -286,8 +331,7 @@
                                                     onsubmit="return confirm('Yakin ingin menghapus sertifikat ini?')">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="text-red-600 hover:text-red-800"
-                                                        title="Hapus">
+                                                    <button type="submit" class="text-red-600 hover:text-red-800" title="Hapus">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>
@@ -318,27 +362,24 @@
             <!-- Tab: Template (Hidden by default) -->
             <div id="tab-template" class="hidden">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition cursor-pointer">
-                        <div
-                            class="bg-gradient-to-br from-green-100 to-green-200 h-40 rounded mb-3 flex items-center justify-center">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition cursor-pointer" onclick="selectTemplate('kajian')">
+                        <div class="bg-gradient-to-br from-green-100 to-green-200 h-40 rounded mb-3 flex items-center justify-center">
                             <i class="fas fa-certificate text-4xl text-green-700"></i>
                         </div>
                         <h4 class="font-semibold text-gray-800 mb-2">Template Kajian</h4>
                         <p class="text-sm text-gray-600">Template dengan tema hijau untuk kegiatan kajian</p>
                     </div>
 
-                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition cursor-pointer">
-                        <div
-                            class="bg-gradient-to-br from-blue-100 to-blue-200 h-40 rounded mb-3 flex items-center justify-center">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition cursor-pointer" onclick="selectTemplate('workshop')">
+                        <div class="bg-gradient-to-br from-blue-100 to-blue-200 h-40 rounded mb-3 flex items-center justify-center">
                             <i class="fas fa-certificate text-4xl text-blue-700"></i>
                         </div>
                         <h4 class="font-semibold text-gray-800 mb-2">Template Workshop</h4>
                         <p class="text-sm text-gray-600">Template dengan tema biru untuk workshop</p>
                     </div>
 
-                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition cursor-pointer">
-                        <div
-                            class="bg-gradient-to-br from-amber-100 to-amber-200 h-40 rounded mb-3 flex items-center justify-center">
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition cursor-pointer" onclick="selectTemplate('pelatihan')">
+                        <div class="bg-gradient-to-br from-amber-100 to-amber-200 h-40 rounded mb-3 flex items-center justify-center">
                             <i class="fas fa-certificate text-4xl text-amber-700"></i>
                         </div>
                         <h4 class="font-semibold text-gray-800 mb-2">Template Pelatihan</h4>
@@ -350,6 +391,8 @@
     </div>
 
     <script>
+        let selectedPeserta = [];
+        
         // Tab switching
         function showTab(tab) {
             // Hide all tabs
@@ -361,13 +404,16 @@
             document.getElementById('tab-' + tab).classList.remove('hidden');
 
             // Update tab buttons
-            const buttons = document.querySelectorAll('nav button');
-            buttons.forEach(btn => {
-                btn.classList.remove('border-green-700', 'text-green-700');
-                btn.classList.add('border-transparent', 'text-gray-600');
+            ['generate', 'history', 'template'].forEach(t => {
+                const btn = document.getElementById('btn-' + t);
+                if (t === tab) {
+                    btn.classList.remove('border-transparent', 'text-gray-600');
+                    btn.classList.add('border-green-700', 'text-green-700');
+                } else {
+                    btn.classList.remove('border-green-700', 'text-green-700');
+                    btn.classList.add('border-transparent', 'text-gray-600');
+                }
             });
-            event.target.classList.remove('border-transparent', 'text-gray-600');
-            event.target.classList.add('border-green-700', 'text-green-700');
         }
 
         // Input method toggle
@@ -381,11 +427,130 @@
             document.getElementById('from-peserta-input').classList.toggle('hidden', !fromPeserta);
         }
 
-        // Show history tab if there's search parameter
-        @if (request('tab') == 'history' || request('kegiatan_id') || (request('search') && $sertifikats->count() > 0))
-            document.addEventListener('DOMContentLoaded', function() {
+        // Load peserta berdasarkan kegiatan
+        function loadPeserta() {
+            const kegiatanId = document.getElementById('kegiatan_id').value;
+            const container = document.getElementById('peserta-container');
+            
+            if (!kegiatanId) {
+                container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4"><i class="fas fa-arrow-up mr-2"></i>Pilih kegiatan terlebih dahulu</p>';
+                document.getElementById('peserta-count').textContent = '0';
+                return;
+            }
+            
+            container.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin text-green-600 text-2xl"></i><p class="text-sm text-gray-500 mt-2">Memuat peserta...</p></div>';
+            
+            // Fetch peserta dari API
+            fetch(`{{ url('/kegiatan/sertifikat/peserta') }}?kegiatan_id=${kegiatanId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.peserta && data.peserta.length > 0) {
+                        let html = '';
+                        data.peserta.forEach((p, i) => {
+                            html += `
+                                <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                    <input type="checkbox" name="peserta_ids[]" value="${p.id}" 
+                                        class="peserta-checkbox h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                                        onchange="updateSelectedCount()" checked>
+                                    <div class="ml-3 flex-1">
+                                        <span class="font-medium text-gray-800">${p.nama}</span>
+                                        <span class="text-xs text-gray-500 ml-2">(${p.email || 'No email'})</span>
+                                    </div>
+                                </label>
+                            `;
+                        });
+                        container.innerHTML = html;
+                        document.getElementById('peserta-count').textContent = data.peserta.length;
+                        updateSelectedCount();
+                    } else {
+                        container.innerHTML = '<p class="text-gray-500 text-sm text-center py-4"><i class="fas fa-users-slash mr-2"></i>Tidak ada peserta yang hadir pada kegiatan ini</p>';
+                        document.getElementById('peserta-count').textContent = '0';
+                    }
+                })
+                .catch(error => {
+                    container.innerHTML = '<p class="text-red-500 text-sm text-center py-4"><i class="fas fa-exclamation-triangle mr-2"></i>Gagal memuat peserta</p>';
+                    console.error('Error:', error);
+                });
+        }
+        
+        function selectAllPeserta() {
+            document.querySelectorAll('.peserta-checkbox').forEach(cb => cb.checked = true);
+            updateSelectedCount();
+        }
+        
+        function deselectAllPeserta() {
+            document.querySelectorAll('.peserta-checkbox').forEach(cb => cb.checked = false);
+            updateSelectedCount();
+        }
+        
+        function updateSelectedCount() {
+            const count = document.querySelectorAll('.peserta-checkbox:checked').length;
+            document.getElementById('selected-count').textContent = count;
+        }
+        
+        // Update preview sertifikat
+        function updatePreview() {
+            const template = document.getElementById('template').value;
+            const kegiatan = document.getElementById('kegiatan_id');
+            const selectedOption = kegiatan.options[kegiatan.selectedIndex];
+            
+            if (!template) {
+                document.getElementById('preview-empty').classList.remove('hidden');
+                document.getElementById('preview-active').classList.add('hidden');
+                return;
+            }
+            
+            document.getElementById('preview-empty').classList.add('hidden');
+            document.getElementById('preview-active').classList.remove('hidden');
+            
+            const namaKegiatan = selectedOption?.getAttribute('data-nama') || 'Nama Kegiatan';
+            const jenisKegiatan = selectedOption?.getAttribute('data-jenis') || 'Kajian';
+            
+            // Template colors
+            const colors = {
+                'kajian': { bg: 'from-green-600 to-green-700', border: 'border-green-500', icon: 'text-green-100' },
+                'workshop': { bg: 'from-blue-600 to-blue-700', border: 'border-blue-500', icon: 'text-blue-100' },
+                'pelatihan': { bg: 'from-amber-600 to-amber-700', border: 'border-amber-500', icon: 'text-amber-100' },
+                'default': { bg: 'from-gray-600 to-gray-700', border: 'border-gray-500', icon: 'text-gray-100' }
+            };
+            
+            const c = colors[template] || colors['default'];
+            
+            document.getElementById('sertifikat-preview').innerHTML = `
+                <div class="bg-gradient-to-br ${c.bg} p-6 h-full flex flex-col items-center justify-center text-white relative border-8 ${c.border}">
+                    <div class="absolute top-4 left-4 opacity-20">
+                        <i class="fas fa-mosque text-6xl ${c.icon}"></i>
+                    </div>
+                    <div class="text-center z-10">
+                        <i class="fas fa-mosque text-4xl mb-3 opacity-80"></i>
+                        <h2 class="text-2xl font-bold mb-1">SERTIFIKAT</h2>
+                        <p class="text-sm opacity-90 mb-4">Diberikan Kepada</p>
+                        <div class="bg-white/20 px-6 py-3 rounded-lg mb-4">
+                            <h3 class="text-xl font-bold">NAMA PESERTA</h3>
+                        </div>
+                        <p class="text-sm opacity-90 mb-1">Telah mengikuti kegiatan</p>
+                        <p class="font-semibold text-lg">${namaKegiatan}</p>
+                        <p class="text-xs opacity-75 mt-4">Template: ${template.toUpperCase()}</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Select template dari tab Template
+        function selectTemplate(template) {
+            document.getElementById('template').value = template;
+            showTab('generate');
+            updatePreview();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleInputMethod();
+            
+            // Show history tab if there's search parameter
+            @if (request('tab') == 'history' || request('kegiatan_id') || (request('search') && $sertifikats->count() > 0))
                 showTab('history');
-            });
-        @endif
+            @endif
+        });
     </script>
 @endsection

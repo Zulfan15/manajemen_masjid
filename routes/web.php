@@ -169,6 +169,31 @@ Route::middleware('auth')->group(function () {
     // MODULE ROUTES - NAVIGATION ONLY (No Implementation)
     // =========================================================================
 
+    // =========================================================================
+    // JAMAAH KEGIATAN & ACARA (Untuk role jamaah - Read-Only + Registration)
+    // HARUS SEBELUM Jamaah Management karena /{jamaah} dynamic parameter!
+    // =========================================================================
+    Route::prefix('jamaah')->name('jamaah.')->group(function () {
+        // Pengumuman (Read-only untuk jamaah)
+        Route::prefix('pengumuman')->name('pengumuman.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Jamaah\PengumumanController::class, 'index'])->name('index');
+            Route::get('/{id}', [\App\Http\Controllers\Jamaah\PengumumanController::class, 'show'])->name('show');
+        });
+
+        // Kegiatan (Read + Registration untuk jamaah)
+        Route::prefix('kegiatan')->name('kegiatan.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Jamaah\KegiatanController::class, 'index'])->name('index');
+            Route::get('/{id}', [\App\Http\Controllers\Jamaah\KegiatanController::class, 'show'])->name('show');
+            Route::post('/{id}/register', [\App\Http\Controllers\Jamaah\KegiatanController::class, 'register'])->name('register');
+        });
+
+        // Sertifikat Saya (Read + Download untuk jamaah)
+        Route::prefix('sertifikat')->name('sertifikat.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Jamaah\SertifikatController::class, 'index'])->name('index');
+            Route::get('/{id}/download', [\App\Http\Controllers\Jamaah\SertifikatController::class, 'download'])->name('download');
+        });
+    });
+
     // Module 1: Jamaah Management
     Route::middleware(['module.access:jamaah'])->prefix('jamaah')->name('jamaah.')->group(function () {
         // Dashboard & List
@@ -264,6 +289,7 @@ Route::middleware('auth')->group(function () {
         // Generate Sertifikat
         Route::prefix('sertifikat')->name('sertifikat.')->group(function () {
             Route::get('/', [SertifikatController::class, 'index'])->name('index');
+            Route::get('/my', [SertifikatController::class, 'mySertifikat'])->name('my');
             Route::post('/generate', [SertifikatController::class, 'generate'])->name('generate')->middleware('permission:kegiatan.create');
             Route::get('/{sertifikat}/download', [SertifikatController::class, 'download'])->name('download');
             Route::post('/download-batch', [SertifikatController::class, 'downloadBatch'])->name('download-batch')->middleware('permission:kegiatan.create');
@@ -282,6 +308,7 @@ Route::middleware('auth')->group(function () {
         // Absensi
         Route::get('/{id}/absensi', [App\Http\Controllers\KegiatanController::class, 'absensi'])->name('absensi')->middleware('permission:kegiatan.update');
         Route::post('/{id}/absensi', [App\Http\Controllers\KegiatanController::class, 'storeAbsensi'])->name('absensi.store')->middleware('permission:kegiatan.update');
+        Route::get('/{id}/absensi/export', [App\Http\Controllers\KegiatanController::class, 'exportAbsensi'])->name('absensi.export')->middleware('permission:kegiatan.update');
 
         // Notifikasi
         Route::post('/{id}/broadcast', [App\Http\Controllers\KegiatanController::class, 'broadcastNotification'])->name('broadcast')->middleware('permission:kegiatan.create');
@@ -293,11 +320,52 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [App\Http\Controllers\KegiatanController::class, 'destroy'])->name('destroy')->middleware('permission:kegiatan.delete');
     });
 
-    // Module 4: ZIS Management
+    // Module 4: ZIS Management (Zakat, Infak, Sedekah)
     Route::middleware(['module.access:zis'])->prefix('zis')->name('zis.')->group(function () {
-        Route::get('/', function () {
-            return view('modules.zis.index');
-        })->name('index');
+        // Dashboard
+        Route::get('/', [App\Http\Controllers\ZISDashboardController::class, 'index'])->name('index');
+
+        // Mustahiq (Penerima Zakat)
+        Route::prefix('mustahiq')->name('mustahiq.')->group(function () {
+            Route::get('/', [App\Http\Controllers\ZISMustahiqController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\ZISMustahiqController::class, 'create'])->name('create')->middleware('permission:zis.create');
+            Route::post('/', [App\Http\Controllers\ZISMustahiqController::class, 'store'])->name('store')->middleware('permission:zis.create');
+            Route::get('/{mustahiq}/edit', [App\Http\Controllers\ZISMustahiqController::class, 'edit'])->name('edit')->middleware('permission:zis.update');
+            Route::put('/{mustahiq}', [App\Http\Controllers\ZISMustahiqController::class, 'update'])->name('update')->middleware('permission:zis.update');
+            Route::delete('/{mustahiq}', [App\Http\Controllers\ZISMustahiqController::class, 'destroy'])->name('destroy')->middleware('permission:zis.delete');
+        });
+
+        // Muzakki (Pemberi Zakat)
+        Route::prefix('muzakki')->name('muzakki.')->group(function () {
+            Route::get('/', [App\Http\Controllers\ZISMuzakkiController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\ZISMuzakkiController::class, 'create'])->name('create')->middleware('permission:zis.create');
+            Route::post('/', [App\Http\Controllers\ZISMuzakkiController::class, 'store'])->name('store')->middleware('permission:zis.create');
+            Route::get('/{muzakki}/edit', [App\Http\Controllers\ZISMuzakkiController::class, 'edit'])->name('edit')->middleware('permission:zis.update');
+            Route::put('/{muzakki}', [App\Http\Controllers\ZISMuzakkiController::class, 'update'])->name('update')->middleware('permission:zis.update');
+            Route::delete('/{muzakki}', [App\Http\Controllers\ZISMuzakkiController::class, 'destroy'])->name('destroy')->middleware('permission:zis.delete');
+        });
+
+        // Transaksi (Input Zakat/Infak/Sedekah)
+        Route::prefix('transaksi')->name('transaksi.')->group(function () {
+            Route::get('/', [App\Http\Controllers\ZISTransaksiController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\ZISTransaksiController::class, 'create'])->name('create')->middleware('permission:zis.create');
+            Route::post('/', [App\Http\Controllers\ZISTransaksiController::class, 'store'])->name('store')->middleware('permission:zis.create');
+            Route::delete('/{transaksi}', [App\Http\Controllers\ZISTransaksiController::class, 'destroy'])->name('destroy')->middleware('permission:zis.delete');
+        });
+
+        // Penyaluran (Distribusi Zakat)
+        Route::prefix('penyaluran')->name('penyaluran.')->group(function () {
+            Route::get('/', [App\Http\Controllers\ZISPenyaluranController::class, 'index'])->name('index');
+            Route::get('/create', [App\Http\Controllers\ZISPenyaluranController::class, 'create'])->name('create')->middleware('permission:zis.create');
+            Route::post('/', [App\Http\Controllers\ZISPenyaluranController::class, 'store'])->name('store')->middleware('permission:zis.create');
+            Route::delete('/{penyaluran}', [App\Http\Controllers\ZISPenyaluranController::class, 'destroy'])->name('destroy')->middleware('permission:zis.delete');
+        });
+
+        // Laporan ZIS
+        Route::prefix('laporan')->name('laporan.')->group(function () {
+            Route::get('/', [App\Http\Controllers\ZISLaporanController::class, 'index'])->name('index');
+            Route::get('/export/pdf', [App\Http\Controllers\ZISLaporanController::class, 'exportPdf'])->name('export.pdf');
+        });
     });
 
     // Module 6: Inventory Management

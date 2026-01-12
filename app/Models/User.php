@@ -141,6 +141,11 @@ class User extends Authenticatable
             return true;
         }
 
+        // Jamaah can access kegiatan module (view only features)
+        if ($module === 'kegiatan' && $this->hasRole('jamaah')) {
+            return true;
+        }
+
         // Check if user has any role related to the module
         return $this->hasAnyRole([
             "admin_{$module}",
@@ -174,6 +179,11 @@ class User extends Authenticatable
             if (preg_match('/^(admin|pengurus)_(.+)$/', $role, $matches)) {
                 $modules[] = $matches[2];
             }
+        }
+
+        // Jamaah can access kegiatan module
+        if ($this->hasRole('jamaah') && !in_array('kegiatan', $modules)) {
+            $modules[] = 'kegiatan';
         }
 
         return array_unique($modules);
@@ -258,8 +268,8 @@ class User extends Authenticatable
      */
     public function canViewKeuangan(): bool
     {
-        return $this->isSuperAdmin() || 
-               $this->hasRole(['admin_keuangan', 'pengurus_keuangan']);
+        return $this->isSuperAdmin() ||
+            $this->hasRole(['admin_keuangan', 'pengurus_keuangan']);
     }
 
     /**
@@ -268,6 +278,6 @@ class User extends Authenticatable
     public function canManageKeuangan(): bool
     {
         return $this->isSuperAdmin() ||
-               $this->hasRole(['admin_keuangan', 'pengurus_keuangan']);
+            $this->hasRole(['admin_keuangan', 'pengurus_keuangan']);
     }
 }

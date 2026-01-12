@@ -182,11 +182,36 @@
                             @endif
                         </div>
 
-                        @if (!auth()->user()->isSuperAdmin() && $kegiatan->status == 'direncanakan')
-                            <a href="{{ route('kegiatan.absensi', $kegiatan->id) }}"
-                                class="block w-full px-4 py-3 bg-orange-600 text-white text-center rounded-lg hover:bg-orange-700 transition">
-                                <i class="fas fa-clipboard-check mr-2"></i>Kelola Absensi
-                            </a>
+                        @if (!auth()->user()->isSuperAdmin() && in_array($kegiatan->status, ['direncanakan', 'berlangsung']))
+                            <div class="space-y-2">
+                                <a href="{{ route('kegiatan.absensi', $kegiatan->id) }}"
+                                    class="block w-full px-4 py-3 bg-orange-600 text-white text-center rounded-lg hover:bg-orange-700 transition">
+                                    <i class="fas fa-clipboard-check mr-2"></i>Kelola Absensi
+                                </a>
+                                
+                                <!-- Broadcast Notification -->
+                                <div x-data="{ open: false }" class="relative">
+                                    <button @click="open = !open" 
+                                        class="w-full px-4 py-3 bg-indigo-600 text-white text-center rounded-lg hover:bg-indigo-700 transition">
+                                        <i class="fas fa-bell mr-2"></i>Broadcast Notifikasi
+                                    </button>
+                                    <div x-show="open" @click.away="open = false" 
+                                        class="absolute right-0 mt-2 w-full bg-white rounded-lg shadow-lg z-10 border">
+                                        <form action="{{ route('kegiatan.broadcast', $kegiatan->id) }}" method="POST" class="p-3">
+                                            @csrf
+                                            <p class="text-sm text-gray-600 mb-3">Kirim notifikasi ke semua jamaah:</p>
+                                            <select name="tipe" class="w-full px-3 py-2 border rounded-lg mb-3 text-sm">
+                                                <option value="info">Info Kegiatan</option>
+                                                <option value="reminder">Pengingat</option>
+                                                <option value="pengumuman">Pengumuman</option>
+                                            </select>
+                                            <button type="submit" class="w-full px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">
+                                                <i class="fas fa-paper-plane mr-1"></i>Kirim
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
                         @endif
                     </div>
                 </div>

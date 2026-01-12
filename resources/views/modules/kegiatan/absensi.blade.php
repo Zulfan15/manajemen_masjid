@@ -22,10 +22,18 @@
                         <i class="fas fa-clock ml-3 mr-1"></i>{{ date('H:i', strtotime($kegiatan->waktu_mulai)) }} WIB
                     </p>
                 </div>
-                <a href="{{ route('kegiatan.show', $kegiatan->id) }}"
-                    class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
-                    <i class="fas fa-arrow-left mr-2"></i>Kembali
-                </a>
+                <div class="flex gap-2">
+                    @if($kegiatan->peserta->count() > 0)
+                        <a href="{{ route('kegiatan.absensi.export', $kegiatan->id) }}"
+                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center">
+                            <i class="fas fa-file-export mr-2"></i>Export CSV
+                        </a>
+                    @endif
+                    <a href="{{ route('kegiatan.show', $kegiatan->id) }}"
+                        class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+                        <i class="fas fa-arrow-left mr-2"></i>Kembali
+                    </a>
+                </div>
             </div>
 
             <!-- Stats -->
@@ -92,8 +100,7 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         @if ($peserta->absensi)
-                                            <span
-                                                class="px-3 py-1 {{ $peserta->absensi->getStatusBadgeClass() }} text-sm rounded-full">
+                                            <span class="px-3 py-1 {{ $peserta->absensi->getStatusBadgeClass() }} text-sm rounded-full">
                                                 {{ ucfirst(str_replace('_', ' ', $peserta->absensi->status_kehadiran)) }}
                                             </span>
                                         @else
@@ -179,8 +186,7 @@
                         </label>
                         <label
                             class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                            <input type="radio" name="status_kehadiran" value="izin"
-                                class="mr-3 h-4 w-4 text-yellow-600">
+                            <input type="radio" name="status_kehadiran" value="izin" class="mr-3 h-4 w-4 text-yellow-600">
                             <div>
                                 <p class="font-medium text-gray-800">Izin</p>
                                 <p class="text-sm text-gray-500">Peserta izin tidak hadir</p>
@@ -188,8 +194,7 @@
                         </label>
                         <label
                             class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                            <input type="radio" name="status_kehadiran" value="sakit"
-                                class="mr-3 h-4 w-4 text-orange-600">
+                            <input type="radio" name="status_kehadiran" value="sakit" class="mr-3 h-4 w-4 text-orange-600">
                             <div>
                                 <p class="font-medium text-gray-800">Sakit</p>
                                 <p class="text-sm text-gray-500">Peserta sakit</p>
@@ -205,8 +210,7 @@
                 </div>
 
                 <div class="flex gap-3">
-                    <button type="submit"
-                        class="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
+                    <button type="submit" class="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
                         <i class="fas fa-save mr-2"></i>Simpan
                     </button>
                     <button type="button" onclick="closeAbsensiModal()"
@@ -238,7 +242,7 @@
         }
 
         // Close modal when clicking outside
-        document.getElementById('absensiModal').addEventListener('click', function(e) {
+        document.getElementById('absensiModal').addEventListener('click', function (e) {
             if (e.target === this) {
                 closeAbsensiModal();
             }

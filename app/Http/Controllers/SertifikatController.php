@@ -70,12 +70,12 @@ class SertifikatController extends Controller
         ]);
 
         $kegiatan = Kegiatan::findOrFail($validated['kegiatan_id']);
-        
+
         // Validate kegiatan has required fields
         if (empty($kegiatan->nama_kegiatan)) {
             return back()->with('error', 'Data kegiatan tidak lengkap. Nama kegiatan tidak ditemukan.');
         }
-        
+
         $pesertaList = [];
 
         // Get participants based on input method
@@ -93,7 +93,7 @@ class SertifikatController extends Controller
                 })
                 ->with('user')
                 ->get();
-            
+
             foreach ($peserta as $p) {
                 $pesertaList[] = $p->user ? $p->user->name : $p->nama_peserta;
             }
@@ -108,7 +108,8 @@ class SertifikatController extends Controller
         $urutan = Sertifikat::where('kegiatan_id', $kegiatan->id)->count() + 1;
 
         foreach ($pesertaList as $namaPeserta) {
-            if (empty($namaPeserta)) continue;
+            if (empty($namaPeserta))
+                continue;
 
             $sertifikat = Sertifikat::create([
                 'kegiatan_id' => $kegiatan->id,
@@ -155,15 +156,15 @@ class SertifikatController extends Controller
         $pdf = Pdf::loadView('modules.kegiatan.sertifikat.pdf', [
             'sertifikat' => $sertifikat
         ]);
-        
+
         // Set paper to A4 landscape
         $pdf->setPaper('a4', 'landscape');
-        
+
         // Generate filename - remove special characters
         $cleanName = preg_replace('/[^A-Za-z0-9\-]/', '_', $sertifikat->nama_peserta);
         $cleanNumber = preg_replace('/[^A-Za-z0-9\-]/', '_', $sertifikat->nomor_sertifikat);
         $filename = 'Sertifikat_' . $cleanName . '_' . $cleanNumber . '.pdf';
-        
+
         // Log activity
         $this->activityLog->log(
             'download',
@@ -171,7 +172,7 @@ class SertifikatController extends Controller
             "Download sertifikat: {$sertifikat->nomor_sertifikat} - {$sertifikat->nama_peserta}",
             ['sertifikat_id' => $sertifikat->id]
         );
-        
+
         return $pdf->download($filename);
     }
 
@@ -226,7 +227,7 @@ class SertifikatController extends Controller
     public function getPeserta(Request $request)
     {
         $kegiatanId = $request->input('kegiatan_id');
-        
+
         $peserta = KegiatanPeserta::where('kegiatan_id', $kegiatanId)
             ->whereHas('absensi', function ($q) {
                 $q->where('status_kehadiran', 'hadir');
@@ -235,11 +236,31 @@ class SertifikatController extends Controller
             ->get()
             ->map(function ($p) {
                 return [
+                    'id' => $p->id,
                     'nama' => $p->user ? $p->user->name : $p->nama_peserta,
-                    'email' => $p->email,
+                    'email' => $p->email ?? ($p->user ? $p->user->email : null),
                 ];
             });
 
-        return response()->json($peserta);
+        return response()->json(['peserta' => $peserta]);
+    }
+
+    /**
+     * Display "My Certificates" for logged-in jamaah
+     */
+    public function mySertifikat()
+    {
+        $user = Auth::user();
+
+        // Get certificates by searching nama_peserta that matches user's name
+        $sertifikats = Sertifikat::with(['kegiatan'])
+            ->where('nama_peserta', $user->name)
+            ->orWhereHas('kegiatan.peserta', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(12);
+
+        return view('modules.kegiatan.sertifikat.my', compact('sertifikats'));
     }
 }

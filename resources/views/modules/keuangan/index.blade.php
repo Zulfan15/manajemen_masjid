@@ -70,21 +70,42 @@
             ->groupBy('jenis')
             ->pluck('total', 'jenis');
 
-        $pengeluaranPerKategori = Pengeluaran::selectRaw('kategori_id, SUM(jumlah) as total')
-            ->groupBy('kategori_id')
-            ->with('kategori')
+        // Ambil data pengeluaran per kategori dengan benar
+        $pengeluaranPerKategori = \Illuminate\Support\Facades\DB::table('pengeluaran')
+            ->join('kategori_pengeluaran', 'pengeluaran.kategori_id', '=', 'kategori_pengeluaran.id')
+            ->select('kategori_pengeluaran.nama_kategori', \Illuminate\Support\Facades\DB::raw('SUM(pengeluaran.jumlah) as total'))
+            ->groupBy('kategori_pengeluaran.nama_kategori')
             ->get();
 
         // ===== TRANSAKSI TERBARU =====
-        $transaksiTerbaru = collect();
+        $pemasukanRecent = Pemasukan::latest('tanggal')->take(5)->get();
+        $pengeluaranRecent = Pengeluaran::with('kategori')->latest('tanggal')->take(5)->get();
 
-        $pemasukanRecent = Pemasukan::latest('tanggal')->take(5)->get()
-            ->map(fn($item) => ['type' => 'pemasukan', 'tanggal' => $item->tanggal, 'deskripsi' => $item->sumber . ' - ' . $item->jenis, 'jumlah' => $item->jumlah, 'status' => $item->status]);
+        // Gabungkan dan sorting
+        $allTransaksi = collect();
 
-        $pengeluaranRecent = Pengeluaran::with('kategori')->latest('tanggal')->take(5)->get()
-            ->map(fn($item) => ['type' => 'pengeluaran', 'tanggal' => $item->tanggal, 'deskripsi' => $item->judul_pengeluaran, 'jumlah' => $item->jumlah, 'status' => 'verified', 'kategori' => $item->kategori->nama_kategori ?? '-']);
+        foreach ($pemasukanRecent as $item) {
+            $allTransaksi->push([
+                'type' => 'pemasukan',
+                'tanggal' => $item->tanggal,
+                'deskripsi' => ($item->sumber ?? 'Anonim') . ' - ' . $item->jenis,
+                'jumlah' => $item->jumlah,
+                'status' => $item->status,
+            ]);
+        }
 
-        $transaksiTerbaru = $pemasukanRecent->merge($pengeluaranRecent)->sortByDesc('tanggal')->take(10);
+        foreach ($pengeluaranRecent as $item) {
+            $allTransaksi->push([
+                'type' => 'pengeluaran',
+                'tanggal' => $item->tanggal,
+                'deskripsi' => $item->judul_pengeluaran,
+                'jumlah' => $item->jumlah,
+                'status' => 'verified',
+                'kategori' => $item->kategori->nama_kategori ?? '-',
+            ]);
+        }
+
+        $transaksiTerbaru = $allTransaksi->sortByDesc('tanggal')->take(10)->values();
     @endphp
 
     <div class="container mx-auto px-4 py-6">
@@ -309,7 +330,7 @@
                 <div class="mt-4 space-y-2">
                     @foreach($pengeluaranPerKategori as $item)
                         <div class="flex justify-between text-sm">
-                            <span class="text-gray-600">{{ $item->kategori->nama_kategori ?? 'Lainnya' }}</span>
+                            <span class="text-gray-600">{{ $item->nama_kategori ?? 'Lainnya' }}</span>
                             <span class="font-medium text-gray-800">Rp {{ number_format($item->total, 0, ',', '.') }}</span>
                         </div>
                     @endforeach
@@ -329,12 +350,13 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
                                     <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3
-                                        {{ $trx['type'] == 'pemasukan' ? 'bg-green-100' : 'bg-red-100' }}">
+                                                        {{ $trx['type'] == 'pemasukan' ? 'bg-green-100' : 'bg-red-100' }}">
                                         <i
                                             class="fas {{ $trx['type'] == 'pemasukan' ? 'fa-arrow-up text-green-600' : 'fa-arrow-down text-red-600' }}"></i>
                                     </div>
                                     <div>
-                                        <p class="font-medium text-gray-800 text-sm">{{ Str::limit($trx['deskripsi'], 25) }}</p>
+                                        <p class="font-medium text-gray-800 text-sm">
+                                            {{ \Illuminate\Support\Str::limit($trx['deskripsi'], 25) }}</p>
                                         <p class="text-xs text-gray-500">{{ Carbon::parse($trx['tanggal'])->format('d M Y') }}
                                         </p>
                                     </div>
@@ -477,7 +499,7 @@
             new Chart(document.getElementById('pieChartPengeluaran').getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: {!! json_encode($pengeluaranPerKategori->pluck('kategori.nama_kategori')) !!},
+                    labels: {!! json_encode($pengeluaranPerKategori->pluck('nama_kategori')) !!},
                     datasets: [{
                         data: {!! json_encode($pengeluaranPerKategori->pluck('total')) !!},
                         backgroundColor: ['#EF4444', '#3B82F6', '#F59E0B', '#10B981', '#8B5CF6', '#EC4899'],
