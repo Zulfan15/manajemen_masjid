@@ -13,60 +13,66 @@ use Illuminate\Support\Facades\Http;
 class InformasiController extends Controller
 {
     public function publicIndex()
-{
-    $pengumuman = Announcement::orderBy('start_date', 'DESC')->get();
-    $berita     = News::latest()->get();
-    $artikel    = Article::latest()->get();
+    {
+        $pengumuman = Announcement::orderBy('start_date', 'DESC')->get();
+        $berita = News::latest()->get();
+        $artikel = Article::latest()->get();
 
-    // panggil API jadwal sholat
-    $jadwalSholat = $this->getJadwalSholat();
+        // panggil API jadwal sholat
+        $jadwalSholat = $this->getJadwalSholat();
 
-    return view('modules.informasi.public_landing', compact(
-        'pengumuman',
-        'berita',
-        'artikel',
-        'jadwalSholat'
-    ));
-}
+        return view('modules.informasi.public_landing', compact(
+            'pengumuman',
+            'berita',
+            'artikel',
+            'jadwalSholat'
+        ));
+    }
     private function getJadwalSholat()
-{
-    // Ambil lokasi (contoh: Surabaya)
-    $kota = "Bandung";
+    {
+        // Default jadwal sholat (fallback)
+        $defaultJadwal = [
+            'Subuh' => '04:30',
+            'Dzuhur' => '12:00',
+            'Ashar' => '15:15',
+            'Maghrib' => '18:00',
+            'Isya' => '19:15',
+        ];
 
-    // Format tanggal
-    $today = now()->format('d-m-Y');
-
-    try {
-        $response = Http::get("https://api.aladhan.com/v1/timingsByCity", [
-            'city'      => $kota,
-            'country'   => 'Indonesia',
-            'method'    => 2
-        ]);
-
-        if ($response->successful()) {
-
-            $data = $response->json()['data']['timings'];
-
-            return [
-                'Subuh'   => $data['Fajr'],
-                'Dzuhur'  => $data['Dhuhr'],
-                'Ashar'   => $data['Asr'],
-                'Maghrib' => $data['Maghrib'],
-                'Isya'    => $data['Isha'],
-            ];
+        // Cek apakah Guzzle tersedia
+        if (!class_exists(\GuzzleHttp\Client::class)) {
+            return $defaultJadwal;
         }
 
-    } catch (\Exception $e) {
-        // Jika API error -> fallback default
-        return [
-            'Subuh'   => '--:--',
-            'Dzuhur'  => '--:--',
-            'Ashar'   => '--:--',
-            'Maghrib' => '--:--',
-            'Isya'    => '--:--',
-        ];
+        // Ambil lokasi (contoh: Bandung)
+        $kota = "Bandung";
+
+        try {
+            $response = Http::timeout(5)->get("https://api.aladhan.com/v1/timingsByCity", [
+                'city' => $kota,
+                'country' => 'Indonesia',
+                'method' => 2
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json()['data']['timings'];
+
+                return [
+                    'Subuh' => $data['Fajr'],
+                    'Dzuhur' => $data['Dhuhr'],
+                    'Ashar' => $data['Asr'],
+                    'Maghrib' => $data['Maghrib'],
+                    'Isya' => $data['Isha'],
+                ];
+            }
+
+            return $defaultJadwal;
+
+        } catch (\Exception $e) {
+            // Jika API error -> fallback default
+            return $defaultJadwal;
+        }
     }
-}
 
     public function publicShow($slug)
     {
@@ -87,8 +93,8 @@ class InformasiController extends Controller
 
         // Ambil data sesuai kebutuhan (sesuaikan pagination jika perlu)
         $pengumuman = Announcement::latest()->take(20)->get();
-        $berita     = News::latest()->take(20)->get();
-        $artikel    = Article::with('category')->latest()->take(20)->get();
+        $berita = News::latest()->take(20)->get();
+        $artikel = Article::with('category')->latest()->take(20)->get();
 
         return response()->view('modules.informasi.index', [
             'tab' => $tab,
