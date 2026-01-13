@@ -18,7 +18,7 @@ class PesertaKurban extends Model
         'kurban_id',
         'user_id',
         'nama_peserta',
-        'bin_binti',
+        'bin_binti',         // Baru: Tambahan kolom Bin/Binti
         'nomor_identitas',
         'nomor_telepon',
         'alamat',
@@ -50,7 +50,7 @@ class PesertaKurban extends Model
     }
 
     /**
-     * Relasi ke User (jika peserta adalah user)
+     * Relasi ke User (jika peserta adalah user sistem)
      */
     public function user(): BelongsTo
     {
@@ -112,22 +112,26 @@ class PesertaKurban extends Model
     }
 
     /**
-     * Update status pembayaran
+     * Update status pembayaran sekaligus set tanggal bayar jika lunas
      */
     public function updateStatusPembayaran(string $status, ?int $userId = null): bool
     {
         $this->status_pembayaran = $status;
+        
+        // Auto set tanggal pembayaran hari ini jika status berubah jadi lunas
         if ($status === 'lunas' && is_null($this->tanggal_pembayaran)) {
             $this->tanggal_pembayaran = now()->toDateString();
         }
+        
         if ($userId) {
             $this->updated_by = $userId;
         }
+        
         return $this->save();
     }
 
     /**
-     * Dapatkan nama peserta atau nama user
+     * Dapatkan nama peserta (prioritas nama manual, fallback nama user)
      */
     public function getNamaPesertaLengkap(): string
     {

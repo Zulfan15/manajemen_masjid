@@ -18,9 +18,9 @@ class Kurban extends Model
     protected $fillable = [
         'nomor_kurban',
         'jenis_hewan',
-        'jenis_kelamin',
+        'jenis_kelamin',     // Baru
         'nama_hewan',
-        'max_kuota',
+        'max_kuota',         // Baru
         'berat_badan',
         'kondisi_kesehatan',
         'tanggal_persiapan',
@@ -28,8 +28,8 @@ class Kurban extends Model
         'harga_hewan',
         'biaya_operasional',
         'total_biaya',
-        'total_berat_daging',
-        'harga_per_bagian',
+        'total_berat_daging', // Baru
+        'harga_per_bagian',   // Baru
         'status',
         'catatan',
         'created_by',
@@ -94,10 +94,10 @@ class Kurban extends Model
             ->dontSubmitEmptyLogs();
     }
 
-    // ===== HELPER METHODS =====
+    // ===== HELPER METHODS (BASIC) =====
 
     /**
-     * Hitung total peserta kurban
+     * Hitung total peserta kurban (Jumlah Orang)
      */
     public function totalPeserta(): int
     {
@@ -124,33 +124,28 @@ class Kurban extends Model
             ->sum('berat_daging');
     }
 
-    /**
-     * Check apakah kurban sudah bisa disembelih
-     */
+    // ===== STATUS CHECKS =====
+
     public function bisaDipersiapkan(): bool
     {
         return $this->status === 'disiapkan';
     }
 
-    /**
-     * Check apakah kurban siap disembelih
-     */
     public function bisaDiyembelih(): bool
     {
         return $this->status === 'siap_sembelih';
     }
 
-    /**
-     * Check apakah kurban sudah disembelih
-     */
     public function sudahDisembelih(): bool
     {
         return in_array($this->status, ['disembelih', 'didistribusi', 'selesai']);
     }
 
+    // ===== LOGIKA KUOTA & PERHITUNGAN =====
+
     /**
-     * Get maximum quota based on animal type
-     * Sapi: max 7 people, Kambing/Domba: max 1 person
+     * Dapatkan Max Kuota berdasarkan jenis hewan
+     * Sapi: 7, Kambing/Domba: 1
      */
     public function getMaxKuotaByJenisHewan(): int
     {
@@ -162,17 +157,18 @@ class Kurban extends Model
     }
 
     /**
-     * Calculate current quota usage (total participants)
+     * Hitung penggunaan kuota saat ini.
+     * Menggunakan SUM(jumlah_bagian) bukan COUNT(), karena 1 orang bisa ambil 2 bagian sapi.
      */
-    public function getCurrentKuotaUsage(): int
+    public function getCurrentKuotaUsage(): float
     {
-        return $this->pesertaKurbans()->count();
+        return (float) $this->pesertaKurbans()->sum('jumlah_bagian');
     }
 
     /**
-     * Get remaining quota slots
+     * Sisa slot yang tersedia
      */
-    public function getSisaKuota(): int
+    public function getSisaKuota(): float
     {
         $maxKuota = $this->max_kuota ?: $this->getMaxKuotaByJenisHewan();
         $currentUsage = $this->getCurrentKuotaUsage();
@@ -180,7 +176,7 @@ class Kurban extends Model
     }
 
     /**
-     * Check if quota is full
+     * Cek apakah kuota sudah penuh
      */
     public function isKuotaFull(): bool
     {
@@ -188,7 +184,7 @@ class Kurban extends Model
     }
 
     /**
-     * Get quota fill percentage
+     * Persentase keterisian kuota (untuk Progress Bar)
      */
     public function getKuotaPercentage(): float
     {
@@ -200,32 +196,32 @@ class Kurban extends Model
     }
 
     /**
-     * Validate if new participant can be added
-     * Returns true if can add, false if quota full
+     * Validasi apakah peserta baru bisa ditambahkan
      */
-    public function canAddParticipant(int $jumlahBagian = 1): bool
+    public function canAddParticipant(float $jumlahBagian = 1): bool
     {
-        // For Kambing/Domba: must be 1 person = 1 unit
+        // Validasi Kambing/Domba harus tepat 1
         if (in_array($this->jenis_hewan, ['kambing', 'domba'])) {
             if ($jumlahBagian != 1) {
-                return false; // Kambing/Domba must be exactly 1 portion
+                return false; 
             }
             return !$this->isKuotaFull();
         }
 
-        // For Sapi: can have multiple portions (max 7 people)
-        if ($this->jenis_hewan === 'sapi') {
-            return !$this->isKuotaFull();
-        }
-
-        return !$this->isKuotaFull();
+        // Validasi Sapi: Bagian yang diminta tidak boleh melebihi sisa
+        return $jumlahBagian <= $this->getSisaKuota();
     }
 
     /**
-     * Calculate price per portion (locked price)
+     * Hitung harga per bagian (Terkunci di DB atau hitung manual)
      */
     public function calculateHargaPerBagian(): float
     {
+        // Jika sudah diset di database, gunakan itu
+        if ($this->harga_per_bagian > 0) {
+            return $this->harga_per_bagian;
+        }
+
         $maxKuota = $this->max_kuota ?: $this->getMaxKuotaByJenisHewan();
         
         if ($maxKuota == 0) return 0;
@@ -234,18 +230,16 @@ class Kurban extends Model
     }
 
     /**
-     * Calculate automatic payment for participant
+     * Hitung nominal pembayaran otomatis berdasarkan jumlah bagian
      */
-    public function calculatePembayaran(int $jumlahBagian = 1): float
+    public function calculatePembayaran(float $jumlahBagian = 1): float
     {
-        // Use locked price if available, otherwise calculate
-        $hargaPerBagian = $this->harga_per_bagian ?: $this->calculateHargaPerBagian();
-        
+        $hargaPerBagian = $this->calculateHargaPerBagian();
         return round($hargaPerBagian * $jumlahBagian, 2);
     }
 
     /**
-     * Update status kurban
+     * Update status helper
      */
     public function updateStatus(string $status, ?int $userId = null): bool
     {

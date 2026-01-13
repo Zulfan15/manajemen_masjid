@@ -3,8 +3,14 @@
 @section('title', 'Edit Peserta Kurban')
 
 @section('content')
+<style>
+    /* Hilangkan spinner bawaan browser untuk input number */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+</style>
+
 <div class="container mx-auto max-w-3xl">
-    <!-- Header -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <div class="flex items-center justify-between">
             <div>
@@ -16,13 +22,28 @@
         </div>
     </div>
 
-    <!-- Form -->
+    @php
+        $maxBagian = $kurban->jenis_hewan === 'sapi' ? 7 : 1;
+        $totalTerpakai = $kurban->pesertaKurbans->sum('jumlah_bagian');
+        $sisaMurni = $maxBagian - $totalTerpakai;
+        // Limit user adalah sisa kuota global + bagian yang sedang dia pegang saat ini
+        $limitUser = $sisaMurni + $peserta->jumlah_bagian; 
+        $hargaPerBagian = $maxBagian > 0 ? ($kurban->total_biaya / $maxBagian) : 0;
+    @endphp
+
+    <div class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-6 text-sm flex items-center">
+        <i class="fas fa-info-circle mr-3 text-lg"></i>
+        <div>
+            <p>Maksimal bagian untuk peserta ini: <strong>{{ (float)$limitUser }}</strong> bagian.</p>
+            <p class="text-xs text-blue-600 mt-1">Harga per bagian: Rp {{ number_format($hargaPerBagian, 0, ',', '.') }}</p>
+        </div>
+    </div>
+
     <div class="bg-white rounded-lg shadow p-6">
         <form method="POST" action="{{ route('kurban.peserta.update', [$kurban, $peserta]) }}" class="space-y-6">
             @csrf
             @method('PUT')
 
-            <!-- Row 1: Nama Peserta & Identitas -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Nama Peserta <span class="text-red-500">*</span></label>
@@ -41,7 +62,6 @@
                 </div>
             </div>
 
-            <!-- Row 2: Telepon & Tipe -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Nomor Telepon</label>
@@ -63,7 +83,6 @@
                 </div>
             </div>
 
-            <!-- Alamat -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Alamat</label>
                 <textarea name="alamat" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">{{ old('alamat', $peserta->alamat) }}</textarea>
@@ -72,7 +91,6 @@
                 @enderror
             </div>
 
-            <!-- Row 3: Jumlah Jiwa & Jumlah Bagian -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Jumlah Jiwa <span class="text-red-500">*</span></label>
@@ -85,19 +103,41 @@
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Jumlah Bagian <span class="text-red-500">*</span></label>
-                    <input type="number" step="0.25" name="jumlah_bagian" value="{{ old('jumlah_bagian', $peserta->jumlah_bagian) }}" min="0.25" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
-                    <small class="text-gray-500 mt-1 block">Minimum 0.25 bagian</small>
+                    
+                    @if(in_array($kurban->jenis_hewan, ['kambing', 'domba']))
+                         {{-- Logic Kambing: Fixed 1 --}}
+                        <input type="number" name="jumlah_bagian" id="input-bagian" value="1" readonly class="w-full px-4 py-2 border border-gray-300 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed text-center">
+                    @else
+                         {{-- Logic Sapi: Plus Minus Button dengan Style Target --}}
+                        <div class="flex items-center border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-500 focus-within:border-transparent">
+                            <button type="button" id="btn-minus" class="px-4 py-2 bg-gray-50 hover:bg-gray-200 text-gray-600 transition border-r border-gray-300 h-full">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            
+                            <input type="number" step="1" name="jumlah_bagian" id="input-bagian" 
+                                   value="{{ old('jumlah_bagian', (float)$peserta->jumlah_bagian) }}" 
+                                   min="1" max="{{ $limitUser }}" 
+                                   class="w-full py-2 text-center border-none focus:ring-0 appearance-none bg-white" required>
+                                   
+                            <button type="button" id="btn-plus" class="px-4 py-2 bg-gray-50 hover:bg-gray-200 text-gray-600 transition border-l border-gray-300 h-full">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <small class="text-gray-500 mt-1 block text-center">Max update: <strong>{{ (float)$limitUser }}</strong> bagian</small>
+                    @endif
+
                     @error('jumlah_bagian')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
 
-            <!-- Row 4: Pembayaran -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Nominal Pembayaran (Rp) <span class="text-red-500">*</span></label>
-                    <input type="number" step="0.01" name="nominal_pembayaran" value="{{ old('nominal_pembayaran', $peserta->nominal_pembayaran) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                    {{-- Input Readonly, dihitung JS --}}
+                    <input type="number" id="input-nominal" name="nominal_pembayaran" value="{{ old('nominal_pembayaran', $peserta->nominal_pembayaran) }}" class="w-full px-4 py-2 border border-gray-300 bg-gray-100 text-gray-800 font-bold rounded-lg cursor-not-allowed" readonly required>
+                    <small id="hint-nominal" class="text-green-600 text-xs mt-1 block font-bold">Otomatis dihitung ulang</small>
                     @error('nominal_pembayaran')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -116,7 +156,6 @@
                 </div>
             </div>
 
-            <!-- Catatan -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-2">Catatan (Opsional)</label>
                 <textarea name="catatan" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500">{{ old('catatan', $peserta->catatan) }}</textarea>
@@ -125,7 +164,6 @@
                 @enderror
             </div>
 
-            <!-- Buttons -->
             <div class="flex items-center justify-end space-x-3 pt-6 border-t">
                 <a href="{{ route('kurban.show', $kurban) }}" class="bg-gray-400 text-white px-6 py-2 rounded-lg hover:bg-gray-500 transition">
                     <i class="fas fa-times mr-2"></i>Batal
@@ -137,4 +175,82 @@
         </form>
     </div>
 </div>
+
+{{-- SCRIPT DARI SOURCE 1 UNTUK INTERAKSI --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputBagian = document.getElementById('input-bagian');
+        const inputNominal = document.getElementById('input-nominal');
+        const hintNominal = document.getElementById('hint-nominal');
+        const btnMinus = document.getElementById('btn-minus');
+        const btnPlus = document.getElementById('btn-plus');
+        
+        // Data PHP
+        const totalBiaya = {{ $kurban->total_biaya }};
+        const maxBagian = {{ $maxBagian }}; 
+        const limitUser = {{ $limitUser }}; // Menggunakan limit khusus edit
+        // Cegah pembagian nol
+        const hargaPerSatuBagian = maxBagian > 0 ? (totalBiaya / maxBagian) : 0;
+
+        function updateFormLogic() {
+            let bagian = parseFloat(inputBagian.value) || 0;
+
+            // Guard Clause (Hanya jika Sapi / input enabled)
+            if (!inputBagian.readOnly) {
+                if (bagian > limitUser) {
+                    alert('Maksimal untuk peserta ini hanya ' + limitUser + ' bagian.');
+                    bagian = limitUser;
+                    inputBagian.value = limitUser;
+                }
+                if (bagian < 1) {
+                    bagian = 1;
+                    inputBagian.value = 1;
+                }
+            }
+
+            // Update UI Button State
+            if(btnMinus) {
+                btnMinus.disabled = (bagian <= 1);
+                btnMinus.style.opacity = (bagian <= 1) ? "0.5" : "1";
+            }
+            if(btnPlus) {
+                btnPlus.disabled = (bagian >= limitUser);
+                btnPlus.style.opacity = (bagian >= limitUser) ? "0.5" : "1";
+            }
+
+            // Hitung Harga
+            let hargaPasti = Math.round(bagian * hargaPerSatuBagian);
+            let rupiahFormat = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(hargaPasti);
+            
+            if(hintNominal) hintNominal.innerText = "Tagihan Baru: " + rupiahFormat;
+            if(inputNominal) inputNominal.value = hargaPasti;
+        }
+
+        // Event Listeners
+        if(btnMinus) {
+            btnMinus.addEventListener('click', function() {
+                let current = parseInt(inputBagian.value) || 0;
+                if(current > 1) {
+                    inputBagian.value = current - 1;
+                    updateFormLogic();
+                }
+            });
+        }
+
+        if(btnPlus) {
+            btnPlus.addEventListener('click', function() {
+                let current = parseInt(inputBagian.value) || 0;
+                if(current < limitUser) {
+                    inputBagian.value = current + 1;
+                    updateFormLogic();
+                }
+            });
+        }
+
+        if(inputBagian) {
+            inputBagian.addEventListener('input', updateFormLogic);
+            updateFormLogic(); // Init load
+        }
+    });
+</script>
 @endsection

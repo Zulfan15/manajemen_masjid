@@ -85,23 +85,28 @@ Route::middleware('auth')->group(function () {
         ->middleware(['auth', 'module.access:{module}']);
 
     // =========================================================================
-    // MODULE 5: QURBAN MANAGEMENT (FULLY IMPLEMENTED WITH GRANULAR PERMISSIONS)
+    // MODULE 5: QURBAN MANAGEMENT (STRICT PERMISSIONS)
     // =========================================================================
-    Route::middleware(['module.access:kurban'])->prefix('kurban')->name('kurban.')->group(function () {
-        // Dashboard & Reports
+    // Menggunakan middleware module.access sesuai kode target
+    Route::middleware(['auth', 'module.access:kurban'])->prefix('kurban')->name('kurban.')->group(function () {
+        
+        // 1. Dashboard & Reports
         Route::get('/dashboard', [KurbanController::class, 'dashboard'])
             ->name('dashboard')
             ->middleware('permission:kurban.view');
 
-        Route::get('/{kurban}/report/download', [KurbanController::class, 'downloadReport'])
+        // [PENTING] Route PDF (Fitur dari kode pertama yang kita pertahankan)
+        // Kita beri permission 'kurban.view' agar aman
+        Route::get('/{kurban}/cetak-laporan', [KurbanController::class, 'exportPdf'])
+            ->name('export-pdf')
+            ->middleware('permission:kurban.view');
+
+        // Alias route untuk struktur baru (future proof)
+        Route::get('/{kurban}/report/download', [KurbanController::class, 'exportPdf'])
             ->name('report.download')
             ->middleware('permission:kurban.view');
 
-        Route::get('/{kurban}/report/view', [KurbanController::class, 'viewReport'])
-            ->name('report.view')
-            ->middleware('permission:kurban.view');
-
-        // Data Kurban (Main CRUD)
+        // 2. Data Kurban (Main CRUD)
         Route::get('/', [KurbanController::class, 'index'])
             ->name('index')
             ->middleware('permission:kurban.view');
@@ -130,7 +135,8 @@ Route::middleware('auth')->group(function () {
             ->name('destroy')
             ->middleware('permission:kurban.delete');
 
-        // Peserta Kurban
+        // 3. Peserta Kurban (GRANULAR PERMISSIONS)
+        // Menggunakan permission spesifik sesuai kode target
         Route::get('/{kurban}/peserta/create', [KurbanController::class, 'createPeserta'])
             ->name('peserta.create')
             ->middleware('permission:kurban.peserta.create');
@@ -151,7 +157,8 @@ Route::middleware('auth')->group(function () {
             ->name('peserta.destroy')
             ->middleware('permission:kurban.peserta.delete');
 
-        // Distribusi Kurban
+        // 4. Distribusi Kurban (GRANULAR PERMISSIONS)
+        // Menggunakan permission spesifik sesuai kode target
         Route::get('/{kurban}/distribusi/create', [KurbanController::class, 'createDistribusi'])
             ->name('distribusi.create')
             ->middleware('permission:kurban.distribusi.create');
@@ -171,8 +178,8 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{kurban}/distribusi/{distribusi}', [KurbanController::class, 'destroyDistribusi'])
             ->name('distribusi.destroy')
             ->middleware('permission:kurban.distribusi.delete');
-
-        // Export
+            
+        // Export Data Excel (Jika diperlukan di masa depan)
         Route::get('/export', [KurbanController::class, 'export'])
             ->name('export')
             ->middleware('permission:kurban.export');

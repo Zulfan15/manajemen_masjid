@@ -23,7 +23,7 @@ class DistribusiKurban extends Model
         'berat_daging',
         'estimasi_harga',
         'jenis_distribusi',
-        'persentase_alokasi',
+        'persentase_alokasi', // Baru: Tambahan kolom dari kode target
         'tanggal_distribusi',
         'status_distribusi',
         'catatan',
@@ -35,7 +35,7 @@ class DistribusiKurban extends Model
         'tanggal_distribusi' => 'date',
         'berat_daging' => 'decimal:2',
         'estimasi_harga' => 'decimal:2',
-        'persentase_alokasi' => 'decimal:2',
+        'persentase_alokasi' => 'decimal:2', // Casting baru
     ];
 
     // ===== RELATIONSHIPS =====
@@ -131,10 +131,12 @@ class DistribusiKurban extends Model
     public function getJenisDistribusiLabel(): string
     {
         $labels = [
+            // Label Modern (Target)
             'shohibul_qurban' => 'Hak Shohibul Qurban (1/3)',
             'fakir_miskin' => 'Fakir Miskin / Warga Sekitar (1/3)',
             'yayasan' => 'Yayasan / Pihak Luar (1/3)',
-            // Legacy support
+            
+            // Legacy Support (Source)
             'keluarga_peserta' => 'Keluarga Peserta',
             'saudara' => 'Saudara',
             'kerabat' => 'Kerabat',

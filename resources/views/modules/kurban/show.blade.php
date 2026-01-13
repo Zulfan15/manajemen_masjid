@@ -4,7 +4,6 @@
 
 @section('content')
 <div class="container mx-auto">
-    <!-- Header -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <div class="flex items-center justify-between">
             <div>
@@ -14,18 +13,22 @@
                 <p class="text-gray-600 mt-2">Nomor: <strong>{{ $kurban->nomor_kurban }}</strong></p>
             </div>
             <div class="flex space-x-2">
-                @if(auth()->user()->hasPermission('kurban.view'))
-                    <a href="{{ route('kurban.report.download', $kurban) }}" target="_blank" class="bg-green-700 text-white px-4 py-3 rounded-lg hover:bg-green-800 transition flex items-center space-x-2">
+                {{-- LOGIKA FITUR DARI TEMPLATE 1: Tombol hanya muncul jika status 'selesai' --}}
+                @if($kurban->status == 'selesai')
+                    {{-- Menggunakan style tombol dari Template 2 tapi link/logika dari Template 1 --}}
+                    <a href="{{ route('kurban.export-pdf', $kurban) }}" target="_blank" class="bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition flex items-center space-x-2">
                         <i class="fas fa-file-pdf"></i>
-                        <span>Laporan PDF</span>
+                        <span>Cetak Laporan</span>
                     </a>
                 @endif
+
                 @if(!auth()->user()->isSuperAdmin() && auth()->user()->hasPermission('kurban.update'))
                     <a href="{{ route('kurban.edit', $kurban) }}" class="bg-yellow-600 text-white px-4 py-3 rounded-lg hover:bg-yellow-700 transition flex items-center space-x-2">
                         <i class="fas fa-edit"></i>
                         <span>Edit</span>
                     </a>
                 @endif
+                
                 <a href="{{ route('kurban.index') }}" class="bg-gray-400 text-white px-4 py-3 rounded-lg hover:bg-gray-500 transition flex items-center space-x-2">
                     <i class="fas fa-arrow-left"></i>
                     <span>Kembali</span>
@@ -40,7 +43,6 @@
         @endif
     </div>
 
-    <!-- Alert Messages -->
     @if($message = session('success'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6 flex items-center">
             <i class="fas fa-check-circle mr-3"></i>
@@ -48,9 +50,7 @@
         </div>
     @endif
 
-    <!-- Main Info -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <!-- Card 1: Info Dasar -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="mb-4 pb-4 border-b">
                 <h3 class="text-lg font-semibold text-gray-800">Informasi Dasar</h3>
@@ -75,7 +75,6 @@
             </div>
         </div>
 
-        <!-- Card 2: Status -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="mb-4 pb-4 border-b">
                 <h3 class="text-lg font-semibold text-gray-800">Status & Timeline</h3>
@@ -84,6 +83,7 @@
                 <div>
                     <p class="text-sm text-gray-600">Status Saat Ini</p>
                     @php
+                        // Logika warna status
                         $statusColors = [
                             'disiapkan' => 'bg-blue-100 text-blue-800',
                             'siap_sembelih' => 'bg-yellow-100 text-yellow-800',
@@ -114,7 +114,6 @@
             </div>
         </div>
 
-        <!-- Card 3: Biaya -->
         <div class="bg-white rounded-lg shadow p-6">
             <div class="mb-4 pb-4 border-b">
                 <h3 class="text-lg font-semibold text-gray-800">Detail Biaya</h3>
@@ -136,18 +135,20 @@
         </div>
     </div>
 
-    <!-- Kuota & Pembayaran Info -->
     @php
-        $sisaKuota = $kurban->getSisaKuota();
-        $kuotaTerisi = $kurban->getCurrentKuotaUsage();
-        $persentase = $kurban->getKuotaPercentage();
-        $progressClass = 'bg-green-500';
-        if ($persentase >= 100) {
-            $progressClass = 'bg-red-500';
-        } elseif ($persentase >= 75) {
-            $progressClass = 'bg-yellow-500';
-        }
+        // LOGIKA DARI TEMPLATE 1 (Manual Calculation)
+        // Kita pakai ini karena mungkin helper $kurban->getSisaKuota() belum ada di model Anda
+        $maxBagian = $kurban->jenis_hewan === 'sapi' ? 7 : 1;
+        $terpakai = $kurban->pesertaKurbans->sum('jumlah_bagian');
+        $sisa = $maxBagian - $terpakai;
+        $persen = ($maxBagian > 0) ? ($terpakai / $maxBagian) * 100 : 0;
+        
+        // Warna Progress Bar sesuai logika Template 1
+        $progressClass = 'bg-green-500'; 
+        if($persen >= 50) $progressClass = 'bg-yellow-500';
+        if($persen >= 100) $progressClass = 'bg-red-500';
     @endphp
+
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <div class="mb-4 pb-4 border-b">
             <h3 class="text-lg font-semibold text-gray-800">
@@ -155,43 +156,43 @@
             </h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Kuota Section -->
             <div>
                 <div class="flex justify-between items-center mb-2">
                     <span class="text-sm font-medium text-gray-700">Kuota Peserta</span>
-                    <span class="text-sm font-bold {{ $sisaKuota == 0 ? 'text-red-600' : 'text-green-600' }}">
-                        {{ $kuotaTerisi }} / {{ $kurban->max_kuota }} Terisi
+                    <span class="text-sm font-bold {{ $sisa <= 0 ? 'text-red-600' : 'text-green-600' }}">
+                        {{ (float)$terpakai }} / {{ $maxBagian }} Terisi
                     </span>
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-6 mb-2">
-                    <div class="{{ $progressClass }} h-6 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all" style="width: {{ min($persentase, 100) }}%">
-                        {{ number_format($persentase, 1) }}%
+                    <div class="{{ $progressClass }} h-6 rounded-full flex items-center justify-center text-white text-xs font-bold transition-all" style="width: {{ $persen > 100 ? 100 : $persen }}%">
+                        {{ number_format($persen, 1) }}%
                     </div>
                 </div>
                 <div class="flex justify-between text-xs text-gray-500">
                     <span>
-                        @if($sisaKuota == 0)
+                        @if($sisa <= 0)
                             <span class="text-red-600 font-bold"><i class="fas fa-check-circle"></i> KUOTA PENUH</span>
                         @else
-                            <span class="text-green-600"><i class="fas fa-user-plus"></i> Sisa {{ $sisaKuota }} Slot</span>
+                            <span class="text-green-600"><i class="fas fa-user-plus"></i> Sisa {{ (float)$sisa }} Slot</span>
                         @endif
                     </span>
-                    <span>Max {{ $kurban->max_kuota }} {{ $kurban->jenis_hewan == 'sapi' ? 'Orang' : 'Ekor' }}</span>
+                    <span>Max {{ $maxBagian }} {{ $kurban->jenis_hewan == 'sapi' ? 'Orang' : 'Ekor' }}</span>
                 </div>
             </div>
             
-            <!-- Pembayaran Section -->
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-sm text-gray-600">Harga per Bagian (Terkunci)</span>
                     <span class="font-bold text-lg text-green-700">
                         <i class="fas fa-lock text-xs text-gray-400 mr-1"></i>
+                        {{-- Asumsi kolom harga_per_bagian ada, jika tidak, bisa diganti logika manual --}}
                         Rp {{ number_format($kurban->harga_per_bagian, 0, ',', '.') }}
                     </span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-sm text-gray-600">Total Pembayaran Masuk</span>
-                    <span class="font-bold text-blue-600">Rp {{ number_format($kurban->totalPembayaran(), 0, ',', '.') }}</span>
+                    {{-- Hitung manual sum jika helper tidak ada --}}
+                    <span class="font-bold text-blue-600">Rp {{ number_format($kurban->pesertaKurbans->sum('nominal_pembayaran'), 0, ',', '.') }}</span>
                 </div>
                 @if($kurban->total_berat_daging)
                 <div class="flex justify-between items-center">
@@ -203,17 +204,24 @@
         </div>
     </div>
 
-    <!-- Peserta Kurban Section -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <div class="flex items-center justify-between mb-4 pb-4 border-b">
             <h3 class="text-lg font-semibold text-gray-800">
                 <i class="fas fa-users text-green-700 mr-2"></i>Peserta Kurban
             </h3>
             @if(!auth()->user()->isSuperAdmin() && auth()->user()->hasPermission('kurban.create'))
-                <a href="{{ route('kurban.peserta.create', $kurban) }}" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center space-x-2">
-                    <i class="fas fa-plus"></i>
-                    <span>Tambah Peserta</span>
-                </a>
+                @if($sisa > 0)
+                    <a href="{{ route('kurban.peserta.create', $kurban) }}" class="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 transition flex items-center space-x-2">
+                        <i class="fas fa-plus"></i>
+                        <span>Tambah Peserta</span>
+                    </a>
+                @else
+                    {{-- Tombol disabled gaya Template 2 jika penuh --}}
+                    <button disabled class="bg-gray-300 text-gray-500 px-4 py-2 rounded-lg cursor-not-allowed flex items-center space-x-2">
+                        <i class="fas fa-lock"></i>
+                        <span>Kuota Penuh</span>
+                    </button>
+                @endif
             @endif
         </div>
 
@@ -248,14 +256,9 @@
                                             'cicilan' => 'bg-yellow-100 text-yellow-800',
                                             'lunas' => 'bg-green-100 text-green-800',
                                         ];
-                                        $pembayaranLabel = [
-                                            'belum_lunas' => 'Belum Lunas',
-                                            'cicilan' => 'Cicilan',
-                                            'lunas' => 'Lunas',
-                                        ];
                                     @endphp
                                     <span class="inline-block px-2 py-1 {{ $pembayaranColors[$peserta->status_pembayaran] ?? 'bg-gray-100 text-gray-800' }} rounded text-xs font-medium">
-                                        {{ $pembayaranLabel[$peserta->status_pembayaran] ?? $peserta->status_pembayaran }}
+                                        {{ ucfirst(str_replace('_', ' ', $peserta->status_pembayaran)) }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-center">
@@ -282,7 +285,6 @@
                 </table>
             </div>
 
-            <!-- Pagination for Peserta -->
             <div class="mt-4">
                 {{ $pesertaKurbans->render() }}
             </div>
@@ -291,7 +293,6 @@
         @endif
     </div>
 
-    <!-- Distribusi Kurban Section -->
     <div class="bg-white rounded-lg shadow p-6">
         <div class="flex items-center justify-between mb-4 pb-4 border-b">
             <h3 class="text-lg font-semibold text-gray-800">
@@ -323,8 +324,16 @@
                             <tr class="hover:bg-gray-50 transition">
                                 <td class="px-4 py-3 font-semibold text-gray-800">{{ $distribusi->penerima_nama }}</td>
                                 <td class="px-4 py-3 text-sm">
+                                    {{-- Menggunakan label manual jika helper method tidak ada di model --}}
+                                    @php
+                                        $jenisLabel = [
+                                            'shohibul' => 'Shohibul Kurban',
+                                            'fakir_miskin' => 'Fakir Miskin',
+                                            'hadiah' => 'Hadiah/Umum'
+                                        ];
+                                    @endphp
                                     <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-medium">
-                                        {{ $distribusi->getJenisDistribusiLabel() }}
+                                        {{ $jenisLabel[$distribusi->jenis_distribusi] ?? ucfirst(str_replace('_', ' ', $distribusi->jenis_distribusi)) }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3 text-sm">{{ number_format($distribusi->berat_daging, 2) }} kg</td>
@@ -370,7 +379,6 @@
                 </table>
             </div>
 
-            <!-- Pagination for Distribusi -->
             <div class="mt-4">
                 {{ $distribusiKurbans->render() }}
             </div>
