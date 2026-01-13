@@ -185,7 +185,7 @@
                                     @if($jamaah->is_verified)
                                         <div class="text-sm text-gray-600">
                                             <div class="font-medium">Oleh: {{ $jamaah->verifier ? $jamaah->verifier->name : '-' }}</div>
-                                            <div class="text-xs text-gray-500">{{ $jamaah->verified_at ? $jamaah->verified_at->format('d M Y H:i') : '-' }}</div>
+                                            <div class="text-xs text-gray-500">{{ $jamaah->verified_at ? \Carbon\Carbon::parse($jamaah->verified_at)->format('d M Y H:i') : '-' }}</div>
                                             @if($jamaah->verification_notes)
                                                 <div class="text-xs text-gray-600 mt-1 italic">"{{ $jamaah->verification_notes }}"</div>
                                             @endif
