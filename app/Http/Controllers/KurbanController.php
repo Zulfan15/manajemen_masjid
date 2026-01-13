@@ -27,6 +27,72 @@ class KurbanController extends Controller
     // DATA KURBAN (LOGIC TARGET: Support Max Kuota & Auto Price)
     // =========================================================================
 
+    /**
+     * Dashboard Kurban - Menampilkan statistik dan ringkasan
+     */
+    public function dashboard(Request $request)
+    {
+        if (!$this->authService->hasPermission('kurban.view')) {
+            abort(403, 'Anda tidak memiliki akses ke modul kurban.');
+        }
+
+        $tahun = $request->input('tahun', now()->year);
+        $status = $request->input('status');
+
+        // Base query untuk kurban tahun ini
+        $query = Kurban::whereYear('tanggal_persiapan', $tahun);
+
+        if ($status) {
+            $query->where('status', $status);
+        }
+
+        $kurbans = $query->with(['pesertaKurbans', 'distribusiKurbans'])->get();
+
+        // Hitung statistik
+        $statistics = [
+            'total_kurban' => $kurbans->count(),
+            'total_peserta' => $kurbans->sum(fn($k) => $k->pesertaKurbans->count()),
+            'total_pembayaran' => $kurbans->sum(fn($k) => $k->pesertaKurbans->sum('nominal_pembayaran')),
+            'total_daging_distribusi' => $kurbans->sum(fn($k) => $k->distribusiKurbans->sum('berat_daging')),
+            // Status counts untuk view
+            'kurban_disiapkan' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('status', 'disiapkan')->count(),
+            'kurban_siap_sembelih' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('status', 'siap_sembelih')->count(),
+            'kurban_disembelih' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('status', 'disembelih')->count(),
+            'kurban_selesai' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('status', 'selesai')->count(),
+        ];
+
+        // Status distribution untuk chart
+        $statusDistribution = [
+            'disiapkan' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('status', 'disiapkan')->count(),
+            'siap_sembelih' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('status', 'siap_sembelih')->count(),
+            'disembelih' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('status', 'disembelih')->count(),
+            'selesai' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('status', 'selesai')->count(),
+        ];
+
+        // Jenis hewan distribution
+        $jenisDistribution = [
+            'sapi' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('jenis_hewan', 'sapi')->count(),
+            'kambing' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('jenis_hewan', 'kambing')->count(),
+            'domba' => Kurban::whereYear('tanggal_persiapan', $tahun)->where('jenis_hewan', 'domba')->count(),
+        ];
+
+        // Kurban terbaru
+        $latestKurbans = Kurban::whereYear('tanggal_persiapan', $tahun)
+            ->with(['pesertaKurbans'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('modules.kurban.dashboard', compact(
+            'tahun',
+            'statistics',
+            'statusDistribution',
+            'jenisDistribution',
+            'latestKurbans',
+            'kurbans'
+        ));
+    }
+
     public function index(Request $request)
     {
         if (!$this->authService->hasPermission('kurban.view')) {
@@ -289,7 +355,7 @@ class KurbanController extends Controller
             'nomor_telepon' => 'required|string|max:20',
             'alamat' => 'required|string',
             // Jumlah bagian biasanya tidak diubah di edit jika sudah bayar, tapi kita izinkan dengan validasi
-            'jumlah_bagian' => 'required|numeric|min:0.25', 
+            'jumlah_bagian' => 'required|numeric|min:0.25',
             'status_pembayaran' => 'required|in:belum_lunas,lunas,cicilan',
             'catatan' => 'nullable|string',
         ]);
@@ -298,11 +364,11 @@ class KurbanController extends Controller
         // (Total di DB) - (Punya Dia Lama) + (Punya Dia Baru)
         $currentUsed = $kurban->pesertaKurbans()->sum('jumlah_bagian');
         $newUsage = $currentUsed - $peserta->jumlah_bagian + $request->jumlah_bagian;
-        
+
         $maxQuota = $kurban->max_kuota ?: $kurban->getMaxKuotaByJenisHewan();
-        
+
         if ($newUsage > $maxQuota) {
-             return redirect()->back()->withInput()->withErrors(['jumlah_bagian' => "Gagal update. Kuota akan melebihi batas maksimal."]);
+            return redirect()->back()->withInput()->withErrors(['jumlah_bagian' => "Gagal update. Kuota akan melebihi batas maksimal."]);
         }
 
         // Recalculate price if bagian changes
@@ -476,7 +542,7 @@ class KurbanController extends Controller
 
         // Load View khusus PDF (Sesuai file modules/kurban/print-pdf.blade.php yang dibuat sebelumnya)
         $pdf = Pdf::loadView('modules.kurban.print-pdf', compact('kurban', 'pesertaKurbans', 'distribusiKurbans'));
-        
+
         // Set ukuran kertas (A4 Portrait)
         $pdf->setPaper('a4', 'portrait');
 
