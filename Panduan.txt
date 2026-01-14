@@ -1,0 +1,338 @@
+================================================================================
+          PANDUAN INSTALASI SISTEM MANAJEMEN MASJID (LARAVEL)
+================================================================================
+
+Dokumen ini berisi panduan lengkap untuk menginstal dan menjalankan aplikasi 
+Sistem Manajemen Masjid dari awal hingga siap digunakan.
+
+================================================================================
+PERSYARATAN SISTEM (REQUIREMENTS)
+================================================================================
+
+1. PHP versi 8.1 atau lebih tinggi
+2. Composer (PHP Dependency Manager)
+3. MySQL / MariaDB
+4. Git
+5. XAMPP / Laragon / WAMP (opsional, untuk kemudahan)
+6. Extension PHP yang diperlukan:
+   - BCMath, Ctype, Fileinfo, JSON, Mbstring, OpenSSL, PDO, Tokenizer, XML
+
+CATATAN: Jika menggunakan XAMPP, pastikan versi PHP sudah 8.1+
+
+================================================================================
+LANGKAH 1: CLONE REPOSITORY
+================================================================================
+
+1.1. Buka terminal (Command Prompt / Git Bash / PowerShell)
+
+1.2. Navigasi ke folder tujuan:
+     cd C:\xampp\htdocs
+     
+     ATAU jika menggunakan Laragon:
+     cd C:\laragon\www
+
+1.3. Clone repository:
+     git clone https://github.com/Zulfan15/manajemen_masjid.git
+
+1.4. Masuk ke folder proyek:
+     cd manajemen_masjid
+
+================================================================================
+LANGKAH 2: INSTALL DEPENDENCIES
+================================================================================
+
+2.1. Install dependency PHP dengan Composer:
+     composer install
+
+     Jika terjadi error SSL certificate, tambahkan flag:
+     composer install --ignore-platform-reqs
+
+2.2. Install dependency NPM (jika diperlukan):
+     npm install
+
+================================================================================
+LANGKAH 3: KONFIGURASI ENVIRONMENT
+================================================================================
+
+3.1. Copy file .env.example menjadi .env:
+     
+     Windows CMD:
+     copy .env.example .env
+     
+     PowerShell / Git Bash:
+     cp .env.example .env
+
+3.2. Generate Application Key:
+     php artisan key:generate
+
+3.3. Buka file .env dengan text editor dan sesuaikan konfigurasi database:
+
+     DB_CONNECTION=mysql
+     DB_HOST=127.0.0.1
+     DB_PORT=3306
+     DB_DATABASE=manajemen_masjid
+     DB_USERNAME=root
+     DB_PASSWORD=
+
+     CATATAN: 
+     - Ganti DB_USERNAME dengan username MySQL Anda
+     - Ganti DB_PASSWORD dengan password MySQL Anda (kosongkan jika tidak ada)
+     - DB_DATABASE adalah nama database yang akan digunakan
+
+================================================================================
+LANGKAH 4: SETUP DATABASE
+================================================================================
+
+Ada 2 cara untuk setup database:
+
+---- CARA 1: Menggunakan Migration & Seeder (DIREKOMENDASIKAN) ----
+
+4.1. Buat database baru di MySQL:
+     - Buka phpMyAdmin (http://localhost/phpmyadmin)
+     - Klik "New" di sidebar kiri
+     - Nama database: manajemen_masjid
+     - Collation: utf8mb4_unicode_ci
+     - Klik "Create"
+
+4.2. Jalankan migration:
+     php artisan migrate
+
+4.3. Jalankan seeder untuk mengisi data awal:
+     php artisan db:seed
+
+     ATAU jalankan seeder tertentu:
+     php artisan db:seed --class=RolesAndPermissionsSeeder
+     php artisan db:seed --class=UsersSeeder
+     php artisan db:seed --class=PengeluaranSeeder
+
+---- CARA 2: Import File SQL Langsung ----
+
+4.1. Buat database baru di MySQL:
+     - Buka phpMyAdmin (http://localhost/phpmyadmin)
+     - Klik "New" di sidebar kiri
+     - Nama database: manajemen_masjid
+     - Collation: utf8mb4_unicode_ci
+     - Klik "Create"
+
+4.2. Import file SQL:
+     - Pilih database "manajemen_masjid"
+     - Klik tab "Import"
+     - Pilih file "manajemen_masjid.sql" dari folder proyek
+     - Klik "Go" untuk memulai import
+
+     ATAU via command line:
+     mysql -u root -p manajemen_masjid < manajemen_masjid.sql
+
+================================================================================
+LANGKAH 5: SET FOLDER PERMISSIONS
+================================================================================
+
+5.1. Pastikan folder storage bisa ditulis:
+     
+     Windows (biasanya tidak perlu):
+     Folder storage dan bootstrap/cache sudah bisa ditulis secara default
+
+     Linux/Mac:
+     chmod -R 775 storage
+     chmod -R 775 bootstrap/cache
+
+5.2. Buat symbolic link untuk storage:
+     php artisan storage:link
+
+================================================================================
+LANGKAH 6: CLEAR CACHE & OPTIMIZE
+================================================================================
+
+6.1. Bersihkan semua cache:
+     php artisan cache:clear
+     php artisan config:clear
+     php artisan route:clear
+     php artisan view:clear
+
+6.2. Optimize aplikasi:
+     php artisan optimize
+
+================================================================================
+LANGKAH 7: JALANKAN APLIKASI
+================================================================================
+
+7.1. Jalankan development server:
+     php artisan serve
+
+7.2. Buka browser dan akses:
+     http://localhost:8000
+     
+     ATAU jika menggunakan XAMPP/Laragon:
+     http://localhost/manajemen_masjid/public
+
+================================================================================
+AKUN DEFAULT UNTUK LOGIN
+================================================================================
+
+Berikut akun default yang tersedia (jika menggunakan seeder):
+
+┌────────────────────────────────────────┬──────────────────┬───────────────┐
+│ Email                                  │ Password         │ Role          │
+├────────────────────────────────────────┼──────────────────┼───────────────┤
+│ superadmin@masjid.com                  │ password         │ Super Admin   │
+│ admin@masjid.com                       │ password         │ Admin         │
+│ takmir@masjid.com                      │ password         │ Takmir        │
+│ bendahara@masjid.com                   │ password         │ Bendahara     │
+│ sekretaris@masjid.com                  │ password         │ Sekretaris    │
+└────────────────────────────────────────┴──────────────────┴───────────────┘
+
+CATATAN: Ganti password default setelah login pertama untuk keamanan!
+
+================================================================================
+TROUBLESHOOTING (PENYELESAIAN MASALAH)
+================================================================================
+
+---- ERROR: Class not found ----
+   Solusi:
+   composer dump-autoload
+   php artisan optimize
+
+---- ERROR: SQLSTATE[HY000] [1049] Unknown database ----
+   Solusi:
+   Buat database terlebih dahulu di phpMyAdmin sesuai nama di .env
+
+---- ERROR: SQLSTATE[42S02] Table doesn't exist ----
+   Solusi:
+   php artisan migrate
+   ATAU import file manajemen_masjid.sql
+
+---- ERROR: Permission denied / Storage tidak bisa ditulis ----
+   Solusi (Windows):
+   - Klik kanan folder storage > Properties > Security
+   - Pastikan user memiliki permission "Full Control"
+   
+   Solusi (Linux/Mac):
+   chmod -R 775 storage
+   chmod -R 775 bootstrap/cache
+
+---- ERROR: Route [xxx] not defined ----
+   Solusi:
+   php artisan route:clear
+   php artisan route:cache
+
+---- ERROR: View [xxx] not found ----
+   Solusi:
+   php artisan view:clear
+
+---- ERROR: Call to undefined relationship ----
+   Solusi:
+   - Pastikan model memiliki definisi relationship yang benar
+   - Jalankan: composer dump-autoload
+
+---- Dropdown Kosong / Data tidak muncul ----
+   Solusi:
+   - Jalankan seeder: php artisan db:seed
+   - Atau import database dari file SQL terbaru
+
+---- Browser menampilkan versi lama (setelah git pull) ----
+   Solusi:
+   - Clear browser cache (Ctrl+Shift+Delete)
+   - Hard reload (Ctrl+F5)
+   - Buka di mode incognito
+
+================================================================================
+PERINTAH ARTISAN YANG SERING DIGUNAKAN
+================================================================================
+
+# Jalankan server development
+php artisan serve
+
+# Jalankan migration
+php artisan migrate
+
+# Rollback migration terakhir
+php artisan migrate:rollback
+
+# Reset database dan jalankan ulang migration
+php artisan migrate:fresh
+
+# Reset database + migration + seeder
+php artisan migrate:fresh --seed
+
+# Jalankan seeder
+php artisan db:seed
+
+# Jalankan seeder tertentu
+php artisan db:seed --class=NamaSeeder
+
+# Clear semua cache
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear
+
+# Optimize aplikasi
+php artisan optimize
+
+# Lihat daftar route
+php artisan route:list
+
+# Buat symbolic link storage
+php artisan storage:link
+
+================================================================================
+SETELAH GIT PULL (UPDATE DARI REPOSITORY)
+================================================================================
+
+Setiap kali melakukan git pull, jalankan perintah berikut:
+
+1. Update dependencies:
+   composer install
+
+2. Jalankan migration baru:
+   php artisan migrate
+
+3. Clear cache:
+   php artisan cache:clear
+   php artisan config:clear
+   php artisan route:clear
+   php artisan view:clear
+
+4. Optimize:
+   php artisan optimize
+
+5. Restart server:
+   - Tekan Ctrl+C untuk stop
+   - Jalankan ulang: php artisan serve
+
+================================================================================
+STRUKTUR FOLDER PENTING
+================================================================================
+
+manajemen_masjid/
+├── app/                    # Kode aplikasi PHP (Controllers, Models, dll)
+│   ├── Http/Controllers/   # Controller untuk handle request
+│   └── Models/             # Model database
+├── config/                 # File konfigurasi
+├── database/
+│   ├── migrations/         # File migration database
+│   └── seeders/            # File seeder untuk data awal
+├── public/                 # File yang bisa diakses publik (CSS, JS, images)
+├── resources/
+│   └── views/              # File Blade template (tampilan)
+├── routes/
+│   └── web.php             # Definisi route web
+├── storage/                # File storage (logs, cache, uploads)
+├── .env                    # Konfigurasi environment (JANGAN SHARE!)
+├── .env.example            # Contoh file environment
+├── composer.json           # Dependency PHP
+└── manajemen_masjid.sql    # Backup database
+
+================================================================================
+KONTAK & BANTUAN
+================================================================================
+
+Jika mengalami masalah yang tidak bisa diselesaikan dengan panduan ini,
+silakan hubungi tim pengembang atau buat issue di repository GitHub.
+
+Repository: https://github.com/Zulfan15/manajemen_masjid
+Email: muhammad.zulfan15@mhs.itenas.ac.id
+
+================================================================================
+                              SELAMAT MENGGUNAKAN!
+================================================================================
